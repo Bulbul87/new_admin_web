@@ -11,12 +11,12 @@ export interface User {
   email: string;
   phone: string;
 
-
+  providerInfo?: {
     identityData?: {
-      
+      ssn?: string;
       ssnLast4?: string;
     };
- 
+  };
 }
 
 

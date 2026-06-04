@@ -1,51 +1,113 @@
-const base64ToArrayBuffer = (base64:any) => {
+// ===============================
+// Base64 → Uint8Array
+// ===============================
+const base64ToUint8Array = (base64: string): Uint8Array => {
   const binary = atob(base64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
+
+  return bytes;
+};
+
+// ===============================
+// KEY CONVERSION
+// ===============================
+const getKeyBuffer = (rawKey: string): ArrayBuffer => {
+  const key = rawKey.trim().replace(/^["']|["']$/g, "");
+
+  // HEX KEY
+  if (/^[0-9a-fA-F]{64}$/.test(key)) {
+    const bytes = key.match(/.{2}/g)!.map((b) => parseInt(b, 16));
+    return new Uint8Array(bytes).buffer;
+  }
+
+  // BASE64 KEY
+  const binary = atob(key);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
   return bytes.buffer;
 };
 
-const arrayBufferToString = (buffer:any) => {
-  return new TextDecoder().decode(buffer);
-};
-
-export const decryptData = async (ciphertextBase64:any) => {
+// ===============================
+// AES-256-GCM DECRYPT
+// ===============================
+export const decryptData = async (
+  ciphertextBase64: string
+): Promise<string | null> => {
   try {
-    const rawKey = import.meta.env.VITE_AES_SECRET_KEY || "YOUR_KEY_HERE";
+    const rawKey = import.meta.env.VITE_AES_SECRET_KEY;
 
-    // convert key
-    const keyBuffer = new TextEncoder().encode(rawKey.padEnd(32, "0"));
+    console.log("AES KEY:", rawKey);
 
-    const cryptoKey = await window.crypto.subtle.importKey(
+    if (!rawKey) {
+      throw new Error("AES key not found");
+    }
+
+    const keyBuffer = getKeyBuffer(rawKey);
+
+    console.log(
+      "KEY LENGTH:",
+      new Uint8Array(keyBuffer).length
+    );
+
+    const cryptoKey = await crypto.subtle.importKey(
       "raw",
       keyBuffer,
-      { name: "AES-GCM" },
+      {
+        name: "AES-GCM",
+      },
       false,
       ["decrypt"]
     );
 
-    const data = base64ToArrayBuffer(ciphertextBase64);
+    const data = base64ToUint8Array(ciphertextBase64);
 
-    // backend format: IV(12) + AUTH_TAG(16) + DATA
+    console.log("Encrypted Length:", data.length);
+
+    // Backend format:
+    // IV(12) + AUTH_TAG(16) + CIPHERTEXT
+
     const iv = data.slice(0, 12);
-    const encrypted = data.slice(28);
+    const authTag = data.slice(12, 28);
+    const ciphertext = data.slice(28);
 
-    const decrypted = await window.crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: iv,
-        tagLength: 128,
-      },
-      cryptoKey,
-      encrypted
+    // WebCrypto format:
+    // CIPHERTEXT + AUTH_TAG
+
+    const combined = new Uint8Array(
+      ciphertext.length + authTag.length
     );
 
-    return arrayBufferToString(decrypted);
+    combined.set(ciphertext);
+    combined.set(authTag, ciphertext.length);
+
+    const decryptedBuffer =
+      await crypto.subtle.decrypt(
+        {
+          name: "AES-GCM",
+          iv,
+          tagLength: 128,
+        },
+        cryptoKey,
+        combined
+      );
+
+    const result = new TextDecoder().decode(
+      decryptedBuffer
+    );
+
+    console.log("DECRYPTED:", result);
+
+    return result;
   } catch (error) {
-    console.log("Decrypt error:", error);
+    console.error("Decrypt error:", error);
     return null;
   }
 };

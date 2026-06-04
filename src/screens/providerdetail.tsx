@@ -30,7 +30,7 @@ const ProviderDetails: React.FC = () => {
 
   const [ssmidValue, setSsmidValue] = useState("");
 const [loadingSsmid, setLoadingSsmid] = useState(false);
-
+const [showSsmid, setShowSsmid] = useState(false);
   // ==============================
   // FETCH DATA
   // ==============================
@@ -40,35 +40,129 @@ const [loadingSsmid, setLoadingSsmid] = useState(false);
     fetchProviderDetails();
 
   }, [id]);
+//   const handleSsmidHover = async () => {
+//     try {
+//       if (ssmidValue || loadingSsmid) return;
 
-const handleSsmidHover = async () => {
+//       setLoadingSsmid(true);
+
+//       const identity = provider?.providerInfo?.identityData;
+
+//       if (!identity) {
+//         setSsmidValue("SSN Not Available");
+//         return;
+//       }
+
+//       // CASE 1: full SSN → decrypt
+//       if (identity.ssn) {
+//         try {
+//           const decrypted = await decryptData(identity.ssn);
+//           setSsmidValue(decrypted || "Failed to decrypt");
+//            console.log(
+//   provider.firstName,
+//   provider.lastName,
+//   decrypted
+// );
+//         } catch (err) {
+//           console.log("Decrypt error:", err);
+//           setSsmidValue("Invalid SSN");
+//         }
+//         return;
+//       }
+
+//       // // CASE 2: last4 only → no decrypt
+//       // if (identity.ssnLast4) {
+//       //   setSsmidValue(identity.ssnLast4);
+//       //   return;
+//       // }
+//        // CASE 1: full SSNlas4 → decrypt
+//       if (identity.ssnLast4) {
+//         try {
+//           const decrypted = await decryptData(identity.ssnLast4);
+//           setSsmidValue(decrypted || "Failed to decrypt");
+//            console.log(
+//   provider.firstName,
+//   provider.lastName,
+//   decrypted
+// );
+//         } catch (err) {
+//           console.log("Decrypt error:", err);
+//           setSsmidValue("Invalid SSN");
+//         }
+//         return;
+//       }
+
+//       setSsmidValue("Not Available");
+//     } finally {
+//       setLoadingSsmid(false);
+//     }
+   
+//   };
+  const handleSsmidHover = async () => {
+  setShowSsmid(true);
+
   try {
+    // agar value pehle se decrypt ho chuki hai to dubara decrypt mat karo
     if (ssmidValue || loadingSsmid) return;
 
     setLoadingSsmid(true);
 
-    const encryptedSSN =
-      provider?.providerInfo?.identityData?.ssnLast4;
+    const identity = provider?.providerInfo?.identityData;
 
-    if (!encryptedSSN) {
+    if (!identity) {
       setSsmidValue("SSN Not Available");
       return;
     }
 
-    const decrypted = await decryptData(encryptedSSN);
+    // Full SSN
+    if (identity.ssn) {
+      try {
+        const decrypted = await decryptData(identity.ssn);
 
-    console.log("Decrypted:", decrypted);
+        setSsmidValue(decrypted || "Failed to decrypt");
 
-    setSsmidValue(decrypted || "Failed to decrypt");
+        console.log(
+          provider.firstName,
+          provider.lastName,
+          decrypted
+        );
+      } catch (err) {
+        console.log("Decrypt error:", err);
+        setSsmidValue("Invalid SSN");
+      }
 
-  } catch (error) {
-    console.log(error);
-    setSsmidValue("Failed to Load");
+      return;
+    }
+
+    // SSN Last 4
+    if (identity.ssnLast4) {
+      try {
+        const decrypted = await decryptData(identity.ssnLast4);
+
+        setSsmidValue(decrypted || "Failed to decrypt");
+
+        console.log(
+          provider.firstName,
+          provider.lastName,
+          decrypted
+        );
+      } catch (err) {
+        console.log("Decrypt error:", err);
+        setSsmidValue("Invalid SSN");
+      }
+
+      return;
+    }
+
+    setSsmidValue("Not Available");
   } finally {
     setLoadingSsmid(false);
   }
 };
-  const fetchProviderDetails = async () => {
+const handleSsmidLeave = () => {
+  setShowSsmid(false);
+};
+const fetchProviderDetails = async () => {
 
     try {
 
@@ -77,7 +171,7 @@ const handleSsmidHover = async () => {
       const res = await getAllProviders();
 
       const providers = res;
-     
+     console.log(providers)
 
       const matchedProvider = providers.find(
         (item: any) =>
@@ -456,7 +550,6 @@ const handleSsmidHover = async () => {
               "No bio available"}
           </p>
           
-
 <div
   style={{
     display: "flex",
@@ -465,16 +558,19 @@ const handleSsmidHover = async () => {
     marginTop: 10,
   }}
 >
-  <span>
-    SSN: {loadingSsmid ? "Loading..." : ssmidValue }
-  </span>
-
   <FaInfoCircle
     size={18}
     color="#14344A"
     style={{ cursor: "pointer" }}
     onMouseEnter={handleSsmidHover}
+    onMouseLeave={handleSsmidLeave}
   />
+
+  {showSsmid && (
+    <span>
+      {loadingSsmid ? "Loading..." : ssmidValue}
+    </span>
+  )}
 </div>
 
 
@@ -729,3 +825,4 @@ const handleSsmidHover = async () => {
 };
 
 export default ProviderDetails;
+
