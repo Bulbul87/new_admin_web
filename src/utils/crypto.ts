@@ -1,8 +1,8 @@
 import CryptoJS from "crypto-js";
 
-const AES_KEY ="4dd8596692f2d0eb0cb28e18ae21624d0c287dbfcf97fe1c017ab310bb91ab71";
+const AES_KEY: string = "your-secret-key-here";
 
-export const decryptData = (encryptedText) => {
+export const decryptData = (encryptedText: string): string | null => {
   try {
     if (!encryptedText) return null;
 
@@ -11,7 +11,7 @@ export const decryptData = (encryptedText) => {
 
     return decrypted || null;
   } catch (error) {
-    console.log("Decryption failed:", error);
+    console.log("Decryption error:", error);
     return null;
   }
 };
