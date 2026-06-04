@@ -19,7 +19,7 @@ import rating3 from "../assets/rating3.png";
 // API
 
 import { getAllProviders} from "../service/admin.service";
-import  decryptData from '../utils/crypto.js'
+import { decryptData } from "../utils/crypto";
 const ProviderDetails: React.FC = () => {
 
   const { id } = useParams();
@@ -50,26 +50,19 @@ const handleSsmidHover = async () => {
     const encryptedSSN =
       provider?.providerInfo?.identityData?.ssnLast4;
 
-    console.log("Encrypted SSN:", encryptedSSN);
-
     if (!encryptedSSN) {
       setSsmidValue("SSN Not Available");
       return;
     }
 
-    // ✅ FRONTEND DECRYPT (CryptoJS)
-    const decrypted = decryptData(encryptedSSN);
+    const decrypted = await decryptData(encryptedSSN);
 
-    console.log("Decrypted SSN:", decrypted);
+    console.log("Decrypted:", decrypted);
 
-    if (decrypted) {
-      setSsmidValue(decrypted);
-    } else {
-      setSsmidValue("Failed to decrypt");
-    }
+    setSsmidValue(decrypted || "Failed to decrypt");
 
   } catch (error) {
-    console.log("Decrypt Error:", error);
+    console.log(error);
     setSsmidValue("Failed to Load");
   } finally {
     setLoadingSsmid(false);
