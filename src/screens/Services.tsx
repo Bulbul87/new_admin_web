@@ -1,47 +1,75 @@
-
-
-
 import React, { useEffect, useState } from "react";
+
 import { serviceApi } from "../service/serviceapi";
 import type { Service } from "../service/serviceapi";
+
 import { useNavigate } from "react-router-dom";
-import { FaTrash, FaEdit, FaSearch } from "react-icons/fa";
+
+import {
+  FaTrash,
+  FaEdit,
+  FaSearch,
+  FaLayerGroup,
+  FaClock,
+  FaFire,
+  FaRupeeSign,
+} from "react-icons/fa";
 
 const Services: React.FC = () => {
+
   const [services, setServices] = useState<Service[]>([]);
 
   // ✅ Loading States
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
+
+  const [initialLoading, setInitialLoading] =
+    useState(true);
 
   // ✅ Search State
   const [search, setSearch] = useState("");
 
   // ✅ Pagination State
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+
+  const [totalPages, setTotalPages] =
+    useState(1);
 
   const navigate = useNavigate();
 
   // ✅ Duration Check
   const isDurationObject = (
     d: any
-  ): d is { value: number; unit: string } => {
-    return typeof d === "object" && d !== null && "value" in d;
+  ): d is {
+    value: number;
+    unit: string;
+  } => {
+
+    return (
+      typeof d === "object" &&
+      d !== null &&
+      "value" in d
+    );
   };
 
-  // ✅ Fetch Services
+  // ==============================
+  // FETCH SERVICES
+  // ==============================
+
   const fetchServices = async (
     currentPage = 1,
     searchText = ""
   ) => {
+
     try {
 
-      // ✅ Initial Loader
       if (services.length === 0) {
+
         setInitialLoading(true);
+
       } else {
+
         setLoading(true);
+
       }
 
       let res: any;
@@ -49,27 +77,39 @@ const Services: React.FC = () => {
       // ✅ Search API
       if (searchText.trim()) {
 
-        res = await serviceApi.searchServices({
-          q: searchText,
-          page: currentPage,
-          limit: 20,
-        });
+        res =
+          await serviceApi.searchServices({
+            q: searchText,
+            page: currentPage,
+            limit: 20,
+          });
 
       } else {
 
         // ✅ Normal API
-        res = await serviceApi.getAllServices({
-          page: currentPage,
-          limit: 20,
-        });
-
+        res =
+          await serviceApi.getAllServices({
+            page: currentPage,
+            limit: 20,
+          });
       }
 
-      const responseData = res.data || res;
+      const responseData =
+        res.data || res;
 
-      setServices(responseData.services || []);
-      setTotalPages(responseData.pagination?.totalPages || 1);
-      setPage(responseData.pagination?.currentPage || 1);
+      setServices(
+        responseData.services || []
+      );
+
+      setTotalPages(
+        responseData.pagination
+          ?.totalPages || 1
+      );
+
+      setPage(
+        responseData.pagination
+          ?.currentPage || 1
+      );
 
     } catch (error) {
 
@@ -78,28 +118,40 @@ const Services: React.FC = () => {
     } finally {
 
       setLoading(false);
+
       setInitialLoading(false);
 
     }
   };
 
-  // ✅ Search + Pagination Effect
+  // ==============================
+  // EFFECT
+  // ==============================
+
   useEffect(() => {
 
     const timer = setTimeout(() => {
+
       fetchServices(page, search);
+
     }, 700);
 
     return () => clearTimeout(timer);
 
   }, [page, search]);
 
-  // ❌ DELETE
-  const handleDelete = async (id: string) => {
+  // ==============================
+  // DELETE
+  // ==============================
 
-    const confirmDelete = window.confirm(
-      "Delete this service?"
-    );
+  const handleDelete = async (
+    id: string
+  ) => {
+
+    const confirmDelete =
+      window.confirm(
+        "Delete this service?"
+      );
 
     if (!confirmDelete) return;
 
@@ -116,288 +168,847 @@ const Services: React.FC = () => {
     }
   };
 
-  // ✅ Pagination Logic
+  // ==============================
+  // PAGINATION
+  // ==============================
+
   const getPageNumbers = () => {
 
     const pages = [];
 
     let start = Math.max(1, page - 1);
-    let end = Math.min(totalPages, page + 1);
+
+    let end = Math.min(
+      totalPages,
+      page + 1
+    );
 
     if (page === 1) {
       end = Math.min(3, totalPages);
     }
 
     if (page === totalPages) {
-      start = Math.max(totalPages - 2, 1);
+      start = Math.max(
+        totalPages - 2,
+        1
+      );
     }
 
-    for (let i = start; i <= end; i++) {
+    for (
+      let i = start;
+      i <= end;
+      i++
+    ) {
       pages.push(i);
     }
 
     return pages;
   };
 
-  // ✅ Initial Full Loader
+  // ==============================
+  // LOADER
+  // ==============================
+
   if (initialLoading) {
+
     return (
-      <div className="text-center mt-5">
+
+      <div
+        style={{
+          marginLeft: "260px",
+          marginTop: "90px",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
         <div className="spinner-border" />
       </div>
+
     );
   }
 
-  return (
-    <div style={{ minHeight: "100vh", background: "#fff" }}>
+  // ==============================
+  // UI
+  // ==============================
 
-      {/* Header */}
+  return (
+
+    <div
+      style={{
+        marginLeft: "260px",
+
+        marginTop: "70px",
+
+        minHeight: "100vh",
+
+        background: "#f5f7fb",
+
+        padding: "30px",
+      }}
+    >
+
+      {/* ============================== */}
+      {/* TOP BAR */}
+      {/* ============================== */}
+
       <div
         style={{
-          backgroundColor: "#14344A",
-          padding: "18px",
-          textAlign: "center",
+          display: "flex",
+
+          justifyContent:
+            "space-between",
+
+          alignItems: "center",
+
+          flexWrap: "wrap",
+
+          gap: 20,
+
+          marginBottom: 30,
         }}
       >
-        <h2 style={{ color: "#fff", margin: 0 }}>
-          Senior America Services
-        </h2>
-      </div>
 
-      <div className="container mt-3">
+        {/* ADD BUTTON */}
 
-        {/* ✅ Top Bar */}
-        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+        <button
+          onClick={() =>
+            navigate("/add-service")
+          }
+          style={{
+            border: "none",
 
-          {/* Add Button */}
-          <button
-            className="btn text-white"
-            style={{
-              backgroundColor:
-                "rgba(52, 183, 234, 1)",
+            background:
+              "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+
+            color: "#14344A",
+
+            fontWeight: 700,
+
+            padding: "14px 24px",
+
+            borderRadius: 14,
+
+            boxShadow:
+              "0 6px 20px rgba(0,0,0,0.08)",
+
+            transition: "0.3s",
+          }}
+        >
+          + Add New Service
+        </button>
+
+        {/* SEARCH BAR */}
+
+        <div
+          style={{
+            width: 350,
+
+            height: 52,
+
+            background: "#fff",
+
+            borderRadius: 16,
+
+            display: "flex",
+
+            alignItems: "center",
+
+            padding: "0 18px",
+
+            boxShadow:
+              "0 4px 20px rgba(0,0,0,0.06)",
+          }}
+        >
+
+          <FaSearch
+            color="#999"
+            size={16}
+          />
+
+          <input
+            type="text"
+
+            placeholder="Search services..."
+
+            value={search}
+
+            onChange={(e) => {
+
+              setSearch(
+                e.target.value
+              );
+
+              setPage(1);
+
             }}
-            onClick={() =>
-              navigate("/add-service")
-            }
-          >
-            + Add New Service
-          </button>
 
-          {/* ✅ Search Bar */}
-          <div
-            className="d-flex align-items-center border rounded px-3"
             style={{
-              width: "320px",
-              height: "45px",
-              background: "#fff",
-            }}
-          >
-            <FaSearch color="#999" />
+              border: "none",
 
-            <input
-              type="text"
-              placeholder="Search services..."
-              className="form-control border-0 shadow-none"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-            />
-          </div>
+              outline: "none",
+
+              width: "100%",
+
+              marginLeft: 12,
+
+              background: "transparent",
+            }}
+          />
 
         </div>
 
-        {/* ✅ Small Loader */}
-        {loading && (
-          <div className="text-center mb-3">
-            <div
-              className="spinner-border spinner-border-sm"
-              role="status"
-            />
-          </div>
-        )}
+      </div>
 
-        {/* ✅ Services List */}
-        {services.length > 0 ? (
+      {/* ============================== */}
+      {/* SMALL LOADER */}
+      {/* ============================== */}
 
-          services.map((item) => (
+      {loading && (
+
+        <div className="text-center mb-3">
+          <div
+            className="spinner-border spinner-border-sm"
+            role="status"
+          />
+        </div>
+
+      )}
+
+      {/* ============================== */}
+      {/* SERVICES GRID */}
+      {/* ============================== */}
+
+      {services.length > 0 ? (
+
+        <div
+          style={{
+            display: "grid",
+
+            gridTemplateColumns:
+              "repeat(2, 1fr)",
+
+            gap: 25,
+          }}
+        >
+
+          {services.map((item) => (
 
             <div
               key={item._id}
-              className="card mb-3 p-3 shadow-sm"
               style={{
-                borderRadius: "12px",
+                background: "#fff",
+
+                borderRadius: 24,
+
+                padding: 24,
+
+                boxShadow:
+                  "0 4px 20px rgba(0,0,0,0.06)",
+
+                transition: "0.3s",
               }}
             >
 
-              <h5 style={{ color: "#10d2f0" }}>
-                {item.name}
-              </h5>
+              {/* TOP */}
 
-              <div className="row mt-2">
+              <div
+                style={{
+                  display: "flex",
 
-                <div className="col-md-6">
-                  <small>Category</small>
-                  <p>{item.category}</p>
-                </div>
+                  justifyContent:
+                    "space-between",
 
-                <div className="col-md-6">
-                  <small>Price</small>
-                  <p>₹ {item.basePrice}</p>
-                </div>
+                  alignItems: "center",
 
-                {item.description && (
-                  <div className="col-md-6">
-                    <small>Description</small>
-                    <p>{item.description}</p>
-                  </div>
-                )}
+                  marginBottom: 20,
+                }}
+              >
 
-                {item.duration && (
-                  <div className="col-md-6">
-                    <small>Duration</small>
+                <div>
 
-                    <p>
-                      {isDurationObject(
-                        item.duration
-                      )
-                        ? `${item.duration.value} ${item.duration.unit}`
-                        : `${item.duration} mins`}
-                    </p>
-                  </div>
-                )}
-
-                <div className="col-md-6">
-                  <small>Status</small>
-
-                  <p
+                  <h4
                     style={{
-                      color: item.isActive
-                        ? "green"
-                        : "red",
+                      color: "#14344A",
+
+                      marginBottom: 8,
+
+                      fontWeight: 700,
                     }}
                   >
-                    {item.isActive
-                      ? "Active"
-                      : "Inactive"}
-                  </p>
-                </div>
+                    {item.name}
+                  </h4>
 
-                {item.tags && (
-                  <div className="col-md-6">
-                    <small>Tags</small>
+                  <div
+                    style={{
+                      display: "inline-block",
 
-                    <p>
-                      {item.tags.join(", ")}
-                    </p>
+                      background:
+                        "rgba(143,218,250,0.2)",
+
+                      color: "#14344A",
+
+                      padding:
+                        "6px 14px",
+
+                      borderRadius: 20,
+
+                      fontSize: 13,
+
+                      fontWeight: 600,
+                    }}
+                  >
+                    {item.category}
                   </div>
-                )}
 
-                <div className="col-md-6">
-                  <small>Created</small>
-
-                  <p>
-                    {new Date(
-                      item.createdAt
-                    ).toLocaleDateString()}
-                  </p>
                 </div>
 
-                <div className="col-md-6">
-                  <small>Popularity</small>
+                {/* STATUS */}
 
-                  <p>{item.popularity}</p>
+                <div
+                  style={{
+                    background:
+                      item.isActive
+                        ? "rgba(0,200,83,0.12)"
+                        : "rgba(255,0,0,0.1)",
+
+                    color:
+                      item.isActive
+                        ? "green"
+                        : "red",
+
+                    padding:
+                      "8px 14px",
+
+                    borderRadius: 20,
+
+                    fontSize: 13,
+
+                    fontWeight: 700,
+                  }}
+                >
+                  {item.isActive
+                    ? "Active"
+                    : "Inactive"}
                 </div>
 
               </div>
 
-              {/* ✅ Buttons */}
-              <div className="d-flex justify-content-between mt-3">
+              {/* DESCRIPTION */}
+
+              {item.description && (
+
+                <p
+                  style={{
+                    color: "#666",
+
+                    lineHeight: 1.7,
+
+                    minHeight: 55,
+                  }}
+                >
+                  {item.description}
+                </p>
+
+              )}
+
+              {/* DETAILS */}
+
+              <div
+                style={{
+                  display: "grid",
+
+                  gridTemplateColumns:
+                    "1fr 1fr",
+
+                  gap: 18,
+
+                  marginTop: 20,
+                }}
+              >
+
+                {/* PRICE */}
+
+                <div
+                  style={{
+                    background:
+                      "#f8fbff",
+
+                    borderRadius: 16,
+
+                    padding: 16,
+                  }}
+                >
+
+                  <div
+                    style={{
+                      display: "flex",
+
+                      alignItems: "center",
+
+                      gap: 10,
+
+                      marginBottom: 8,
+                    }}
+                  >
+
+                    <FaRupeeSign color="#14344A" />
+
+                    <small
+                      style={{
+                        color: "#777",
+                      }}
+                    >
+                      Price
+                    </small>
+
+                  </div>
+
+                  <h6
+                    style={{
+                      margin: 0,
+
+                      color: "#14344A",
+
+                      fontWeight: 700,
+                    }}
+                  >
+                    ₹ {item.basePrice}
+                  </h6>
+
+                </div>
+
+                {/* DURATION */}
+
+                <div
+                  style={{
+                    background:
+                      "#f8fbff",
+
+                    borderRadius: 16,
+
+                    padding: 16,
+                  }}
+                >
+
+                  <div
+                    style={{
+                      display: "flex",
+
+                      alignItems: "center",
+
+                      gap: 10,
+
+                      marginBottom: 8,
+                    }}
+                  >
+
+                    <FaClock color="#14344A" />
+
+                    <small
+                      style={{
+                        color: "#777",
+                      }}
+                    >
+                      Duration
+                    </small>
+
+                  </div>
+
+                  <h6
+                    style={{
+                      margin: 0,
+
+                      color: "#14344A",
+
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item.duration
+                      ? isDurationObject(
+                          item.duration
+                        )
+                        ? `${item.duration.value} ${item.duration.unit}`
+                        : `${item.duration} mins`
+                      : "N/A"}
+                  </h6>
+
+                </div>
+
+                {/* POPULARITY */}
+
+                <div
+                  style={{
+                    background:
+                      "#f8fbff",
+
+                    borderRadius: 16,
+
+                    padding: 16,
+                  }}
+                >
+
+                  <div
+                    style={{
+                      display: "flex",
+
+                      alignItems: "center",
+
+                      gap: 10,
+
+                      marginBottom: 8,
+                    }}
+                  >
+
+                    <FaFire color="#14344A" />
+
+                    <small
+                      style={{
+                        color: "#777",
+                      }}
+                    >
+                      Popularity
+                    </small>
+
+                  </div>
+
+                  <h6
+                    style={{
+                      margin: 0,
+
+                      color: "#14344A",
+
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item.popularity || 0}
+                  </h6>
+
+                </div>
+
+                {/* CREATED */}
+
+                <div
+                  style={{
+                    background:
+                      "#f8fbff",
+
+                    borderRadius: 16,
+
+                    padding: 16,
+                  }}
+                >
+
+                  <div
+                    style={{
+                      display: "flex",
+
+                      alignItems: "center",
+
+                      gap: 10,
+
+                      marginBottom: 8,
+                    }}
+                  >
+
+                    <FaLayerGroup color="#14344A" />
+
+                    <small
+                      style={{
+                        color: "#777",
+                      }}
+                    >
+                      Created
+                    </small>
+
+                  </div>
+
+                  <h6
+                    style={{
+                      margin: 0,
+
+                      color: "#14344A",
+
+                      fontWeight: 700,
+
+                      fontSize: 14,
+                    }}
+                  >
+                    {new Date(
+                      item.createdAt
+                    ).toLocaleDateString()}
+                  </h6>
+
+                </div>
+
+              </div>
+
+              {/* TAGS */}
+
+              {item.tags &&
+                item.tags.length > 0 && (
+
+                  <div
+                    style={{
+                      marginTop: 20,
+                    }}
+                  >
+
+                    {item.tags.map(
+                      (tag, index) => (
+
+                        <span
+                          key={index}
+                          style={{
+                            display:
+                              "inline-block",
+
+                            background:
+                              "rgba(52,183,234,0.12)",
+
+                            color:
+                              "#14344A",
+
+                            padding:
+                              "7px 14px",
+
+                            borderRadius: 20,
+
+                            fontSize: 12,
+
+                            marginRight: 8,
+
+                            marginBottom: 8,
+
+                            fontWeight: 600,
+                          }}
+                        >
+                          {tag}
+                        </span>
+
+                      )
+                    )}
+
+                  </div>
+
+                )}
+
+              {/* BUTTONS */}
+
+              <div
+                style={{
+                  display: "flex",
+
+                  justifyContent:
+                    "space-between",
+
+                  marginTop: 25,
+
+                  gap: 14,
+                }}
+              >
+
+                {/* EDIT */}
 
                 <button
-                  className="btn btn-outline-primary"
                   onClick={() =>
-                    navigate("/edit-service", {
-                      state: {
-                        service: item,
-                      },
-                    })
+                    navigate(
+                      "/edit-service",
+                      {
+                        state: {
+                          service:
+                            item,
+                        },
+                      }
+                    )
                   }
+
+                  style={{
+                    flex: 1,
+
+                    border: "none",
+
+                    background:
+                      "rgba(52,183,234,0.15)",
+
+                    color: "#14344A",
+
+                    padding:
+                      "12px 16px",
+
+                    borderRadius: 14,
+
+                    fontWeight: 700,
+                  }}
                 >
+
                   <FaEdit /> Edit
+
                 </button>
 
+                {/* DELETE */}
+
                 <button
-                  className="btn text-white"
-                  style={{
-                    backgroundColor:
-                      "#1C355D",
-                  }}
                   onClick={() =>
-                    handleDelete(item._id)
+                    handleDelete(
+                      item._id
+                    )
                   }
+
+                  style={{
+                    flex: 1,
+
+                    border: "none",
+
+                    background:
+                      "#14344A",
+
+                    color: "#fff",
+
+                    padding:
+                      "12px 16px",
+
+                    borderRadius: 14,
+
+                    fontWeight: 700,
+                  }}
                 >
+
                   <FaTrash /> Delete
+
                 </button>
 
               </div>
 
             </div>
 
-          ))
-
-        ) : (
-
-          <div className="text-center mt-5">
-            <h5>No Services Found</h5>
-          </div>
-
-        )}
-
-        {/* ✅ Pagination */}
-        <div className="d-flex justify-content-center align-items-center gap-2 mt-4">
-
-          {/* Prev */}
-          <button
-            className="btn btn-outline-secondary"
-            disabled={page === 1}
-            onClick={() =>
-              setPage(page - 1)
-            }
-          >
-            Prev
-          </button>
-
-          {/* Page Numbers */}
-          {getPageNumbers().map((p) => (
-            <button
-              key={p}
-              className={`btn ${
-                p === page
-                  ? "btn-primary"
-                  : "btn-outline-primary"
-              }`}
-              onClick={() => setPage(p)}
-            >
-              {p}
-            </button>
           ))}
-
-          {/* Next */}
-          <button
-            className="btn btn-outline-secondary"
-            disabled={page === totalPages}
-            onClick={() =>
-              setPage(page + 1)
-            }
-          >
-            Next
-          </button>
 
         </div>
 
+      ) : (
+
+        <div className="text-center mt-5">
+          <h5>No Services Found</h5>
+        </div>
+
+      )}
+
+      {/* ============================== */}
+      {/* PAGINATION */}
+      {/* ============================== */}
+
+      <div
+        style={{
+          display: "flex",
+
+          justifyContent: "center",
+
+          alignItems: "center",
+
+          gap: 12,
+
+          marginTop: 40,
+        }}
+      >
+
+        {/* PREV */}
+
+        <button
+          disabled={page === 1}
+
+          onClick={() =>
+            setPage(page - 1)
+          }
+
+          style={{
+            border: "none",
+
+            background: "#fff",
+
+            padding: "10px 18px",
+
+            borderRadius: 12,
+
+            boxShadow:
+              "0 3px 12px rgba(0,0,0,0.06)",
+
+            fontWeight: 600,
+          }}
+        >
+          Prev
+        </button>
+
+        {/* PAGE NUMBERS */}
+
+        {getPageNumbers().map((p) => (
+
+          <button
+            key={p}
+
+            onClick={() =>
+              setPage(p)
+            }
+
+            style={{
+              border: "none",
+
+              width: 42,
+              height: 42,
+
+              borderRadius: 12,
+
+              background:
+                p === page
+                  ? "#14344A"
+                  : "#fff",
+
+              color:
+                p === page
+                  ? "#fff"
+                  : "#14344A",
+
+              fontWeight: 700,
+
+              boxShadow:
+                "0 3px 12px rgba(0,0,0,0.06)",
+            }}
+          >
+            {p}
+          </button>
+
+        ))}
+
+        {/* NEXT */}
+
+        <button
+          disabled={
+            page === totalPages
+          }
+
+          onClick={() =>
+            setPage(page + 1)
+          }
+
+          style={{
+            border: "none",
+
+            background: "#fff",
+
+            padding: "10px 18px",
+
+            borderRadius: 12,
+
+            boxShadow:
+              "0 3px 12px rgba(0,0,0,0.06)",
+
+            fontWeight: 600,
+          }}
+        >
+          Next
+        </button>
+
       </div>
+
     </div>
   );
 };

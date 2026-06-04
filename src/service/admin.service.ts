@@ -6,11 +6,19 @@ import { api } from "../service/api";
 
 export interface User {
   _id: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone: string;
-  role?: string;
+
+
+    identityData?: {
+      
+      ssnLast4?: string;
+    };
+ 
 }
+
 
 // ==============================
 // ADMIN APIs
@@ -83,4 +91,9 @@ export const getPendingProviders = async (): Promise<User[]> => {
 // ✅ Get admin stats
 export const getAdminStats = async () => {
   return api.get("/admin/stats");
+};
+
+// ✅ Decrypt Value By Key
+export const decryptByKey = async (key: string) => {
+  return api.get(`/crypto/decrypt?key=${encodeURIComponent(key)}`);
 };

@@ -1,37 +1,45 @@
 import React, { useEffect, useState } from "react";
+
 import { useParams } from "react-router-dom";
+
 import {
   FaEnvelope,
   FaPhone,
-  FaUser,
+
   FaCheckCircle,
 } from "react-icons/fa";
 
-// ✅ import api
+// API
 import { getAllUsers } from "../service/admin.service";
 
 const RequesterDetails: React.FC = () => {
-  // ✅ get id from route
+
   const { id } = useParams();
 
   const [requester, setRequester] = useState<any>(null);
+
   const [loading, setLoading] = useState(true);
 
+  // ==============================
+  // FETCH DATA
+  // ==============================
+
   useEffect(() => {
+
     fetchRequesterDetails();
+
   }, [id]);
 
   const fetchRequesterDetails = async () => {
+
     try {
+
       setLoading(true);
 
-      // ✅ api call
       const res = await getAllUsers();
 
-      // ✅ direct array
       const users = res;
 
-      // ✅ find requester by id
       const matchedRequester = users.find(
         (item: any) =>
           item._id?.toString() === id &&
@@ -39,87 +47,441 @@ const RequesterDetails: React.FC = () => {
       );
 
       setRequester(matchedRequester);
+
     } catch (error) {
+
       console.log(error);
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
+  // ==============================
+  // LOADING
+  // ==============================
+
   if (loading) {
-    return <p className="text-center mt-5">Loading...</p>;
-  }
 
-  if (!requester) {
-    return <p className="text-center mt-5">No Requester Found</p>;
-  }
+    return (
 
-  return (
-    <div className="container py-4">
-
-      {/* 🔝 Top Profile */}
       <div
-        className="text-center p-4 mb-4"
         style={{
-          backgroundColor: "rgba(212, 237, 252, 1)",
-          borderRadius: "0 0 20px 20px",
+          marginLeft: "260px",
+          marginTop: "80px",
+          display: "flex",
+          justifyContent: "center",
         }}
       >
-        <img
-          src="https://i.pravatar.cc/134"
-          alt="profile"
+        <div className="spinner-border" />
+      </div>
+
+    );
+  }
+
+  // ==============================
+  // NO DATA
+  // ==============================
+
+  if (!requester) {
+
+    return (
+
+      <div
+        style={{
+          marginLeft: "260px",
+          marginTop: "100px",
+          textAlign: "center",
+        }}
+      >
+        No Requester Found
+      </div>
+
+    );
+  }
+
+  // ==============================
+  // UI
+  // ==============================
+
+  return (
+
+    <div
+      style={{
+        marginLeft: "260px",
+        marginTop: "70px",
+
+        minHeight: "100vh",
+
+        background: "#f5f7fb",
+
+        padding: "30px",
+      }}
+    >
+
+      {/* ============================== */}
+      {/* TOP SECTION */}
+      {/* ============================== */}
+
+      <div
+        style={{
+          display: "grid",
+
+          gridTemplateColumns: "350px 1fr",
+
+          gap: 25,
+
+          marginBottom: 30,
+        }}
+      >
+
+        {/* ============================== */}
+        {/* PROFILE CARD */}
+        {/* ============================== */}
+
+        <div
           style={{
-            width: 90,
-            height: 90,
-            borderRadius: "50%",
-            objectFit: "cover",
-            marginBottom: 10,
+            background:
+              "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+
+            borderRadius: 30,
+
+            padding: "35px 25px",
+
+            textAlign: "center",
+
+            boxShadow:
+              "0 10px 30px rgba(0,0,0,0.08)",
           }}
-        />
+        >
 
-        <h4 style={{ color: "rgba(20,52,74,1)" }}>
-          {requester.name}
-        </h4>
+          {/* PROFILE IMAGE */}
 
-        <p style={{ color: "rgba(20,52,74,1)" }}>
-          <FaUser /> Requester
-        </p>
+          <img
+            src={`https://i.pravatar.cc/200?u=${requester._id}`}
+            alt="profile"
+            style={{
+              width: 120,
+              height: 120,
+
+              borderRadius: "50%",
+
+              objectFit: "cover",
+
+              border: "5px solid #fff",
+
+              boxShadow:
+                "0 6px 20px rgba(0,0,0,0.15)",
+
+              marginBottom: 20,
+            }}
+          />
+
+          {/* NAME */}
+
+          <h2
+            style={{
+              color: "#14344A",
+              fontWeight: 700,
+              marginBottom: 10,
+            }}
+          >
+            {requester.name}
+          </h2>
+
+        
+
+        </div>
+
+        {/* ============================== */}
+        {/* DETAILS CARD */}
+        {/* ============================== */}
+
+        <div
+          style={{
+            background: "#fff",
+
+            borderRadius: 28,
+
+            padding: 30,
+
+            boxShadow:
+              "0 4px 20px rgba(0,0,0,0.06)",
+          }}
+        >
+
+          <h3
+            style={{
+              color: "#14344A",
+
+              marginBottom: 25,
+
+              fontWeight: 700,
+            }}
+          >
+            Requester Details
+          </h3>
+
+          {/* EMAIL */}
+
+          <div
+            style={{
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 15,
+
+              marginBottom: 22,
+            }}
+          >
+
+            <div
+              style={{
+                width: 48,
+                height: 48,
+
+                borderRadius: "50%",
+
+                background:
+                  "rgba(143,218,250,0.2)",
+
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+
+              <FaEnvelope
+                color="#14344A"
+                size={18}
+              />
+
+            </div>
+
+            <div>
+
+              <p
+                style={{
+                  margin: 0,
+
+                  color: "#777",
+
+                  fontSize: 13,
+                }}
+              >
+                Email Address
+              </p>
+
+              <h6
+                style={{
+                  margin: 0,
+
+                  color: "#14344A",
+
+                  marginTop: 4,
+                }}
+              >
+                {requester.email}
+              </h6>
+
+            </div>
+
+          </div>
+
+          {/* PHONE */}
+
+          <div
+            style={{
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 15,
+
+              marginBottom: 22,
+            }}
+          >
+
+            <div
+              style={{
+                width: 48,
+                height: 48,
+
+                borderRadius: "50%",
+
+                background:
+                  "rgba(143,218,250,0.2)",
+
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+
+              <FaPhone
+                color="#14344A"
+                size={18}
+              />
+
+            </div>
+
+            <div>
+
+              <p
+                style={{
+                  margin: 0,
+
+                  color: "#777",
+
+                  fontSize: 13,
+                }}
+              >
+                Phone Number
+              </p>
+
+              <h6
+                style={{
+                  margin: 0,
+
+                  color: "#14344A",
+
+                  marginTop: 4,
+                }}
+              >
+                {requester.phone}
+              </h6>
+
+            </div>
+
+          </div>
+
+          {/* VERIFIED */}
+
+          <div
+            style={{
+              display: "flex",
+
+              alignItems: "center",
+
+              gap: 15,
+            }}
+          >
+
+            <div
+              style={{
+                width: 48,
+                height: 48,
+
+                borderRadius: "50%",
+
+                background:
+                  requester.isVerified
+                    ? "rgba(0,200,83,0.15)"
+                    : "rgba(255,0,0,0.12)",
+
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+
+              <FaCheckCircle
+                color={
+                  requester.isVerified
+                    ? "green"
+                    : "red"
+                }
+                size={18}
+              />
+
+            </div>
+
+            <div>
+
+              <p
+                style={{
+                  margin: 0,
+
+                  color: "#777",
+
+                  fontSize: 13,
+                }}
+              >
+                Verification Status
+              </p>
+
+              <h6
+                style={{
+                  margin: 0,
+
+                  marginTop: 4,
+
+                  color:
+                    requester.isVerified
+                      ? "green"
+                      : "red",
+                }}
+              >
+                {requester.isVerified
+                  ? "Verified User"
+                  : "Not Verified"}
+              </h6>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
-      {/* 📄 About */}
-      <div className="card p-3 mb-3 shadow-sm">
-        <h5 style={{ color: "rgba(20,52,74,1)" }}>
-          About
-        </h5>
+      {/* ============================== */}
+      {/* ABOUT SECTION */}
+      {/* ============================== */}
 
-        <p style={{ color: "rgba(20,52,74,1)" }}>
-          {requester.bio || "No bio available"}
+      <div
+        style={{
+          background: "#fff",
+
+          borderRadius: 28,
+
+          padding: 30,
+
+          boxShadow:
+            "0 4px 20px rgba(0,0,0,0.06)",
+        }}
+      >
+
+        <h3
+          style={{
+            color: "#14344A",
+
+            marginBottom: 20,
+
+            fontWeight: 700,
+          }}
+        >
+          About us
+        </h3>
+
+        <p
+          style={{
+            color: "#555",
+
+            lineHeight: 1.9,
+
+            fontSize: 15,
+          }}
+        >
+          {requester.bio ||
+            "No bio available"}
         </p>
+
       </div>
 
-      {/* 📌 Details */}
-      <div className="card p-3 shadow-sm">
-        <h5 style={{ color: "rgba(20,52,74,1)" }}>
-          Details
-        </h5>
-
-        <p>
-          <FaEnvelope color="#34B7EA" />{" "}
-          {requester.email}
-        </p>
-
-        <p>
-          <FaPhone color="#34B7EA" />{" "}
-          {requester.phone}
-        </p>
-
-        <p>
-          <FaCheckCircle color="#34B7EA" />{" "}
-          {requester.isVerified
-            ? "Verified"
-            : "Not Verified"}
-        </p>
-      </div>
     </div>
   );
 };

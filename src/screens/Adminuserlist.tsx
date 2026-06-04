@@ -1,9 +1,10 @@
-
-
 import React, { useEffect, useState } from "react";
+
 import {
   getAllUsers,
   getAllProviders,
+    approveProvider,
+  rejectProvider,
 } from "../service/admin.service";
 
 import { useNavigate } from "react-router-dom";
@@ -12,22 +13,28 @@ import {
   FaEnvelope,
   FaPhone,
   FaSearch,
+  FaUserCircle,
 } from "react-icons/fa";
+  import { useLocation } from "react-router-dom"
 
 const AdminUsers: React.FC = () => {
 
-  const [activeTab, setActiveTab] = useState<
-    "requester" | "provider"
-  >("requester");
+const location = useLocation();
+
+const [activeTab, setActiveTab] = useState<
+  "requester" | "provider"
+>(
+  location.state?.activeTab === "provider"
+    ? "provider"
+    : "requester"
+);
 
   const [data, setData] = useState<any[]>([]);
 
-  // ✅ Original Data
   const [originalData, setOriginalData] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ Search State
   const [search, setSearch] = useState("");
 
   const navigate = useNavigate();
@@ -44,7 +51,6 @@ const AdminUsers: React.FC = () => {
 
       setActiveTab("requester");
 
-      // ✅ Clear Search
       setSearch("");
 
       const users = await getAllUsers();
@@ -76,7 +82,6 @@ const AdminUsers: React.FC = () => {
 
       setActiveTab("provider");
 
-      // ✅ Clear Search
       setSearch("");
 
       const providers = await getAllProviders();
@@ -96,23 +101,56 @@ const AdminUsers: React.FC = () => {
     }
   };
 
+
+  const handleApprove = async (id: string) => {
+  try {
+    await approveProvider(id);
+
+    alert("Provider approved successfully");
+
+    loadProviders(); // refresh list
+  } catch (error) {
+    console.error("Approve Error:", error);
+    alert("Failed to approve provider");
+  }
+};
+
+const handleReject = async (id: string) => {
+  const reason = window.prompt(
+    "Enter rejection reason"
+  );
+
+  if (!reason) return;
+
+  try {
+    await rejectProvider(id, reason);
+
+    alert("Provider rejected successfully");
+
+    loadProviders(); // refresh list
+  } catch (error) {
+    console.error("Reject Error:", error);
+    alert("Failed to reject provider");
+  }
+};
+
   // ==============================
   // INITIAL LOAD
   // ==============================
-
-  useEffect(() => {
-
+useEffect(() => {
+  if (activeTab === "provider") {
+    loadProviders();
+  } else {
     loadRequesters();
-
-  }, []);
+  }
+}, []);
 
   // ==============================
-  // FRONTEND SEARCH
+  // SEARCH
   // ==============================
 
   useEffect(() => {
 
-    // ✅ Empty Search
     if (!search.trim()) {
 
       setData(originalData);
@@ -120,7 +158,6 @@ const AdminUsers: React.FC = () => {
       return;
     }
 
-    // ✅ Filter Logic
     const filteredData = originalData.filter((item) => {
 
       const nameMatch = item.name
@@ -140,37 +177,58 @@ const AdminUsers: React.FC = () => {
   }, [search, originalData]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fff" }}>
 
-      {/* Header */}
+    <div
+      style={{
+        marginLeft: "260px",
+        marginTop: "70px",
+        minHeight: "100vh",
+        background: "#f5f7fb",
+        padding: "30px",
+      }}
+    >
+
+
+      {/* TOGGLE BUTTONS */}
+
       <div
         style={{
-          backgroundColor: "#14344A",
-          padding: "20px",
-          textAlign: "center",
+          display: "flex",
+          justifyContent: "center",
+          gap: 20,
+          marginBottom: 30,
         }}
       >
-        <h2 style={{ color: "#fff", margin: 0 }}>
-          Senior America Clients
-        </h2>
-      </div>
-
-      {/* Toggle Buttons */}
-      <div className="container mt-3 d-flex justify-content-around">
 
         <button
-          className={`btn ${
-            activeTab === "requester"
-              ? "text-white"
-              : ""
-          }`}
           style={{
-            width: "45%",
-            backgroundColor:
+            width: 180,
+            padding: "12px",
+
+            borderRadius: 12,
+
+            border: "none",
+
+            cursor: "pointer",
+
+            fontWeight: 600,
+
+            transition: "0.3s",
+
+            background:
               activeTab === "requester"
-                ? "rgba(52, 183, 234, 1)"
+                ? "linear-gradient(to right, #FFFF6D, #8FDAFA)"
                 : "#fff",
-            border: "1px solid #ccc",
+
+            color:
+              activeTab === "requester"
+                ? "#14344A"
+                : "#666",
+
+            boxShadow:
+              activeTab === "requester"
+                ? "0 6px 20px rgba(0,0,0,0.1)"
+                : "0 2px 10px rgba(0,0,0,0.06)",
           }}
           onClick={loadRequesters}
         >
@@ -178,18 +236,34 @@ const AdminUsers: React.FC = () => {
         </button>
 
         <button
-          className={`btn ${
-            activeTab === "provider"
-              ? "text-white"
-              : ""
-          }`}
           style={{
-            width: "45%",
-            backgroundColor:
+            width: 180,
+            padding: "12px",
+
+            borderRadius: 12,
+
+            border: "none",
+
+            cursor: "pointer",
+
+            fontWeight: 600,
+
+            transition: "0.3s",
+
+            background:
               activeTab === "provider"
-                ? "rgba(52, 183, 234, 1)"
+                ? "linear-gradient(to right, #FFFF6D, #8FDAFA)"
                 : "#fff",
-            border: "1px solid #ccc",
+
+            color:
+              activeTab === "provider"
+                ? "#14344A"
+                : "#666",
+
+            boxShadow:
+              activeTab === "provider"
+                ? "0 6px 20px rgba(0,0,0,0.1)"
+                : "0 2px 10px rgba(0,0,0,0.06)",
           }}
           onClick={loadProviders}
         >
@@ -198,137 +272,389 @@ const AdminUsers: React.FC = () => {
 
       </div>
 
-      {/* ✅ Search Bar */}
-      <div className="container mt-3">
+      {/* SEARCH BAR */}
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: 35,
+        }}
+      >
 
         <div
-          className="d-flex align-items-center border rounded px-3"
           style={{
-            height: "45px",
+            width: "420px",
+            height: "52px",
+
+            display: "flex",
+            alignItems: "center",
+
             background: "#fff",
+
+            borderRadius: "40px",
+
+            padding: "0 18px",
+
+            boxShadow:
+              "0 4px 20px rgba(0,0,0,0.08)",
           }}
         >
 
-          <FaSearch color="#999" />
+          <FaSearch
+            color="#14344A"
+            size={16}
+          />
 
           <input
             type="text"
             placeholder={`Search ${activeTab} by name or email`}
-            className="form-control border-0 shadow-none"
             value={search}
             onChange={(e) =>
               setSearch(e.target.value)
             }
+            style={{
+              border: "none",
+              outline: "none",
+
+              width: "100%",
+
+              marginLeft: 12,
+
+              fontSize: 15,
+
+              background: "transparent",
+            }}
           />
 
         </div>
 
       </div>
 
-      {/* Loader */}
+      {/* LOADER */}
+
       {loading ? (
 
-        <div className="text-center mt-4">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: 60,
+          }}
+        >
           <div className="spinner-border" />
         </div>
 
       ) : (
 
-        <div className="container mt-3">
+        <>
+          {/* NO DATA */}
 
-          {/* No Data */}
           {data.length === 0 && (
 
-            <p className="text-center text-muted">
+            <p
+              style={{
+                textAlign: "center",
+                color: "#777",
+              }}
+            >
               No Data Found
             </p>
 
           )}
 
-          {/* List */}
-          {data.map((item) => (
+          {/* CARDS GRID */}
 
-            <div
-              key={item._id}
-              className="card mb-3 p-3 shadow-sm"
-              style={{
-                borderRadius: "16px",
-              }}
-            >
+          <div
+            style={{
+              display: "grid",
 
-              {/* Top */}
-              <div className="d-flex align-items-center">
+              gridTemplateColumns:
+                "repeat(2, 1fr)",
 
-                {/* Avatar */}
+              gap: 25,
+            }}
+          >
+
+            {data.map((item) => (
+
+              <div
+                key={item._id}
+                style={{
+                  background: "#fff",
+
+                  borderRadius: 22,
+
+                  padding: 22,
+
+                  boxShadow:
+                    "0 4px 20px rgba(0,0,0,0.07)",
+
+                  transition: "0.3s",
+
+                  border:
+                    "1px solid rgba(0,0,0,0.04)",
+                }}
+              >
+
+                {/* TOP */}
+
                 <div
                   style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: "50%",
-                    backgroundColor: "#bfe3f2",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: 10,
-                    fontWeight: "bold",
+                    marginBottom: 18,
                   }}
                 >
-                  {item.name?.charAt(0)}
+
+                  {/* AVATAR */}
+
+                  <div
+                    style={{
+                      width: 62,
+                      height: 62,
+
+                      borderRadius: "50%",
+
+                      background:
+                        "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+
+                      marginRight: 15,
+
+                      boxShadow:
+                        "0 4px 10px rgba(0,0,0,0.08)",
+                    }}
+                  >
+
+                    <FaUserCircle
+                      size={30}
+                      color="#14344A"
+                    />
+
+                  </div>
+
+                  {/* NAME */}
+
+                  <div>
+
+                    <h4
+                      style={{
+                        margin: 0,
+                        color: "#14344A",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {item.name}
+                    </h4>
+
+                    <p
+                      style={{
+                        margin: 0,
+                        color: "#888",
+                        marginTop: 5,
+                        fontSize: 14,
+                      }}
+                    >
+                      {activeTab === "provider"
+                        ? "Service Provider"
+                        : "Requester User"}
+                    </p>
+
+                  </div>
+
                 </div>
 
-                {/* Name */}
-                <h5
+                {/* INFO */}
+
+                <div
                   style={{
-                    margin: 0,
-                    color: "#14344A",
+                    marginBottom: 18,
                   }}
                 >
-                  {item.name}
-                </h5>
+
+                  {/* EMAIL */}
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: 12,
+                    }}
+                  >
+
+                    <div
+                      style={{
+                        width: 34,
+                        height: 34,
+
+                        borderRadius: "50%",
+
+                        background:
+                          "rgba(143,218,250,0.2)",
+
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        marginRight: 10,
+                      }}
+                    >
+
+                      <FaEnvelope
+                        color="#14344A"
+                        size={14}
+                      />
+
+                    </div>
+
+                    <span
+                      style={{
+                        color: "#444",
+                        fontSize: 15,
+                      }}
+                    >
+                      {item.email}
+                    </span>
+
+                  </div>
+
+                  {/* PHONE */}
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+
+                    <div
+                      style={{
+                        width: 34,
+                        height: 34,
+
+                        borderRadius: "50%",
+
+                        background:
+                          "rgba(143,218,250,0.2)",
+
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        marginRight: 10,
+                      }}
+                    >
+
+                      <FaPhone
+                        color="#14344A"
+                        size={14}
+                      />
+
+                    </div>
+
+                    <span
+                      style={{
+                        color: "#444",
+                        fontSize: 15,
+                      }}
+                    >
+                      {item.phone}
+                    </span>
+
+                  </div>
+
+                </div>
+{/* APPROVE OR REJECT BUTTON */}
+{activeTab === "provider" && (
+  <div
+    style={{
+      display: "flex",
+      gap: 10,
+      marginBottom: 12,
+    }}
+  >
+    <button
+      onClick={() => handleApprove(item._id)}
+      style={{
+        flex: 1,
+        padding: "10px",
+        border: "none",
+        borderRadius: 12,
+        cursor: "pointer",
+        fontWeight: 600,
+        background: "#28a745",
+        color: "#fff",
+      }}
+    >
+      Approve
+    </button>
+
+    <button
+      onClick={() => handleReject(item._id)}
+      style={{
+        flex: 1,
+        padding: "10px",
+        border: "none",
+        borderRadius: 12,
+        cursor: "pointer",
+        fontWeight: 600,
+        background: "#dc3545",
+        color: "#fff",
+      }}
+    >
+      Reject
+    </button>
+  </div>
+)}
+
+                {/* BUTTON */}
+
+                <button
+                  onClick={() =>
+                    navigate(
+                      activeTab === "provider"
+                        ? `/provider-details/${item._id}`
+                        : `/requester-details/${item._id}`
+                    )
+                  }
+                  style={{
+                    width: "100%",
+
+                    padding: "12px",
+
+                    border: "none",
+
+                    borderRadius: 14,
+
+                    cursor: "pointer",
+
+                    fontWeight: 600,
+
+                    background:
+                      "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+
+                    color: "#14344A",
+
+                    boxShadow:
+                      "0 4px 12px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  See Profile
+                </button>
 
               </div>
 
-              <hr />
+            ))}
 
-              {/* Email */}
-              <p>
-                <FaEnvelope color="#10d2f0" />{" "}
-                {item.email}
-              </p>
-
-              {/* Phone */}
-              <p>
-                <FaPhone color="#10d2f0" />{" "}
-                {item.phone}
-              </p>
-
-              {/* Profile Button */}
-              <button
-                className="btn mt-2"
-                style={{
-                  border:
-                    "1px solid rgba(52, 183, 234, 1)",
-                  color:
-                    "rgba(52, 183, 234, 1)",
-                }}
-                onClick={() =>
-                  navigate(
-                    activeTab === "provider"
-                      ? `/provider-details/${item._id}`
-                      : `/requester-details/${item._id}`
-                  )
-                }
-              >
-                See Profile
-              </button>
-
-            </div>
-
-          ))}
-
-        </div>
+          </div>
+        </>
 
       )}
+
     </div>
   );
 };
