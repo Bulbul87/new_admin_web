@@ -5,10 +5,10 @@ import {
 
 import logo from "../assets/logoimg.png";
 
-// ICONS
 import {
   LayoutDashboard,
   BriefcaseBusiness,
+  Layers3,
   Users,
   KeyRound,
   LogOut,
@@ -34,6 +34,11 @@ const Sidebar = () => {
       path: "/services",
       icon: <BriefcaseBusiness size={20} />,
     },
+      {
+    name: "Service Catalog",
+    path: "/service-catalog",
+    icon: <Layers3 size={20} />,
+  },
     {
       name: "Users",
       path: "/users",

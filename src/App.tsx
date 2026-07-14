@@ -18,6 +18,8 @@ import ProviderDetails from "./screens/providerdetail";
 import RequesterDetails from "./screens/requesterdetail";
 import ChangePassword from "./screens/changepasswordui";
 import ForgotPassword from "./screens/forgetpassword";
+import ServiceRequestForm from "./screens/servicerequest";
+
 function App() {
   return (
     <AdminAuthProvider>
@@ -41,6 +43,10 @@ function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/services" element={<Services />} />
+             <Route
+              path="/service-catalog"
+              element={<ServiceRequestForm />}
+            />
             <Route path="/add-service" element={<AddService />} />
             <Route path="/edit-service" element={<EditService />} />
             <Route path="/users" element={<AdminUserList />} />
