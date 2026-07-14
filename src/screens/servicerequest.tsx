@@ -4,10 +4,10 @@ import {
   getStates,
   getCitiesByState,
   getServiceCatalog,
-  StateType,
-  CityType,
-  ChildService,
-  ServiceCatalog,
+type StateType,
+  type CityType,
+  type ChildService,
+  type ServiceCatalog,
 } from "../service/service_catlog";
 
 export default function ServiceRequestForm() {
