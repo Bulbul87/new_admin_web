@@ -7,12 +7,13 @@ import { api } from "./api";
 export interface StateType {
   _id: string;
   name: string;
-  code?: string;
+  code: string;
 }
 
 export interface CityType {
   _id: string;
   name: string;
+  stateId: StateType;
 }
 
 export interface ChildService {
@@ -31,8 +32,7 @@ export interface ServiceCatalog {
 // ======================
 
 export const getStates = async (): Promise<StateType[]> => {
-  const res: any = await api.get("/states");
-  return res?.data || [];
+  return await api.get<StateType[]>("/services/states");
 };
 
 // ======================
@@ -42,8 +42,13 @@ export const getStates = async (): Promise<StateType[]> => {
 export const getCitiesByState = async (
   stateId: string
 ): Promise<CityType[]> => {
-  const res: any = await api.get(`/cities/state/${stateId}`);
-  return res?.data || [];
+  const cities = await api.get<CityType[]>("/services/cities");
+
+  if (!stateId) {
+    return cities;
+  }
+
+  return cities.filter((city) => city.stateId?._id === stateId);
 };
 
 // ======================
@@ -51,6 +56,5 @@ export const getCitiesByState = async (
 // ======================
 
 export const getServiceCatalog = async (): Promise<ServiceCatalog[]> => {
-  const res: any = await api.get("/serviceCatalog");
-  return res?.data || [];
+  return await api.get<ServiceCatalog[]>("/services/service-catalog");
 };
