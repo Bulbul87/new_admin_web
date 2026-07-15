@@ -12,10 +12,10 @@ import {
   Users,
   KeyRound,
   LogOut,
+  DollarSign,
 } from "lucide-react";
 
 const Sidebar = () => {
-
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,11 +34,16 @@ const Sidebar = () => {
       path: "/services",
       icon: <BriefcaseBusiness size={20} />,
     },
-      {
-    name: "Service Catalog",
-    path: "/service-catalog",
-    icon: <Layers3 size={20} />,
-  },
+    {
+      name: "Service Catalog",
+      path: "/service-catalog",
+      icon: <Layers3 size={20} />,
+    },
+    {
+      name: "Pricing",
+      path: "/pricing",
+      icon: <DollarSign size={20} />,
+    },
     {
       name: "Users",
       path: "/users",
@@ -53,7 +58,6 @@ const Sidebar = () => {
 
   return (
     <>
-
       {/* ========================= */}
       {/* SIDEBAR */}
       {/* ========================= */}
@@ -63,7 +67,6 @@ const Sidebar = () => {
           width: 220,
           height: "100vh",
 
-          // GRADIENT
           background:
             "linear-gradient(to bottom, #FFFF6D, #8FDAFA)",
 
@@ -80,7 +83,6 @@ const Sidebar = () => {
           boxShadow: "2px 0 15px rgba(0,0,0,0.08)",
         }}
       >
-
         {/* TITLE */}
 
         <h3
@@ -96,12 +98,9 @@ const Sidebar = () => {
         {/* MENU */}
 
         {menu.map((item) => {
-
-          const isActive =
-            location.pathname === item.path;
+          const isActive = location.pathname === item.path;
 
           return (
-
             <div
               key={item.path}
               onClick={() => navigate(item.path)}
@@ -129,7 +128,6 @@ const Sidebar = () => {
                 fontWeight: 600,
               }}
             >
-
               {/* ICON */}
 
               <span
@@ -148,7 +146,6 @@ const Sidebar = () => {
               {/* TEXT */}
 
               <span>{item.name}</span>
-
             </div>
           );
         })}
@@ -177,13 +174,10 @@ const Sidebar = () => {
             fontWeight: 600,
           }}
         >
-
           <LogOut size={20} color="#FFFF6D" />
 
           <span>Logout</span>
-
         </div>
-
       </div>
 
       {/* ========================= */}
@@ -200,7 +194,6 @@ const Sidebar = () => {
 
           height: 70,
 
-          // SAME GRADIENT
           background:
             "linear-gradient(to right, #FFFF6D, #8FDAFA)",
 
@@ -214,7 +207,6 @@ const Sidebar = () => {
             "0 2px 12px rgba(0,0,0,0.08)",
         }}
       >
-
         {/* LOGO */}
 
         <img
@@ -225,9 +217,7 @@ const Sidebar = () => {
             objectFit: "contain",
           }}
         />
-
       </div>
-
     </>
   );
 };
