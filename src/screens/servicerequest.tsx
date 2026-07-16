@@ -4,7 +4,7 @@ import {
   MapPin,
   Building2,
   Layers3,
-  Save,
+ 
   Map,
   ListTree,
 } from "lucide-react";
@@ -15,7 +15,7 @@ import {
   getServiceCatalog,
   type StateType,
   type CityType,
-  type ChildService,
+
   type ServiceCatalog,
 } from "../service/service_catlog";
 
@@ -28,11 +28,8 @@ const ServiceRequestForm = () => {
   const [selectedCity, setSelectedCity] = useState("");
 
   const [selectedService, setSelectedService] = useState("");
-  const [selectedChildService, setSelectedChildService] =
-    useState("");
 
-  const [childServices, setChildServices] =
-    useState<ChildService[]>([]);
+
 
   const [loading, setLoading] = useState(false);
 
@@ -96,18 +93,8 @@ const ServiceRequestForm = () => {
     const id = e.target.value;
 
     setSelectedService(id);
-    setSelectedChildService("");
-
-    const parent = services.find(
-      (item) => item._id === id
-    );
-
-    if (parent?.children?.length) {
-      setChildServices(parent.children);
-    } else {
-      setChildServices([]);
-    }
-  };
+   
+  }
 
  
 
