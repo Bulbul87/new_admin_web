@@ -1,17 +1,18 @@
-/**
- * Pricing.tsx
- *
- * Pricing Management page.
- *
- * Flow:
- *  - User selects a State, then a City (filtered by the chosen state), then a Service.
- *  - Once all three are selected, the page checks whether a pricing rule already
- *    exists for that combination:
- *      - If it exists  -> prices are auto-filled and an "Update Pricing" button is shown.
- *      - If it doesn't -> inputs are empty and an "Add Pricing" button is shown.
- */
+
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import {
+  MapPin,
+  Building2,
+  Wrench,
+  DollarSign,
+  PlusCircle,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Sparkles,
+} from 'lucide-react';
 import type {
   StateOption,
   CityOption,
@@ -117,6 +118,19 @@ const Pricing: React.FC = () => {
   const isEditMode = Boolean(existingRule);
   const canEditPricing = Boolean(selectedStateId && selectedCityId && selectedServiceId);
 
+  const selectedStateName = useMemo(
+    () => states.find((s) => s._id === selectedStateId)?.name,
+    [states, selectedStateId]
+  );
+  const selectedCityName = useMemo(
+    () => cities.find((c) => c._id === selectedCityId)?.name,
+    [cities, selectedCityId]
+  );
+  const selectedServiceName = useMemo(
+    () => services.find((s) => s._id === selectedServiceId)?.name,
+    [services, selectedServiceId]
+  );
+
   // ---------------------------------------------------------------------
   // Auto-fill prices when the matching rule (or selection) changes
   // ---------------------------------------------------------------------
@@ -220,209 +234,313 @@ const Pricing: React.FC = () => {
   };
 
   // ---------------------------------------------------------------------
-  // Render
+  // Shared field classes
+  // ---------------------------------------------------------------------
+  const selectClasses = (hasError?: string, disabled?: boolean) =>
+    `w-full rounded-xl border bg-white py-2.5 pl-10 pr-3 text-sm text-slate-800 shadow-sm transition
+     focus:outline-none focus:ring-2 focus:ring-teal-500/60 focus:border-teal-500
+     disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400
+     ${hasError ? 'border-red-400' : 'border-slate-200'}`;
+
+  const inputClasses = (hasError?: string, disabled?: boolean) =>
+    `w-full rounded-xl border bg-white py-2.5 pl-10 pr-3 text-sm text-slate-800 shadow-sm transition
+     focus:outline-none focus:ring-2 focus:ring-teal-500/60 focus:border-teal-500
+     disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400
+     ${hasError ? 'border-red-400' : 'border-slate-200'}`;
+
+  // ---------------------------------------------------------------------
+  // Loading state
   // ---------------------------------------------------------------------
   if (isLoadingReferenceData) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-600" />
-          <p className="text-sm text-slate-500">Loading pricing data…</p>
+      <div className="min-h-screen bg-slate-50 lg:pl-72">
+        <div className="flex min-h-[70vh] items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-9 w-9 animate-spin text-teal-600" />
+            <p className="text-sm font-medium text-slate-500">Loading pricing data…</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // ---------------------------------------------------------------------
+  // Error state
+  // ---------------------------------------------------------------------
   if (referenceDataError) {
     return (
-      <div className="mx-auto mt-10 max-w-lg rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-        <p className="font-medium text-red-700">{referenceDataError}</p>
-        <button
-          type="button"
-          onClick={loadReferenceData}
-          className="mt-4 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-        >
-          Retry
-        </button>
+      <div className="min-h-screen bg-slate-50 lg:pl-72">
+        <div className="mx-auto mt-16 max-w-lg rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-sm">
+          <AlertCircle className="mx-auto mb-3 h-10 w-10 text-red-500" />
+          <p className="font-semibold text-red-700">{referenceDataError}</p>
+          <button
+            type="button"
+            onClick={loadReferenceData}
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
+  // ---------------------------------------------------------------------
+  // Main render
+  // ---------------------------------------------------------------------
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-slate-900">Pricing Management</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Select a state, city, and service to view or set pricing.
-        </p>
+    <div style={{
+        marginLeft: "260px",
+        marginTop: "70px",
+        minHeight: "100vh",
+        background: "#f5f7fb",
+        padding: "30px",
+      }}>
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-10">
+        {/* Header banner — matches the app's yellow -> mint -> sky gradient */}
+        <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-200 via-emerald-200 to-sky-200 px-6 py-8 shadow-sm sm:px-8">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-slate-900 text-yellow-300 shadow-md">
+              <DollarSign className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">Pricing Management</h1>
+              <p className="mt-1 text-sm text-slate-700">
+                Select a state, city, and service to view or set pricing.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form card */}
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+          noValidate
+        >
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {/* State */}
+            <div>
+              <label htmlFor="state" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                State
+              </label>
+              <div className="relative">
+                <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <select
+                  id="state"
+                  value={selectedStateId}
+                  onChange={handleStateChange}
+                  className={selectClasses(errors.state)}
+                >
+                  <option value="">Select state</option>
+                  {states.map((state) => (
+                    <option key={state._id} value={state._id}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {errors.state && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600">
+                  <AlertCircle className="h-3.5 w-3.5" /> {errors.state}
+                </p>
+              )}
+            </div>
+
+            {/* City */}
+            <div>
+              <label htmlFor="city" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                City
+              </label>
+              <div className="relative">
+                <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <select
+                  id="city"
+                  value={selectedCityId}
+                  onChange={handleCityChange}
+                  disabled={!selectedStateId}
+                  className={selectClasses(errors.city, !selectedStateId)}
+                >
+                  <option value="">
+                    {selectedStateId ? 'Select city' : 'Select a state first'}
+                  </option>
+                  {citiesForSelectedState.map((city) => (
+                    <option key={city._id} value={city._id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {errors.city && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600">
+                  <AlertCircle className="h-3.5 w-3.5" /> {errors.city}
+                </p>
+              )}
+            </div>
+
+            {/* Service */}
+            <div className="sm:col-span-2">
+              <label htmlFor="service" className="mb-1.5 block text-sm font-semibold text-slate-700">
+                Service
+              </label>
+              <div className="relative">
+                <Wrench className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <select
+                  id="service"
+                  value={selectedServiceId}
+                  onChange={handleServiceChange}
+                  className={selectClasses(errors.service)}
+                >
+                  <option value="">Select service</option>
+                  {services.map((service) => (
+                    <option key={service._id} value={service._id}>
+                      {service.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {errors.service && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600">
+                  <AlertCircle className="h-3.5 w-3.5" /> {errors.service}
+                </p>
+              )}
+            </div>
+
+            {/* Requester Price */}
+            <div>
+              <label
+                htmlFor="requesterPrice"
+                className="mb-1.5 block text-sm font-semibold text-slate-700"
+              >
+                Requester Price
+              </label>
+              <div className="relative">
+                <DollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  id="requesterPrice"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={requesterPrice}
+                  onChange={(e) => setRequesterPrice(e.target.value)}
+                  disabled={!canEditPricing}
+                  placeholder="0.00"
+                  className={inputClasses(errors.requesterPrice, !canEditPricing)}
+                />
+              </div>
+              {errors.requesterPrice && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600">
+                  <AlertCircle className="h-3.5 w-3.5" /> {errors.requesterPrice}
+                </p>
+              )}
+            </div>
+
+            {/* Provider Price */}
+            <div>
+              <label
+                htmlFor="providerPrice"
+                className="mb-1.5 block text-sm font-semibold text-slate-700"
+              >
+                Provider Price
+              </label>
+              <div className="relative">
+                <DollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  id="providerPrice"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={providerPrice}
+                  onChange={(e) => setProviderPrice(e.target.value)}
+                  disabled={!canEditPricing}
+                  placeholder="0.00"
+                  className={inputClasses(errors.providerPrice, !canEditPricing)}
+                />
+              </div>
+              {errors.providerPrice && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600">
+                  <AlertCircle className="h-3.5 w-3.5" /> {errors.providerPrice}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Status: existing vs new combination */}
+          {canEditPricing && (
+            <div
+              className={`mt-5 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium ${
+                isEditMode
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-amber-50 text-amber-700'
+              }`}
+            >
+              {isEditMode ? (
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              ) : (
+                <Sparkles className="h-4 w-4 flex-shrink-0" />
+              )}
+              <span>
+                {isEditMode ? (
+                  <>
+                    Existing pricing found for{' '}
+                    <strong>
+                      {selectedServiceName} · {selectedCityName}, {selectedStateName}
+                    </strong>{' '}
+                    — update it below.
+                  </>
+                ) : (
+                  <>
+                    No pricing yet for{' '}
+                    <strong>
+                      {selectedServiceName} · {selectedCityName}, {selectedStateName}
+                    </strong>{' '}
+                    — add it below.
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+
+          {/* Submit status */}
+          {statusMessage && (
+            <div
+              className={`mt-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium ${
+                statusMessage.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-red-50 text-red-700'
+              }`}
+            >
+              {statusMessage.type === 'success' ? (
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              )}
+              {statusMessage.text}
+            </div>
+          )}
+
+          {/* Submit button */}
+          <div className="mt-7 flex justify-end">
+            <button
+              type="submit"
+              disabled={!canEditPricing || isSubmitting}
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-yellow-300 shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isEditMode ? (
+                <RefreshCw className="h-4 w-4" />
+              ) : (
+                <PlusCircle className="h-4 w-4" />
+              )}
+              {isEditMode ? 'Update Pricing' : 'Add Pricing'}
+            </button>
+          </div>
+        </form>
       </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-        noValidate
-      >
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {/* State */}
-          <div>
-            <label htmlFor="state" className="mb-1 block text-sm font-medium text-slate-700">
-              State
-            </label>
-            <select
-              id="state"
-              value={selectedStateId}
-              onChange={handleStateChange}
-              className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                errors.state ? 'border-red-400' : 'border-slate-300'
-              }`}
-            >
-              <option value="">Select state</option>
-              {states.map((state) => (
-                <option key={state._id} value={state._id}>
-                  {state.name}
-                </option>
-              ))}
-            </select>
-            {errors.state && <p className="mt-1 text-xs text-red-600">{errors.state}</p>}
-          </div>
-
-          {/* City */}
-          <div>
-            <label htmlFor="city" className="mb-1 block text-sm font-medium text-slate-700">
-              City
-            </label>
-            <select
-              id="city"
-              value={selectedCityId}
-              onChange={handleCityChange}
-              disabled={!selectedStateId}
-              className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
-                errors.city ? 'border-red-400' : 'border-slate-300'
-              }`}
-            >
-              <option value="">
-                {selectedStateId ? 'Select city' : 'Select a state first'}
-              </option>
-              {citiesForSelectedState.map((city) => (
-                <option key={city._id} value={city._id}>
-                  {city.name}
-                </option>
-              ))}
-            </select>
-            {errors.city && <p className="mt-1 text-xs text-red-600">{errors.city}</p>}
-          </div>
-
-          {/* Service */}
-          <div className="sm:col-span-2">
-            <label htmlFor="service" className="mb-1 block text-sm font-medium text-slate-700">
-              Service
-            </label>
-            <select
-              id="service"
-              value={selectedServiceId}
-              onChange={handleServiceChange}
-              className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 ${
-                errors.service ? 'border-red-400' : 'border-slate-300'
-              }`}
-            >
-              <option value="">Select service</option>
-              {services.map((service) => (
-                <option key={service._id} value={service._id}>
-                  {service.name}
-                </option>
-              ))}
-            </select>
-            {errors.service && <p className="mt-1 text-xs text-red-600">{errors.service}</p>}
-          </div>
-
-          {/* Requester Price */}
-          <div>
-            <label
-              htmlFor="requesterPrice"
-              className="mb-1 block text-sm font-medium text-slate-700"
-            >
-              Requester Price
-            </label>
-            <input
-              id="requesterPrice"
-              type="number"
-              min={0}
-              step="0.01"
-              inputMode="decimal"
-              value={requesterPrice}
-              onChange={(e) => setRequesterPrice(e.target.value)}
-              disabled={!canEditPricing}
-              placeholder="0.00"
-              className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
-                errors.requesterPrice ? 'border-red-400' : 'border-slate-300'
-              }`}
-            />
-            {errors.requesterPrice && (
-              <p className="mt-1 text-xs text-red-600">{errors.requesterPrice}</p>
-            )}
-          </div>
-
-          {/* Provider Price */}
-          <div>
-            <label
-              htmlFor="providerPrice"
-              className="mb-1 block text-sm font-medium text-slate-700"
-            >
-              Provider Price
-            </label>
-            <input
-              id="providerPrice"
-              type="number"
-              min={0}
-              step="0.01"
-              inputMode="decimal"
-              value={providerPrice}
-              onChange={(e) => setProviderPrice(e.target.value)}
-              disabled={!canEditPricing}
-              placeholder="0.00"
-              className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
-                errors.providerPrice ? 'border-red-400' : 'border-slate-300'
-              }`}
-            />
-            {errors.providerPrice && (
-              <p className="mt-1 text-xs text-red-600">{errors.providerPrice}</p>
-            )}
-          </div>
-        </div>
-
-        {canEditPricing && (
-          <p className="mt-4 text-xs text-slate-500">
-            {isEditMode
-              ? 'Pricing already exists for this combination — update it below.'
-              : 'No pricing found for this combination — add it below.'}
-          </p>
-        )}
-
-        {statusMessage && (
-          <div
-            className={`mt-4 rounded-md px-4 py-2 text-sm ${
-              statusMessage.type === 'success'
-                ? 'bg-green-50 text-green-700'
-                : 'bg-red-50 text-red-700'
-            }`}
-          >
-            {statusMessage.text}
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-end">
-          <button
-            type="submit"
-            disabled={!canEditPricing || isSubmitting}
-            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            {isSubmitting && (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            )}
-            {isEditMode ? 'Update Pricing' : 'Add Pricing'}
-          </button>
-        </div>
-      </form>
     </div>
   );
 };
