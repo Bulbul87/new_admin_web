@@ -109,18 +109,7 @@ const ServiceRequestForm = () => {
     }
   };
 
-  // ==========================
-  // SUBMIT
-  // ==========================
-
-  const handleSubmit = () => {
-    console.log({
-      state: selectedState,
-      city: selectedCity,
-      service: selectedService,
-      childService: selectedChildService,
-    });
-  };
+ 
 
   // ==========================
   // UI
@@ -187,27 +176,6 @@ const ServiceRequestForm = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          style={{
-            border: "none",
-            background:
-              "linear-gradient(to right,#FFFF6D,#8FDAFA)",
-            color: "#14344A",
-            padding: "14px 24px",
-            borderRadius: 14,
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            boxShadow:
-              "0 6px 20px rgba(0,0,0,.08)",
-          }}
-        >
-          <Save size={18} />
-          Save Selection
-        </button>
       </div> 
             {/* ============================== */}
       {/* SUMMARY CARDS */}
@@ -343,7 +311,7 @@ const ServiceRequestForm = () => {
               marginBottom: 8,
             }}
           >
-            Parent Services
+            Total Services
           </p>
 
           <h2
@@ -538,7 +506,7 @@ const ServiceRequestForm = () => {
             gap: 25,
           }}
         >
-          {/* Parent Service */}
+          {/* All Services */}
 
           <div>
             <label
@@ -549,7 +517,7 @@ const ServiceRequestForm = () => {
                 fontWeight: 600,
               }}
             >
-              Parent Service
+             All Services
             </label>
 
             <select
@@ -565,7 +533,7 @@ const ServiceRequestForm = () => {
               }}
             >
               <option value="">
-                Select Parent Service
+                Select Service
               </option>
 
               {services.map((service) => (
@@ -579,57 +547,7 @@ const ServiceRequestForm = () => {
             </select>
           </div>
 
-          {/* Child Service */}
-
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: 10,
-                color: "#14344A",
-                fontWeight: 600,
-              }}
-            >
-              Child Service
-            </label>
-
-            <select
-              value={selectedChildService}
-              onChange={(e) =>
-                setSelectedChildService(
-                  e.target.value
-                )
-              }
-              disabled={
-                childServices.length === 0
-              }
-              style={{
-                width: "100%",
-                padding: 16,
-                borderRadius: 14,
-                border: "1px solid #ddd",
-                outline: "none",
-                fontSize: 15,
-                background:
-                  childServices.length === 0
-                    ? "#f3f4f6"
-                    : "#fff",
-              }}
-            >
-              <option value="">
-                Select Child Service
-              </option>
-
-              {childServices.map((child) => (
-                <option
-                  key={child._id}
-                  value={child._id}
-                >
-                  {child.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          
         </div>
       </div>
 
@@ -705,7 +623,7 @@ const ServiceRequestForm = () => {
               borderRadius: 16,
             }}
           >
-            <strong>Parent Service</strong>
+            <strong> Service</strong>
 
             <p style={{ marginTop: 8 }}>
               {services.find(
@@ -716,55 +634,10 @@ const ServiceRequestForm = () => {
             </p>
           </div>
 
-          <div
-            style={{
-              background: "#F8FBFF",
-              padding: 18,
-              borderRadius: 16,
-            }}
-          >
-            <strong>Child Service</strong>
-
-            <p style={{ marginTop: 8 }}>
-              {childServices.find(
-                (x) =>
-                  x._id ===
-                  selectedChildService
-              )?.name || "-"}
-            </p>
-          </div>
+         
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginTop: 30,
-          }}
-        >
-          <button
-            onClick={handleSubmit}
-            style={{
-              border: "none",
-              background:
-                "linear-gradient(to right,#FFFF6D,#8FDAFA)",
-              color: "#14344A",
-              padding: "14px 26px",
-              borderRadius: 14,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              boxShadow:
-                "0 6px 20px rgba(0,0,0,.08)",
-            }}
-          >
-            <Save size={18} />
-
-            Save Selection
-          </button>
-        </div>
+        
       </div>
           </div>
   );
