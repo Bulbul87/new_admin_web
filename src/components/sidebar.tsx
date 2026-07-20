@@ -45,6 +45,11 @@ const Sidebar = () => {
       icon: <DollarSign size={20} />,
     },
     {
+      name: "View Pricing ",
+      path: "/view-pricing",
+      icon: <DollarSign size={20} />,
+    },
+    {
       name: "Users",
       path: "/users",
       icon: <Users size={20} />,

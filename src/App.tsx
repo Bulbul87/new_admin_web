@@ -20,6 +20,7 @@ import ChangePassword from "./screens/changepasswordui";
 import ForgotPassword from "./screens/forgetpassword";
 import ServiceRequestForm from "./screens/servicerequest";
 import Pricing from "./screens/pricing";
+import PricingRules from "./screens/viewpricing";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
               element={<ServiceRequestForm />}
             />
             <Route path="/pricing" element={<Pricing />} />
+              <Route path="/view-pricing" element={<PricingRules />} />
             <Route path="/add-service" element={<AddService />} />
             <Route path="/edit-service" element={<EditService />} />
             <Route path="/users" element={<AdminUserList />} />

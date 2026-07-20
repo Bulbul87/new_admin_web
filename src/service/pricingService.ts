@@ -1,23 +1,22 @@
 /**
  * pricingService.ts
  *
- * Service Layer for Pricing Management
+ * Smart Pricing Service
+ * Compatible with:
+ * GET  /pricing-rules
+ * PUT  /pricing-rules/update
  */
 
 import { api } from "../service/api";
 
-// ================================
-// Types
-// ================================
+// ======================================================
+// State
+// ======================================================
 
 export interface StateOption {
   _id: string;
   name: string;
-}
-export interface PricingRuleResponse {
-  success: boolean;
-  count: number;
-  data: PricingRule[];
+  code?: string;
 }
 
 export interface StateRef {
@@ -26,13 +25,24 @@ export interface StateRef {
   code?: string;
 }
 
+// ======================================================
+// City
+// ======================================================
+
 export interface CityOption {
   _id: string;
   name: string;
   stateId: string | StateRef;
 }
 
+export interface CityRef {
+  _id: string;
+  name: string;
+}
 
+// ======================================================
+// Service
+// ======================================================
 
 export interface ParentServiceRef {
   _id: string;
@@ -46,19 +56,24 @@ export interface ServiceCatalogItem {
   name: string;
   category?: string;
 
-  // null => Parent Service
-  // object => Child Service
+  /**
+   * null = Parent Service
+   * object = Child Service
+   */
   parentId: ParentServiceRef | null;
 }
 
+// ======================================================
+// Pricing Rule
+// ======================================================
+
 export interface PricingRule {
+
   _id: string;
 
   stateId: StateRef;
-  cityId: {
-    _id: string;
-    name: string;
-  };
+
+  cityId: CityRef;
 
   serviceId: {
     _id: string;
@@ -66,31 +81,89 @@ export interface PricingRule {
   };
 
   requesterPrice: number;
+
   providerPrice: number;
 
   status?: string;
 
   createdAt?: string;
+
   updatedAt?: string;
+
 }
 
-export interface PricingRulePayload {
-  stateId: string;
-  cityId: string;
+// ======================================================
+// Smart Pricing Level
+// ======================================================
 
-  // Child service id
-  serviceId: string;
+export type PricingLevel =
+  | "state"
+  | "city"
+  | "parent"
+  | "service";
+
+  // ======================================================
+// Smart Pricing Payload
+// ======================================================
+
+export interface SmartPricingPayload {
+
+  level: PricingLevel;
+
+  stateId: string;
+
+  cityId?: string;
+
+  parentServiceId?: string;
+
+  serviceId?: string;
 
   requesterPrice: number;
+
   providerPrice: number;
+
 }
 
+// ======================================================
+// API Responses
+// ======================================================
 
-// ================================
-// Endpoints
-// ================================
+export interface PricingRuleResponse {
+
+  success: boolean;
+
+  count: number;
+
+  data: PricingRule[];
+
+}
+
+export interface SmartPricingResponse {
+
+  success: boolean;
+
+  message: string;
+
+  data?: PricingRule;
+
+  result?: unknown;
+
+  totalCities?: number;
+
+  totalServices?: number;
+
+  totalRecords?: number;
+
+  updatedServices?: number;
+
+}
+
+// ======================================================
+// API Endpoints
+// ======================================================
 
 const ENDPOINTS = {
+
   states: "/services/states",
 
   cities: "/services/cities",
@@ -99,14 +172,13 @@ const ENDPOINTS = {
 
   pricingRules: "/pricing-rules",
 
-  pricingRuleById: (id: string) =>
-    `/pricing-rules/${id}`,
+  smartPricingUpdate: "/pricing-rules/update",
+
 };
 
-
-// ================================
-// Helpers
-// ================================
+// ======================================================
+// Helper Functions
+// ======================================================
 
 export function getStateIdFromCity(
   city: CityOption
@@ -115,178 +187,336 @@ export function getStateIdFromCity(
   return typeof city.stateId === "string"
     ? city.stateId
     : city.stateId._id;
+
 }
 
-
-
-// ================================
+// ======================================================
 // Service Hierarchy Helpers
-// ================================
+// ======================================================
 
-
-/**
- * Get only parent services
- *
- * Example:
- * Cleaning
- * Plumbing
- * Electrician
- */
 export function getParentServices(
   services: ServiceCatalogItem[]
 ): ServiceCatalogItem[] {
+
   return services.filter(
     service => service.parentId === null
   );
+
 }
 
-
-
-/**
- * Get child services of selected parent
- *
- * Example:
- *
- * Cleaning
- *   |
- *   |-- Home Cleaning
- *   |-- Deep Cleaning
- */
 export function getChildServices(
   services: ServiceCatalogItem[],
-  parentId: string
+  parentServiceId: string
 ): ServiceCatalogItem[] {
 
   return services.filter(
-    service =>
-      service.parentId?._id === parentId
+    service => service.parentId?._id === parentServiceId
   );
 
 }
 
+// ======================================================
+// GET STATES
+// ======================================================
 
-
-// ================================
-// APIs
-// ================================
-
-
-export async function getStates()
-: Promise<StateOption[]> {
+export async function getStates(): Promise<StateOption[]> {
 
   return await api.get<StateOption[]>(
     ENDPOINTS.states
   );
+
 }
 
+// ======================================================
+// GET CITIES
+// ======================================================
 
-
-export async function getCities()
-: Promise<CityOption[]> {
+export async function getCities(): Promise<CityOption[]> {
 
   return await api.get<CityOption[]>(
     ENDPOINTS.cities
   );
+
 }
 
+// ======================================================
+// GET SERVICE CATALOG
+// ======================================================
 
-
-export async function getServiceCatalog()
-: Promise<ServiceCatalogItem[]> {
+export async function getServiceCatalog(): Promise<ServiceCatalogItem[]> {
 
   return await api.get<ServiceCatalogItem[]>(
     ENDPOINTS.serviceCatalog
   );
+
 }
 
-
+// ======================================================
+// GET ALL PRICING RULES
+// ======================================================
 
 export async function getPricingRules(): Promise<PricingRule[]> {
-  const response = await api.get<PricingRuleResponse>(
+
+  const response = await api.get<any>(
     ENDPOINTS.pricingRules
   );
 
-  console.log("Pricing Response:", response);
+  console.log("Pricing Response =", response);
 
-  if (!response) return [];
+  return response;
 
-  if (Array.isArray(response)) {
-    return response as PricingRule[];
-  }
-
-  if (Array.isArray(response.data)) {
-    return response.data;
-  }
-
-  return [];
 }
 
+// ======================================================
+// SMART PRICING UPDATE
+// PUT /pricing-rules/update
+// ======================================================
 
+export async function updatePricing(
+  payload: SmartPricingPayload
+): Promise<SmartPricingResponse> {
 
-
-export async function createPricingRule(
-  payload: PricingRulePayload
-): Promise<PricingRule> {
-
-
-  return await api.post<PricingRule>(
-    ENDPOINTS.pricingRules,
+  return await api.put<SmartPricingResponse>(
+    ENDPOINTS.smartPricingUpdate,
     payload
   );
+
 }
 
+// ======================================================
+// BUILD SMART PAYLOAD
+// ======================================================
 
+interface BuildPayloadParams {
 
+  stateId: string;
 
-export async function updatePricingRule(
-  id:string,
-  payload:PricingRulePayload
-): Promise<PricingRule> {
+  cityId?: string;
 
+  parentServiceId?: string;
 
-  return await api.put<PricingRule>(
-    ENDPOINTS.pricingRuleById(id),
-    payload
-  );
+  serviceId?: string;
+
+  requesterPrice: number;
+
+  providerPrice: number;
+
 }
 
+export function buildPricingPayload(
+  params: BuildPayloadParams
+): SmartPricingPayload {
 
+  const {
 
+    stateId,
 
-export async function deletePricingRule(
-  id:string
-): Promise<void> {
+    cityId,
 
+    parentServiceId,
 
-  await api.delete<void>(
-    ENDPOINTS.pricingRuleById(id)
-  );
+    serviceId,
+
+    requesterPrice,
+
+    providerPrice
+
+  } = params;
+
+  // -------------------------------
+  // CASE 1 : STATE
+  // -------------------------------
+
+  if (!cityId) {
+
+    return {
+
+      level: "state",
+
+      stateId,
+
+      requesterPrice,
+
+      providerPrice
+
+    };
+
+  }
+
+  // -------------------------------
+  // CASE 2 : CITY
+  // -------------------------------
+
+  if (!parentServiceId) {
+
+    return {
+
+      level: "city",
+
+      stateId,
+
+      cityId,
+
+      requesterPrice,
+
+      providerPrice
+
+    };
+
+  }
+
+  // -------------------------------
+  // CASE 3 : PARENT SERVICE
+  // -------------------------------
+
+  if (!serviceId) {
+
+    return {
+
+      level: "parent",
+
+      stateId,
+
+      cityId,
+
+      parentServiceId,
+
+      requesterPrice,
+
+      providerPrice
+
+    };
+
+  }
+
+  // -------------------------------
+  // CASE 4 : SINGLE SERVICE
+  // -------------------------------
+
+  return {
+
+    level: "service",
+
+    stateId,
+
+    cityId,
+
+    parentServiceId,
+
+    serviceId,
+
+    requesterPrice,
+
+    providerPrice
+
+  };
+
 }
 
+// ======================================================
+// Utility Helpers
+// ======================================================
 
+export function isParentService(
+  service: ServiceCatalogItem
+): boolean {
 
-// ================================
-// Find Existing Pricing Rule
-// ================================
+  return service.parentId === null;
 
+}
 
-export function findMatchingRule(
-  rules: PricingRule[] = [],
-  stateId: string,
-  cityId: string,
+export function isChildService(
+  service: ServiceCatalogItem
+): boolean {
+
+  return service.parentId !== null;
+
+}
+
+export function getServiceName(
+  services: ServiceCatalogItem[],
   serviceId: string
-): PricingRule | undefined {
+): string {
 
-  if (!Array.isArray(rules)) {
-    return undefined;
-  }
+  return (
+    services.find(
+      service => service._id === serviceId
+    )?.name ?? ""
+  );
 
-  return rules.find((rule) => {
-    return (
-      rule?.stateId?._id === stateId &&
-      rule?.cityId?._id === cityId &&
-      rule?.serviceId?._id === serviceId
-    );
-  });
+}
+
+export function getParentServiceName(
+  services: ServiceCatalogItem[],
+  parentServiceId: string
+): string {
+
+  return (
+    services.find(
+      service => service._id === parentServiceId
+    )?.name ?? ""
+  );
+
+}
+
+export function getCityName(
+  cities: CityOption[],
+  cityId: string
+): string {
+
+  return (
+    cities.find(
+      city => city._id === cityId
+    )?.name ?? ""
+  );
+
+}
+
+export function getStateName(
+  states: StateOption[],
+  stateId: string
+): string {
+
+  return (
+    states.find(
+      state => state._id === stateId
+    )?.name ?? ""
+  );
+
+}
+
+// ======================================================
+// Selection Helpers
+// ======================================================
+
+export function hasStateSelected(
+  stateId?: string
+): boolean {
+
+  return Boolean(stateId);
+
+}
+
+export function hasCitySelected(
+  cityId?: string
+): boolean {
+
+  return Boolean(cityId);
+
+}
+
+export function hasParentSelected(
+  parentServiceId?: string
+): boolean {
+
+  return Boolean(parentServiceId);
+
+}
+
+export function hasServiceSelected(
+  serviceId?: string
+): boolean {
+
+  return Boolean(serviceId);
 
 }
