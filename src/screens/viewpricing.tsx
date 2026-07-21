@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
-  Building2,
+  BriefcaseBusiness,
+  Database,
+  Filter,
   Loader2,
-  
+  MapPin,
+  MapPinned,
   RefreshCw,
-  Search,
-
-  XCircle,
+  Search, 
+   CheckCircle2,
 } from "lucide-react";
 
 import {
@@ -326,389 +328,1076 @@ const PricingRules: React.FC = () => {
       </div>
     );
   }
-    return (
-    <div
-      style={{
-        marginLeft: "260px",
-        marginTop: "70px",
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "30px",
-      }}
-    >
-      {/* ========================= Header ========================= */}
 
-      <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-        <div>
-          <div className="flex items-center gap-2 text-indigo-600">
-            <Building2 className="h-5 w-5" />
-            <span className="text-sm font-semibold tracking-wide uppercase">
-              Pricing Management
-            </span>
-          </div>
+return (
+  <div
+    className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50"
+    style={{
+      marginLeft: "260px",
+      marginTop: "70px",
+      padding: "32px",
+    }}
+  >
+    {/* ========================================================= */}
+    {/* HERO HEADER */}
+    {/* ========================================================= */}
 
-          <h1 className="mt-2 text-4xl font-bold text-slate-900">
+    <div className="relative overflow-hidden rounded-[32px] ">
+
+
+     
+
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center">
+
+        <div className="flex text-align: center; ">
+
+        
+
+          <h1  style={{
+              color: "#14344A",
+              fontWeight: 700,
+              marginBottom: 10,
+              alignItems: "center",
+            }}>
+
             Pricing Rules
+
           </h1>
 
-          <p className="mt-2 text-slate-500">
-            View, search and filter pricing rules.
-          </p>
+          
+
         </div>
+
+        <div className="flex gap-4 justify-end lg:ml-auto">
 
         <button
-          onClick={handleRefresh}
-          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-105"
-        >
-          <RefreshCw className="h-5 w-5" />
-          Refresh
-        </button>
-      </div>
+  onClick={handleRefresh}
+  style={{
+            border: "none",
 
-      {/* ========================= Error ========================= */}
+            background:
+              "linear-gradient(to right, #FFFF6D, #8FDAFA)",
 
-      {error && (
-        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">
-          <AlertCircle className="h-5 w-5" />
-          {error}
-        </div>
-      )}
+            color: "#14344A",
 
-      {/* ========================= Summary ========================= */}
+            fontWeight: 700,
 
-      <div className="mb-8 grid gap-6 md:grid-cols-2">
+            padding: "14px 24px",
 
-        <div className="rounded-3xl bg-white p-6 shadow-xl">
+            borderRadius: 14,
 
-          <p className="text-sm font-medium text-slate-500">
-            Total Pricing Rules
-          </p>
+            boxShadow:
+              "0 6px 20px rgba(0,0,0,0.08)",
 
-          <h2 className="mt-2 text-4xl font-bold text-indigo-600">
-            {pricingRules.length}
-          </h2>
+            transition: "0.3s",
+          }}
+>
+  <RefreshCw className="h-6 w-6 transition-transform duration-300 group-hover:rotate-180" />
 
-        </div>
-
-        <div className="rounded-3xl bg-white p-6 shadow-xl">
-
-          <p className="text-sm font-medium text-slate-500">
-            Showing Results
-          </p>
-
-          <h2 className="mt-2 text-4xl font-bold text-emerald-600">
-            {filteredPricingRules.length}
-          </h2>
+  Refresh Data
+</button>
 
         </div>
 
       </div>
 
-      {/* ========================= Filter Card ========================= */}
+    </div>
 
-      <section className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-xl">
+    {/* ========================================================= */}
+    {/* ERROR */}
+    {/* ========================================================= */}
 
-        <div className="mb-6 flex items-center gap-3">
+    {error && (
 
-          <Search className="h-6 w-6 text-indigo-600" />
+      <div className="mt-8 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700 shadow">
 
-          <h2 className="text-2xl font-bold text-slate-800">
-            Search & Filters
-          </h2>
+        <AlertCircle className="h-6 w-6" />
 
-        </div>
+        <span>{error}</span>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+      </div>
 
-          {/* State */}
+    )}
 
-          <select
-            value={selectedStateId}
-            onChange={(e) => {
-              setSelectedStateId(e.target.value);
-              setSelectedCityId("");
+  {/* ========================================================= */}
+{/* DASHBOARD STATS */}
+{/* ========================================================= */}
+
+<div style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: 25,
+          marginBottom: 35,
+          paddingTop: 20,
+        }}>
+
+  {/* Total Rules */}    
+
+        <div style={{background: "#fff",
+    borderRadius: 24,
+    padding: 25,
+    boxShadow:
+      "0 8px 30px rgba(0,0,0,0.06)",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    cursor: "pointer",
+    transition: "0.3s",}}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 18,
+              background:
+                "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 18,
             }}
-            className="rounded-2xl border border-slate-300 p-3"
           >
-            <option value="">
-              All States
+                <Database className="h-8 w-8 text-slate-900" />
+          </div>
+
+          <h4
+            style={{
+              color: "#6b7280",
+              fontSize: 24,
+            }}
+          >
+           Total Pricing Records
+          </h4>
+
+          <h1
+            style={{
+              margin: "8px 0",
+              color: "#14344A",
+              fontWeight: 800,
+              fontSize: 30,
+            }}
+          >
+          {pricingRules.length}
+          </h1>
+        </div>
+
+
+  {/* Showing */}
+   <div style={{background: "#fff",
+    borderRadius: 24,
+    padding: 25,
+    boxShadow:
+      "0 8px 30px rgba(0,0,0,0.06)",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    cursor: "pointer",
+    transition: "0.3s",}}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 18,
+              background:
+                "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 18,
+            }}
+          >
+                <Filter className="h-8 w-8 text-slate-900" />
+          </div>
+
+          <h4
+            style={{
+              color: "#6b7280",
+              fontSize: 24,
+            }}
+          >
+           Showing Records
+          </h4>
+
+          <h1
+            style={{
+              margin: "8px 0",
+              color: "#14344A",
+              fontWeight: 800,
+              fontSize: 30,
+            }}
+          >
+    {filteredPricingRules.length}
+          </h1>
+        </div>
+
+  
+  {/* States */}
+ <div style={{background: "#fff",
+    borderRadius: 24,
+    padding: 25,
+    boxShadow:
+      "0 8px 30px rgba(0,0,0,0.06)",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    cursor: "pointer",
+    transition: "0.3s",}}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 18,
+              background:
+                "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 18,
+            }}
+          >
+                <MapPinned className="h-8 w-8 text-slate-900" />
+          </div>
+
+          <h4
+            style={{
+              color: "#6b7280",
+                fontSize: 24,
+            }}
+          >
+            Available States
+          </h4>
+
+          <h1
+            style={{
+              margin: "8px 0",
+              color: "#14344A",
+              fontWeight: 800,
+              fontSize: 30,
+            }}
+          >
+  {states.length}
+          </h1>
+        </div>
+
+  
+
+  {/* Services */}
+ <div style={{background: "#fff",
+    borderRadius: 24,
+    padding: 25,
+    boxShadow:
+      "0 8px 30px rgba(0,0,0,0.06)",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    cursor: "pointer",
+    transition: "0.3s",}}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 18,
+              background:
+                "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 18,
+            }}
+          >
+               <BriefcaseBusiness className="h-8 w-8 text-slate-900" />
+          </div>
+
+          <h4
+            style={{
+              color: "#6b7280",
+               fontSize: 24,
+            }}
+          >
+        Total Services
+          
+          </h4>
+
+          <h1
+            style={{
+              margin: "8px 0",
+              color: "#14344A",
+              fontWeight: 800,
+              fontSize: 30,
+            }}
+          >
+ {services.length}
+          </h1>
+        </div>
+
+</div>
+
+   {/* ========================================================= */}
+{/* FILTER TOOLBAR */}
+{/* ========================================================= */}
+
+
+<section className="mt-8 overflow-hidden  ">
+
+ 
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 24,
+          padding: 30,
+          marginBottom: 30,
+          boxShadow: "0 4px 20px rgba(0,0,0,.06)",
+        }}
+      >
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 25,
+          }}
+        >
+
+          <MapPin size={24} color="#14344A" />
+
+          <h3
+            style={{
+              color: "#14344A",
+              fontSize: 24,
+              fontWeight: 700,
+              margin: 0,
+            }}
+          >
+            Location Details
+          </h3>
+
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 25,
+          }}
+        >
+
+          {/* STATE */}
+
+          <div>
+
+            <label
+              style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }}
+            >
+              State
+            </label>
+
+            <select
+              value={selectedStateId}
+            onChange={(e) => {
+
+              setSelectedStateId(e.target.value);
+
+              setSelectedCityId("");
+
+            }}
+              style={{
+                width: "100%",
+                padding: 16,
+                borderRadius: 14,
+                border: "1px solid #ddd",
+                outline: "none",
+                fontSize: 15,
+              }}
+            >
+              <option value="">
+
+              Select State
+
             </option>
 
             {states.map((state) => (
+
               <option
                 key={state._id}
                 value={state._id}
               >
+
                 {state.name}
+
               </option>
+
             ))}
-          </select>
+            </select>
 
-          {/* City */}
+          </div>
+ {/* city */}
+           <div>
 
-          <select
-            value={selectedCityId}
+            <label
+              style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }}
+            >
+               City
+            </label>
+
+            <select
+               value={selectedCityId}
             disabled={!selectedStateId}
             onChange={(e) =>
               setSelectedCityId(e.target.value)
             }
-            className="rounded-2xl border border-slate-300 p-3 disabled:bg-slate-100"
-          >
-            <option value="">
-              All Cities
+              style={{
+                width: "100%",
+                padding: 16,
+                borderRadius: 14,
+                border: "1px solid #ddd",
+                outline: "none",
+                fontSize: 15,
+              }}
+            >
+             <option value="">
+
+              Select City
+
             </option>
 
             {filteredCities.map((city) => (
+
               <option
                 key={city._id}
                 value={city._id}
               >
+
                 {city.name}
+
               </option>
+
             ))}
-          </select>
+            </select>
 
-          {/* Parent Service */}
+          </div>
 
-          <select
-            value={selectedParentServiceId}
-            onChange={(e) => {
-              setSelectedParentServiceId(
-                e.target.value
-              );
+        </div>
 
-              setSelectedServiceId("");
+      </div>
+
+       <div
+        style={{
+          background: "#fff",
+          borderRadius: 24,
+          padding: 30,
+          marginBottom: 30,
+          boxShadow: "0 4px 20px rgba(0,0,0,.06)",
+        }}
+      >
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 25,
+          }}
+        >
+
+          <MapPin size={24} color="#14344A" />
+
+          <h3
+            style={{
+              color: "#14344A",
+              fontSize: 24,
+              fontWeight: 700,
+              margin: 0,
             }}
-            className="rounded-2xl border border-slate-300 p-3"
           >
-            <option value="">
-              All Parent Services
-            </option>
-
-            {parentServices.map((service) => (
-              <option
-                key={service._id}
-                value={service._id}
-              >
-                {service.name}
-              </option>
-            ))}
-          </select>
-                    {/* Sub Service */}
-
-          <select
-            value={selectedServiceId}
-            disabled={!selectedParentServiceId}
-            onChange={(e) =>
-              setSelectedServiceId(e.target.value)
-            }
-            className="rounded-2xl border border-slate-300 p-3 disabled:bg-slate-100"
-          >
-            <option value="">
-              All Sub Services
-            </option>
-
-            {childServices.map((service) => (
-              <option
-                key={service._id}
-                value={service._id}
-              >
-                {service.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Search */}
-
-          <div className="relative">
-
-            <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-
-            <input
-              type="text"
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              placeholder="Search..."
-              className="w-full rounded-2xl border border-slate-300 py-3 pl-12 pr-4"
-            />
-
-          </div>
+              Service Details
+          </h3>
 
         </div>
 
-        {/* Clear Button */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 25,
+          }}
+        >
 
-        <div className="mt-6 flex justify-end">
+          {/* PARENT SERVICE */}
 
-          <button
-            onClick={clearFilters}
-            className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-semibold text-red-600 transition hover:bg-red-100"
-          >
-            <XCircle className="h-5 w-5" />
+          <div>
 
-            Clear Filters
-
-          </button>
-
-        </div>
-
-      </section>
-
-      {/* ========================= Table ========================= */}
-
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-
-        <div className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white">
-
-          <Building2 className="h-5 w-5" />
-
-          <h2 className="text-xl font-bold">
-            Pricing Rules
-          </h2>
-
-        </div>
-
-        <div className="overflow-x-auto">
-
-          <table className="min-w-full">
-
-            <thead className="sticky top-0 bg-slate-100">
-
-              <tr className="text-left text-sm font-bold text-slate-700">
-
-                <th className="px-6 py-4">
-                  State
-                </th>
-
-                <th className="px-6 py-4">
-                  City
-                </th>
-
-                <th className="px-6 py-4">
+            <label
+              style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }}
+            >
                   Parent Service
-                </th>
+            </label>
 
-                <th className="px-6 py-4">
-                  Sub Service
-                </th>
+            <select
+              value={selectedParentServiceId}
+              onChange={(e) => {
 
-                <th className="px-6 py-4 text-right">
-                  Requester Price
-                </th>
+                setSelectedParentServiceId(e.target.value);
 
-                <th className="px-6 py-4 text-right">
-                  Provider Price
-                </th>
+                setSelectedServiceId("");
 
-              </tr>
+              }}
+              style={{
+                width: "100%",
+                padding: 16,
+                borderRadius: 14,
+                border: "1px solid #ddd",
+                outline: "none",
+                fontSize: 15,
+              }}
+            >
+               <option value="">
 
-            </thead>
+                Select Parent Service
 
-            <tbody>
+              </option>
 
-              {filteredPricingRules.length === 0 ? (
+              {parentServices.map((service) => (
 
-                <tr>
+                <option
+                  key={service._id}
+                  value={service._id}
+                >
 
-                  <td
-                    colSpan={6}
-                    className="py-16 text-center text-slate-500"
-                  >
+                  {service.name}
 
-                    <div className="flex flex-col items-center">
+                </option>
 
-                      <Search className="mb-3 h-12 w-12 text-slate-300" />
+              ))}
+            </select>
 
-                      <h3 className="text-lg font-semibold">
-                        No Pricing Rules Found
-                      </h3>
+          </div>
+ {/* SUB SERVICE */}
+           <div>
 
-                      <p className="mt-2">
-                        Try changing your filters.
-                      </p>
+            <label
+              style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }}
+            >
+               Sub Service
+            </label>
 
-                    </div>
+            <select
+               value={selectedServiceId}
+              disabled={!selectedParentServiceId}
+              onChange={(e) =>
+                setSelectedServiceId(e.target.value)
+              }
+              style={{
+                width: "100%",
+                padding: 16,
+                borderRadius: 14,
+                border: "1px solid #ddd",
+                outline: "none",
+                fontSize: 15,
+              }}
+            >
+             <option value="">
 
-                  </td>
+                Select Sub Service
 
-                </tr>
+              </option>
 
-              ) : (
+              {childServices.map((service) => (
 
-                filteredPricingRules.map((rule) => {
+                <option
+                  key={service._id}
+                  value={service._id}
+                >
 
-                  const child =
-                    getChildService(rule.serviceId._id);
+                  {service.name}
 
-                  const parent =
-                    getParentService(rule.serviceId._id);
+                </option>
 
-                  return (
+              ))}
+            </select>
 
-                    <tr
-                      key={rule._id}
-                      className="border-t border-slate-100 transition hover:bg-indigo-50"
-                    >
-
-                      <td className="px-6 py-5 font-medium">
-                        {rule.stateId?.name}
-                      </td>
-
-                      <td className="px-6 py-5">
-                        {rule.cityId?.name}
-                      </td>
-
-                      <td className="px-6 py-5">
-
-                        <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
-
-                          {parent?.name ?? "-"}
-
-                        </span>
-
-                      </td>
-
-                      <td className="px-6 py-5">
-
-                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-
-                          {child?.name ?? "-"}
-
-                        </span>
-
-                      </td>
-
-                      <td className="px-6 py-5 text-right font-bold text-emerald-600">
-
-                        ${rule.requesterPrice}
-
-                      </td>
-
-                      <td className="px-6 py-5 text-right font-bold text-indigo-600">
-
-                        ${rule.providerPrice}
-
-                      </td>
-
-                    </tr>
-
-                  );
-
-                })
-
-              )}
-
-            </tbody>
-
-          </table>
+          </div>
 
         </div>
 
-      </section>
-          </div>
-  );
+      </div>
+ 
+  {/* Search + Clear Button */}
+<div className="mt-8 flex items-center " >
+  {/* Search Bar */}
+  <div
+    style={{
+      width: 450,
+      height: 52,
+          margin: "0 auto",
+      background: "#fff",
+      borderRadius: 16,
+      display: "flex",
+      alignItems: "center",
+      paddingTop: "18px",
+      paddingBottom: "18px",
+      paddingLeft: "18px",
+      paddingRight: "0px",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+      flexShrink: 0,
+    }}
+  >
+    <Search
+      className="h-4 w-4"
+      color="#999"
+      size={16}
+      strokeWidth={2}
+    />
+
+    <input
+      type="text"
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      placeholder="Search data by state, city, services"
+      style={{
+        border: "none",
+        outline: "none",
+        width: "100%",
+        marginLeft: 12,
+        background: "transparent",
+        fontSize: 14,
+      }}
+    />
+    {/* Clear Button */}
+  <button
+    onClick={clearFilters}
+      style={{
+            border: "none",
+
+            background:
+              "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+
+            color: "#14344A",
+
+            fontWeight: 700,
+
+            padding: "14px 24px",
+
+          borderTopRightRadius: 14,
+  borderBottomRightRadius: 14,
+
+            boxShadow:
+              "0 6px 20px rgba(0,0,0,0.08)",
+
+            transition: "0.3s",
+          }}
+   
+        >
+   
+    Clear
+  </button>
+  </div>
+
+  
+</div>
+
+
+</section>
+
+
+
+    
+  {/* ========================================================= */}
+{/* PREMIUM PRICING TABLE */}
+{/* ========================================================= */}
+
+<section className="mt-10 overflow-hidden ">
+
+
+  <div className="overflow-x-auto bg-white">
+
+    <table className="min-w-full border-collapse">
+
+      {/* ========================================================= */}
+      {/* TABLE HEADER */}
+      {/* ========================================================= */}
+
+      <thead>
+
+        <tr  style={{
+    background:
+              "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+    boxShadow:
+      "0 8px 24px rgba(37,99,235,0.30), inset 0 1px 0 rgba(255,255,255,0.25)",
+    borderBottom: "1px solid rgba(255,255,255,0.18)",
+  }}>
+
+          <th  style={{
+    color: "#14344A",
+    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    padding: "18px 24px",
+    borderRight: "1px solid rgba(255,255,255,0.18)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  }}>
+            #
+          </th>
+
+          <th  style={{
+    color: "#14344A",
+    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    padding: "18px 24px",
+    borderRight: "1px solid rgba(255,255,255,0.18)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  }}>
+            State
+          </th>
+
+          <th  style={{
+     color: "#14344A",
+    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    padding: "18px 24px",
+    borderRight: "1px solid rgba(255,255,255,0.18)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  }}>
+            City
+          </th>
+
+          <th  style={{
+    color: "#14344A",
+    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    padding: "18px 24px",
+    borderRight: "1px solid rgba(255,255,255,0.18)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  }}>
+            Parent Service
+          </th>
+
+          <th  style={{
+     color: "#14344A",
+    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    padding: "18px 24px",
+    borderRight: "1px solid rgba(255,255,255,0.18)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  }}>
+            Sub Service
+          </th>
+
+          <th  style={{
+     color: "#14344A",
+    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    padding: "18px 24px",
+    borderRight: "1px solid rgba(255,255,255,0.18)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  }}>
+            Requester Price
+          </th>
+
+          <th  style={{
+     color: "#14344A",
+    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    padding: "18px 24px",
+    borderRight: "1px solid rgba(255,255,255,0.18)",
+    borderBottom: "1px solid rgba(255,255,255,0.15)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  }}>
+            Provider Price
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+        {filteredPricingRules.length === 0 ? (
+
+  <tr>
+    <td
+      colSpan={7}
+   
+      style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }}
+    >
+      <div className="flex flex-col items-center">
+
+        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 shadow-lg">
+          <Search className="h-10 w-10 text-indigo-500" />
+        </div>
+
+        <h3 className="text-2xl font-extrabold text-indigo-900">
+          No Pricing Rules Found
+        </h3>
+
+        <p className="mt-3 text-base text-slate-500">
+          Try changing filters or search keywords.
+        </p>
+
+      </div>
+    </td>
+  </tr>
+
+) : (
+
+  filteredPricingRules.map((rule, index) => {
+
+    const child = getChildService(rule.serviceId._id);
+    const parent = getParentService(rule.serviceId._id);
+
+    return (
+
+      <tr
+        key={rule._id}
+       
+      >
+
+        {/* ================================================= */}
+        {/* SR NO */}
+        {/* ================================================= */}
+
+        <td style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }}>
+
+            {index + 1}
+        </td>
+
+        {/* ================================================= */}
+        {/* STATE */}
+        {/* ================================================= */}
+
+        <td style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }}>
+              <p className="font-bold text-indigo-900">
+                {rule.stateId?.name}
+              </p>            </td>
+
+        {/* ================================================= */}
+        {/* CITY */}
+        {/* ================================================= */}
+
+        <td style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }}>
+
+    <p className="font-bold text-indigo-900">
+                {rule.cityId?.name}
+              </p>
+        </td>
+             {/* ================================================= */}
+        {/* PARENT SERVICE */}
+        {/* ================================================= */}
+
+        <td style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }}>
+
+          <span >
+            {parent?.name ?? "-"}
+          </span>
+
+        </td>
+
+        {/* ================================================= */}
+        {/* SUB SERVICE */}
+        {/* ================================================= */}
+
+        <td style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }}>
+
+          <span >
+            {child?.name ?? "-"}
+          </span>
+
+        </td>
+
+       
+
+        {/* ================================================= */}
+        {/* REQUESTER PRICE */}
+        {/* ================================================= */}
+
+        <td style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }} >
+
+                     <span >
+              ${rule.requesterPrice}
+            </span>
+
+        
+
+        </td>
+
+        {/* ================================================= */}
+        {/* PROVIDER PRICE */}
+        {/* ================================================= */}
+
+        <td style={{
+    color: "#14344A",
+    background: "#ece16e88",
+    border: "1px solid #D8E6F2",
+    padding: "18px 20px",
+    fontWeight: 600,
+  }}>
+
+            <span>
+              ${rule.providerPrice}
+            </span>
+
+         
+
+        </td>
+
+      </tr>
+
+    );
+
+  })
+
+)}
+
+</tbody>
+      {/* ========================================================= */}
+      {/* FOOTER */}
+      {/* ========================================================= */}
+
+      <tfoot>
+
+        <tr>
+
+          <td
+            colSpan={7}
+            className="border-t border-indigo-200 bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 px-8 py-6"
+          >
+
+            <div className="flex flex-col items-center justify-between gap-5 lg:flex-row">
+
+              {/* Left */}
+              <div className="flex items-center gap-4">
+
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg">
+
+                  <CheckCircle2 className="h-6 w-6" />
+
+                </div>
+
+                <div>
+
+                  <p className="text-lg font-bold text-indigo-900">
+                    Pricing Records Summary
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Showing
+                    <span className="mx-2 font-bold text-indigo-700">
+                      {filteredPricingRules.length}
+                    </span>
+                    of
+                    <span className="mx-2 font-bold text-indigo-700">
+                      {pricingRules.length}
+                    </span>
+                    pricing rules.
+                  </p>
+
+                </div>
+
+              </div>
+
+              {/* Right */}
+              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-6 py-3 text-sm font-bold tracking-wide text-white shadow-xl">
+
+                Senior America Admin Panel
+
+              </div>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+      </tfoot>
+
+    </table>
+
+  </div>
+
+</section>
+
+  
+
+  </div>
+
+);
+
 };
 
 export default PricingRules;
