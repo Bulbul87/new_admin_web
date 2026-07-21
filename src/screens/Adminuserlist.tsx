@@ -365,292 +365,370 @@ useEffect(() => {
 
           {/* CARDS GRID */}
 
-          <div
+         {/* ======================= USER TABLE ======================= */}
+
+<div
+  style={{
+    background: "#fff",
+    borderRadius: 24,
+    overflow: "hidden",
+    boxShadow: "0 10px 35px rgba(0,0,0,.08)",
+    border: "1px solid rgba(20,52,74,.08)",
+  }}
+>
+  <div
+   style={{
+    overflowX: "auto",
+    overflowY: "auto",
+    maxHeight: "650px",
+    
+  }}
+  >
+    <table
+       style={{
+    width: "100%",
+    borderCollapse: "collapse",
+    minWidth: "1100px", // ya 1500px
+  }}
+    >
+      <thead >
+        <tr
+          style={{
+            background:
+              "linear-gradient(to right,#FFFF6D,#8FDAFA)",
+            height: 72,
+            position: "sticky",
+top: 0,
+zIndex: 10,
+          }}
+        >
+          {/* PROFILE */}
+
+          <th
             style={{
-              display: "grid",
-
-              gridTemplateColumns:
-                "repeat(2, 1fr)",
-
-              gap: 25,
+              width: "20%",
+              padding: "0 25px",
+              textAlign: "left",
+              color: "#14344A",
+              fontWeight: 700,
+              fontSize: 15,
+              letterSpacing: ".3px",
             }}
           >
+            Profile
+          </th>
 
-            {data.map((item) => (
+          {/* EMAIL */}
 
-              <div
-                key={item._id}
-                style={{
-                  background: "#fff",
+          <th
+            style={{
+              width: "24%",
+              padding: "0 20px",
+              textAlign: "left",
+              color: "#14344A",
+              fontWeight: 700,
+              fontSize: 15,
+            }}
+          >
+            Email
+          </th>
 
-                  borderRadius: 22,
+          {/* PHONE */}
 
-                  padding: 22,
+          <th
+            style={{
+              width: "18%",
+              padding: "0 20px",
+              textAlign: "left",
+              color: "#14344A",
+              fontWeight: 700,
+              fontSize: 15,
+            }}
+          >
+            Phone Number
+          </th>
 
-                  boxShadow:
-                    "0 4px 20px rgba(0,0,0,0.07)",
+          {/* ACTION */}
 
-                  transition: "0.3s",
+          <th
+            style={{
+              width: "28%",
+              padding: "0 20px",
+              textAlign: "center",
+              color: "#14344A",
+              fontWeight: 700,
+              fontSize: 15,
+            }}
+          >
+            Action
+          </th>
+        </tr>
+      </thead>
 
-                  border:
-                    "1px solid rgba(0,0,0,0.04)",
-                }}
-              >
+      <tbody>
 
-                {/* TOP */}
+        {data.map((item, index) => (
 
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 18,
-                  }}
-                >
+          <tr
+            key={item._id}
+            style={{
+              height: 88,
+              background:
+                index % 2 === 0
+                  ? "#ffffff"
+                  : "#FCFDFE",
+              transition: ".25s",
+              borderBottom:
+                "1px solid rgba(20,52,74,.08)",
+            }}
+          >
+            {/* ================= PROFILE COLUMN ================= */}
 
-                  {/* AVATAR */}
-
-                  <div
-                    style={{
-                      width: 62,
-                      height: 62,
-
-                      borderRadius: "50%",
-
-                      background:
-                        "linear-gradient(to right, #FFFF6D, #8FDAFA)",
-
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-
-                      marginRight: 15,
-
-                      boxShadow:
-                        "0 4px 10px rgba(0,0,0,0.08)",
-                    }}
-                  >
-
-                    <FaUserCircle
-                      size={30}
-                      color="#14344A"
-                    />
-
-                  </div>
-
-                  {/* NAME */}
-
-                  <div>
-
-                    <h4
-                      style={{
-                        margin: 0,
-                        color: "#14344A",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {item.name}
-                    </h4>
-
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "#888",
-                        marginTop: 5,
-                        fontSize: 14,
-                      }}
-                    >
-                      {activeTab === "provider"
-                        ? "Service Provider"
-                        : "Requester User"}
-                    </p>
-
-                  </div>
-
-                </div>
-
-                {/* INFO */}
-
-                <div
-                  style={{
-                    marginBottom: 18,
-                  }}
-                >
-
-                  {/* EMAIL */}
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      marginBottom: 12,
-                    }}
-                  >
-
-                    <div
-                      style={{
-                        width: 34,
-                        height: 34,
-
-                        borderRadius: "50%",
-
-                        background:
-                          "rgba(143,218,250,0.2)",
-
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-
-                        marginRight: 10,
-                      }}
-                    >
-
-                      <FaEnvelope
-                        color="#14344A"
-                        size={14}
-                      />
-
-                    </div>
-
-                    <span
-                      style={{
-                        color: "#444",
-                        fontSize: 15,
-                      }}
-                    >
-                      {item.email}
-                    </span>
-
-                  </div>
-
-                  {/* PHONE */}
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-
-                    <div
-                      style={{
-                        width: 34,
-                        height: 34,
-
-                        borderRadius: "50%",
-
-                        background:
-                          "rgba(143,218,250,0.2)",
-
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-
-                        marginRight: 10,
-                      }}
-                    >
-
-                      <FaPhone
-                        color="#14344A"
-                        size={14}
-                      />
-
-                    </div>
-
-                    <span
-                      style={{
-                        color: "#444",
-                        fontSize: 15,
-                      }}
-                    >
-                      {item.phone}
-                    </span>
-
-                  </div>
-
-                </div>
-{/* APPROVE OR REJECT BUTTON */}
-{activeTab === "provider" && (
+<td
+  style={{
+    padding: "18px 24px",
+  }}
+>
   <div
     style={{
       display: "flex",
-      gap: 10,
-      marginBottom: 12,
+      alignItems: "center",
+      gap: 16,
     }}
   >
-    <button
-      onClick={() => handleApprove(item._id)}
+    <div
       style={{
-        flex: 1,
-        padding: "10px",
-        border: "none",
-        borderRadius: 12,
-        cursor: "pointer",
-        fontWeight: 600,
-        background: "#28a745",
-        color: "#fff",
+        width: 56,
+        height: 56,
+        borderRadius: "50%",
+        background:
+          "linear-gradient(to right,#FFFF6D,#8FDAFA)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        boxShadow:
+          "0 6px 15px rgba(0,0,0,.08)",
       }}
     >
-      Approve
-    </button>
+      <FaUserCircle
+        size={28}
+        color="#14344A"
+      />
+    </div>
+
+    <div>
+      <div
+        style={{
+          color: "#14344A",
+          fontWeight: 700,
+          fontSize: 16,
+          marginBottom: 4,
+        }}
+      >
+        {item.name || "-"}
+      </div>
+
+      <div
+        style={{
+          color: "#8A98A8",
+          fontSize: 13,
+          fontWeight: 500,
+        }}
+      >
+        {activeTab === "provider"
+          ? "Service Provider"
+          : "Requester"}
+      </div>
+    </div>
+  </div>
+</td>
+
+{/* ================= EMAIL COLUMN ================= */}
+
+<td
+  style={{
+    padding: "18px 20px",
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+    }}
+  >
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        background: "#EEF9FE",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <FaEnvelope
+        size={15}
+        color="#14344A"
+      />
+    </div>
+
+    <span
+      style={{
+        color: "#4A5568",
+        fontSize: 15,
+        wordBreak: "break-word",
+      }}
+    >
+      {item.email || "-"}
+    </span>
+  </div>
+</td>
+
+{/* ================= PHONE COLUMN ================= */}
+
+<td
+  style={{
+    padding: "18px 20px",
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+    }}
+  >
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        background: "#EEF9FE",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <FaPhone
+        size={15}
+        color="#14344A"
+        style={{
+    transform: "rotate(90deg)",
+  }}
+      />
+    </div>
+
+    <span
+      style={{
+        color: "#4A5568",
+        fontSize: 15,
+        fontWeight: 500,
+      }}
+    >
+      {item.phone || "-"}
+    </span>
+  </div>
+</td>
+{/* ================= ACTION COLUMN ================= */}
+
+<td
+  style={{
+    padding: "18px 20px",
+    textAlign: "center",
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 10,
+      flexWrap: "nowrap",
+    }}
+  >
+    {/* PROVIDER BUTTONS */}
+
+    {activeTab === "provider" && (
+      <>
+        <button
+          onClick={() => handleApprove(item._id)}
+          style={{
+            padding: "9px 16px",
+            border: "none",
+            borderRadius: 10,
+            cursor: "pointer",
+            background: "#28a745",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 14,
+            transition: ".3s",
+            boxShadow: "0 4px 10px rgba(40,167,69,.18)",
+          }}
+        >
+          Approve
+        </button>
+
+        <button
+          onClick={() => handleReject(item._id)}
+          style={{
+            padding: "9px 16px",
+            border: "none",
+            borderRadius: 10,
+            cursor: "pointer",
+            background: "#dc3545",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 14,
+            transition: ".3s",
+            boxShadow: "0 4px 10px rgba(220,53,69,.18)",
+          }}
+        >
+          Reject
+        </button>
+      </>
+    )}
+
+    {/* SEE PROFILE */}
 
     <button
-      onClick={() => handleReject(item._id)}
+      onClick={() =>
+        navigate(
+          activeTab === "provider"
+            ? `/provider-details/${item._id}`
+            : `/requester-details/${item._id}`
+        )
+      }
       style={{
-        flex: 1,
-        padding: "10px",
+        padding: "9px 18px",
         border: "none",
-        borderRadius: 12,
+        borderRadius: 10,
         cursor: "pointer",
-        fontWeight: 600,
-        background: "#dc3545",
-        color: "#fff",
+        fontWeight: 700,
+        color: "#14344A",
+        background:
+          "linear-gradient(to right,#FFFF6D,#8FDAFA)",
+        boxShadow: "0 4px 12px rgba(0,0,0,.08)",
+        transition: ".3s",
       }}
     >
-      Reject
+      See Profile
     </button>
   </div>
-)}
+</td>
+          </tr>
 
-                {/* BUTTON */}
+        ))}
 
-                <button
-                  onClick={() =>
-                    navigate(
-                      activeTab === "provider"
-                        ? `/provider-details/${item._id}`
-                        : `/requester-details/${item._id}`
-                    )
-                  }
-                  style={{
-                    width: "100%",
+      </tbody>
 
-                    padding: "12px",
+    </table>
 
-                    border: "none",
+  </div>
 
-                    borderRadius: 14,
-
-                    cursor: "pointer",
-
-                    fontWeight: 600,
-
-                    background:
-                      "linear-gradient(to right, #FFFF6D, #8FDAFA)",
-
-                    color: "#14344A",
-
-                    boxShadow:
-                      "0 4px 12px rgba(0,0,0,0.08)",
-                  }}
-                >
-                  See Profile
-                </button>
-
-              </div>
-
-            ))}
-
-          </div>
+</div>
         </>
 
       )}

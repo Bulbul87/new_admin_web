@@ -426,8 +426,8 @@ return (
 <div style={{
           display: "grid",
           gridTemplateColumns:
-            "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: 25,
+            "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 20,
           marginBottom: 35,
           paddingTop: 20,
         }}>
@@ -462,7 +462,7 @@ return (
           <h4
             style={{
               color: "#6b7280",
-              fontSize: 24,
+              fontSize: 20,
             }}
           >
            Total Pricing Records
@@ -473,7 +473,7 @@ return (
               margin: "8px 0",
               color: "#14344A",
               fontWeight: 800,
-              fontSize: 30,
+              fontSize: 20,
             }}
           >
           {pricingRules.length}
@@ -510,10 +510,10 @@ return (
           <h4
             style={{
               color: "#6b7280",
-              fontSize: 24,
+              fontSize: 20,
             }}
           >
-           Showing Records
+             Filtered Records
           </h4>
 
           <h1
@@ -521,7 +521,7 @@ return (
               margin: "8px 0",
               color: "#14344A",
               fontWeight: 800,
-              fontSize: 30,
+              fontSize: 20,
             }}
           >
     {filteredPricingRules.length}
@@ -558,7 +558,7 @@ return (
           <h4
             style={{
               color: "#6b7280",
-                fontSize: 24,
+                fontSize: 20,
             }}
           >
             Available States
@@ -569,7 +569,7 @@ return (
               margin: "8px 0",
               color: "#14344A",
               fontWeight: 800,
-              fontSize: 30,
+              fontSize: 20,
             }}
           >
   {states.length}
@@ -607,7 +607,7 @@ return (
           <h4
             style={{
               color: "#6b7280",
-               fontSize: 24,
+               fontSize: 20,
             }}
           >
         Total Services
@@ -619,7 +619,7 @@ return (
               margin: "8px 0",
               color: "#14344A",
               fontWeight: 800,
-              fontSize: 30,
+              fontSize: 20,
             }}
           >
  {services.length}
@@ -1025,14 +1025,22 @@ return (
 <section className="mt-10 overflow-hidden  ">
 
 
-  <div className="overflow-x-auto "  style={{
-    padding: "3px", // Border thickness
+  <div style={{
+    padding: "3px",
     borderRadius: "20px",
-     marginTop: 20 ,
+    marginTop: 20,
     background: "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+    maxHeight: "600px",   
+    overflowY: "auto", 
+       overflowX: "hidden",     
+   
   }}>
 
-    <table className="min-w-full border-collapse" >
+    <table className="min-w-full border-collapse"  style={{
+    width: "100%",
+   
+  
+  }} >
 
       {/* ========================================================= */}
       {/* TABLE HEADER */}
@@ -1040,8 +1048,16 @@ return (
 
       <thead>
 
-        <tr  
-
+        <tr      
+style={{
+            background:
+              "linear-gradient(to right,#FFFF6D,#8FDAFA)",
+           height: 70,
+              position: "sticky",
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+top: -3,
+zIndex: 100}}
  >
 
           <th  style={{
@@ -1055,6 +1071,8 @@ return (
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
     textAlign: "center",
+   
+ 
   }}>
             #
           </th>
@@ -1070,6 +1088,7 @@ return (
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
      textAlign: "center",
+    
   }}>
             State
           </th>
@@ -1085,6 +1104,7 @@ return (
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
      textAlign: "center",
+     
   }}>
             City
           </th>
@@ -1100,6 +1120,7 @@ return (
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
      textAlign: "center",
+    
   }}>
          Service Category
           </th>
@@ -1115,6 +1136,7 @@ return (
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
      textAlign: "center",
+   
   }}>
              Services
           </th>
@@ -1130,6 +1152,7 @@ return (
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
      textAlign: "center",
+   
   }}>
             Requester Price
           </th>
@@ -1145,6 +1168,7 @@ return (
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
      textAlign: "center",
+     
   }}>
             Provider Price
           </th>
@@ -1211,9 +1235,10 @@ return (
         <td style={{
     color: "#14344A",
  
-    borderRight: "2px solid #78bcf3",
+    borderRight: "1px solid #bbd5ea",
     padding: "14px",
     fontWeight: 600,
+    fontSize: 14,
   }}>
 
             {index + 1}
@@ -1226,9 +1251,10 @@ return (
         <td style={{
     color: "#14344A",
   
-    borderRight: "2px solid #78bcf3",
+    borderRight: "1px solid #bbd5ea",
     padding: "14px",
     fontWeight: 600,
+      fontSize: 14,
   }}>
               <p className="font-bold text-indigo-900">
                 {rule.stateId?.name}
@@ -1241,9 +1267,10 @@ return (
         <td style={{
     color: "#14344A",
    
-    borderRight: "2px solid #78bcf3",
+    borderRight: "1px solid #bbd5ea",
     padding: "14px",
     fontWeight: 600,
+      fontSize: 14,
   }}>
 
     <p className="font-bold text-indigo-900">
@@ -1257,9 +1284,10 @@ return (
         <td style={{
     color: "#14344A",
  
-   borderRight: "2px solid #78bcf3",
+   borderRight: "1px solid #bbd5ea",
     padding: "14px",
     fontWeight: 600,
+    fontSize: 14,
   }}>
 
           <span >
@@ -1275,9 +1303,10 @@ return (
         <td style={{
     color: "#14344A",
 
-   borderRight: "2px solid #78bcf3",
+   borderRight: "1px solid #bbd5ea",
     padding: "14px",
     fontWeight: 600,
+      fontSize: 14,
   }}>
 
           <span >
@@ -1295,9 +1324,10 @@ return (
         <td style={{
     color: "#14344A",
  
-    borderRight: "2px solid #78bcf3",
+    borderRight: "1px solid #bbd5ea",
     padding: "14px",
     fontWeight: 600,
+    fontSize: 14,
   }} >
 
                      <span >
@@ -1314,7 +1344,7 @@ return (
 
         <td style={{
     color: "#14344A",
-   
+     fontSize: 14,
     
     padding: "14px ",
     fontWeight: 600,
