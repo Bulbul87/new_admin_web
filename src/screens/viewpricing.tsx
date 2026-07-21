@@ -9,7 +9,7 @@ import {
   MapPinned,
   RefreshCw,
   Search, 
-   CheckCircle2,
+  
 } from "lucide-react";
 
 import {
@@ -841,7 +841,7 @@ return (
                 display: "block",
               }}
             >
-                  Parent Service
+              Service Category
             </label>
 
             <select
@@ -864,7 +864,7 @@ return (
             >
                <option value="">
 
-                Select Parent Service
+                Select Service Category
 
               </option>
 
@@ -894,7 +894,7 @@ return (
                 display: "block",
               }}
             >
-               Sub Service
+               Services
             </label>
 
             <select
@@ -914,7 +914,7 @@ return (
             >
              <option value="">
 
-                Select Sub Service
+                Select Services
 
               </option>
 
@@ -1022,12 +1022,17 @@ return (
 {/* PREMIUM PRICING TABLE */}
 {/* ========================================================= */}
 
-<section className="mt-10 overflow-hidden ">
+<section className="mt-10 overflow-hidden  ">
 
 
-  <div className="overflow-x-auto bg-white">
+  <div className="overflow-x-auto "  style={{
+    padding: "3px", // Border thickness
+    borderRadius: "20px",
+     marginTop: 20 ,
+    background: "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+  }}>
 
-    <table className="min-w-full border-collapse">
+    <table className="min-w-full border-collapse" >
 
       {/* ========================================================= */}
       {/* TABLE HEADER */}
@@ -1035,17 +1040,13 @@ return (
 
       <thead>
 
-        <tr  style={{
-    background:
-              "linear-gradient(to right, #FFFF6D, #8FDAFA)",
-    boxShadow:
-      "0 8px 24px rgba(37,99,235,0.30), inset 0 1px 0 rgba(255,255,255,0.25)",
-    borderBottom: "1px solid rgba(255,255,255,0.18)",
-  }}>
+        <tr  
+
+ >
 
           <th  style={{
     color: "#14344A",
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: 13,
     letterSpacing: "1px",
     textTransform: "uppercase",
@@ -1053,6 +1054,7 @@ return (
     borderRight: "1px solid rgba(255,255,255,0.18)",
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+    textAlign: "center",
   }}>
             #
           </th>
@@ -1067,6 +1069,7 @@ return (
     borderRight: "1px solid rgba(255,255,255,0.18)",
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+     textAlign: "center",
   }}>
             State
           </th>
@@ -1081,6 +1084,7 @@ return (
     borderRight: "1px solid rgba(255,255,255,0.18)",
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+     textAlign: "center",
   }}>
             City
           </th>
@@ -1095,8 +1099,9 @@ return (
     borderRight: "1px solid rgba(255,255,255,0.18)",
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+     textAlign: "center",
   }}>
-            Parent Service
+         Service Category
           </th>
 
           <th  style={{
@@ -1109,8 +1114,9 @@ return (
     borderRight: "1px solid rgba(255,255,255,0.18)",
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+     textAlign: "center",
   }}>
-            Sub Service
+             Services
           </th>
 
           <th  style={{
@@ -1123,6 +1129,7 @@ return (
     borderRight: "1px solid rgba(255,255,255,0.18)",
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+     textAlign: "center",
   }}>
             Requester Price
           </th>
@@ -1137,6 +1144,7 @@ return (
     borderRight: "1px solid rgba(255,255,255,0.18)",
     borderBottom: "1px solid rgba(255,255,255,0.15)",
     textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+     textAlign: "center",
   }}>
             Provider Price
           </th>
@@ -1145,17 +1153,17 @@ return (
 
       </thead>
 
-      <tbody>
+      <tbody style={{ background: "#fff" }}>
         {filteredPricingRules.length === 0 ? (
 
-  <tr>
+  <tr >
     <td
       colSpan={7}
    
       style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
+   
+    border: "1px solid #cde3f8",
     padding: "18px 20px",
     fontWeight: 600,
   }}
@@ -1189,6 +1197,10 @@ return (
 
       <tr
         key={rule._id}
+         style={{
+    borderBottom: "2px solid #78bcf3",
+   
+  }}
        
       >
 
@@ -1198,9 +1210,9 @@ return (
 
         <td style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
-    padding: "18px 20px",
+ 
+    borderRight: "2px solid #78bcf3",
+    padding: "14px",
     fontWeight: 600,
   }}>
 
@@ -1213,9 +1225,9 @@ return (
 
         <td style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
-    padding: "18px 20px",
+  
+    borderRight: "2px solid #78bcf3",
+    padding: "14px",
     fontWeight: 600,
   }}>
               <p className="font-bold text-indigo-900">
@@ -1228,9 +1240,9 @@ return (
 
         <td style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
-    padding: "18px 20px",
+   
+    borderRight: "2px solid #78bcf3",
+    padding: "14px",
     fontWeight: 600,
   }}>
 
@@ -1244,9 +1256,9 @@ return (
 
         <td style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
-    padding: "18px 20px",
+ 
+   borderRight: "2px solid #78bcf3",
+    padding: "14px",
     fontWeight: 600,
   }}>
 
@@ -1262,9 +1274,9 @@ return (
 
         <td style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
-    padding: "18px 20px",
+
+   borderRight: "2px solid #78bcf3",
+    padding: "14px",
     fontWeight: 600,
   }}>
 
@@ -1282,9 +1294,9 @@ return (
 
         <td style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
-    padding: "18px 20px",
+ 
+    borderRight: "2px solid #78bcf3",
+    padding: "14px",
     fontWeight: 600,
   }} >
 
@@ -1302,9 +1314,9 @@ return (
 
         <td style={{
     color: "#14344A",
-    background: "#ece16e88",
-    border: "1px solid #D8E6F2",
-    padding: "18px 20px",
+   
+    
+    padding: "14px ",
     fontWeight: 600,
   }}>
 
@@ -1325,66 +1337,7 @@ return (
 )}
 
 </tbody>
-      {/* ========================================================= */}
-      {/* FOOTER */}
-      {/* ========================================================= */}
-
-      <tfoot>
-
-        <tr>
-
-          <td
-            colSpan={7}
-            className="border-t border-indigo-200 bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 px-8 py-6"
-          >
-
-            <div className="flex flex-col items-center justify-between gap-5 lg:flex-row">
-
-              {/* Left */}
-              <div className="flex items-center gap-4">
-
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg">
-
-                  <CheckCircle2 className="h-6 w-6" />
-
-                </div>
-
-                <div>
-
-                  <p className="text-lg font-bold text-indigo-900">
-                    Pricing Records Summary
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Showing
-                    <span className="mx-2 font-bold text-indigo-700">
-                      {filteredPricingRules.length}
-                    </span>
-                    of
-                    <span className="mx-2 font-bold text-indigo-700">
-                      {pricingRules.length}
-                    </span>
-                    pricing rules.
-                  </p>
-
-                </div>
-
-              </div>
-
-              {/* Right */}
-              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-6 py-3 text-sm font-bold tracking-wide text-white shadow-xl">
-
-                Senior America Admin Panel
-
-              </div>
-
-            </div>
-
-          </td>
-
-        </tr>
-
-      </tfoot>
+     
 
     </table>
 

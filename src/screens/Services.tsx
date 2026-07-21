@@ -12,8 +12,9 @@ import {
   FaLayerGroup,
   FaClock,
   FaFire,
-  FaRupeeSign,
+ 
 } from "react-icons/fa";
+import { DollarSign } from "lucide-react";
 
 const Services: React.FC = () => {
 
@@ -551,7 +552,8 @@ const Services: React.FC = () => {
                     }}
                   >
 
-                    <FaRupeeSign color="#14344A" />
+                    <DollarSign color="#14344A" size={18} />
+                   
 
                     <small
                       style={{
@@ -572,7 +574,7 @@ const Services: React.FC = () => {
                       fontWeight: 700,
                     }}
                   >
-                    ₹ {item.basePrice}
+                   $ {item.basePrice}
                   </h6>
 
                 </div>

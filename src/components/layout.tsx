@@ -9,7 +9,8 @@ const Layout = () => {
       <Sidebar />
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: 20 }}>
+      <div style={{ flex: 1, padding: 20, background:
+          "linear-gradient(to bottom right, #f4f8fc, #eef5ff)", }}>
         <Outlet />
       </div>
     </div>

@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import {
   FaLayerGroup,
   FaTag,
-  FaRupeeSign,
+
   FaClock,
   FaFileAlt,
   FaFire,
@@ -17,6 +17,7 @@ import {
   FaCheckCircle,
   FaPlus,
 } from "react-icons/fa";
+import { DollarSign } from "lucide-react";
 
 const AddService: React.FC = () => {
 
@@ -436,7 +437,7 @@ const fetchCategories = async () => {
             }}
           >
 
-            <FaRupeeSign
+             <DollarSign  
               style={{
                 position: "absolute",
 
@@ -446,6 +447,7 @@ const fetchCategories = async () => {
 
                 color: "#14344A",
               }}
+              size={18}
             />
 
             <input

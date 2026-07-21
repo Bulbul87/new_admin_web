@@ -10,13 +10,14 @@ import {
   FaEdit,
   FaLayerGroup,
   FaTag,
-  FaRupeeSign,
+ 
   FaClock,
   FaFileAlt,
   FaFire,
   FaIcons,
   FaCheckCircle,
 } from "react-icons/fa";
+import { DollarSign } from "lucide-react";
 
 const EditService: React.FC = () => {
 
@@ -433,7 +434,7 @@ const EditService: React.FC = () => {
             }}
           >
 
-            <FaRupeeSign
+            <DollarSign  
               style={{
                 position: "absolute",
 
@@ -443,6 +444,7 @@ const EditService: React.FC = () => {
 
                 color: "#14344A",
               }}
+              size={18}
             />
 
             <input

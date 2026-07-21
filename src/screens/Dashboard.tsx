@@ -329,8 +329,7 @@ const Dashboard: React.FC = () => {
         marginLeft: "260px",
         marginTop: "70px",
         padding: "25px",
-        background:
-          "linear-gradient(to bottom right, #f4f8fc, #eef5ff)",
+        
         minHeight: "100vh",
       }}
     >
