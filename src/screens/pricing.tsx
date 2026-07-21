@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
-  Building2,
+ 
   DollarSign,
   Loader2,
   MapPin,
   RefreshCw,
   Save,
-  Sparkles,
+  
   Wrench,
 } from "lucide-react";
 import {
@@ -105,51 +105,51 @@ const Pricing: React.FC = () => {
         : [],
     [services, selectedParentServiceId],
   );
-const loadExistingPricing = useCallback((rules = pricingRules) => {
-  let matchingRules: PricingRule[] = [];
+  const loadExistingPricing = useCallback((rules = pricingRules) => {
+    let matchingRules: PricingRule[] = [];
 
-  if (selectedServiceId) {
-    matchingRules = rules.filter(
-      (rule) =>
-        rule.stateId?._id === selectedStateId &&
-        rule.cityId?._id === selectedCityId &&
-        rule.serviceId?._id === selectedServiceId,
-    );
-  } else if (selectedParentServiceId) {
-    const childServiceIds = new Set(childServices.map((service) => service._id));
-    matchingRules = rules.filter(
-      (rule) =>
-        rule.stateId?._id === selectedStateId &&
-        rule.cityId?._id === selectedCityId &&
-        childServiceIds.has(rule.serviceId?._id),
-    );
-  } else if (selectedCityId) {
-    matchingRules = rules.filter(
-      (rule) =>
-        rule.stateId?._id === selectedStateId &&
-        rule.cityId?._id === selectedCityId,
-    );
-  } else if (selectedStateId) {
-    matchingRules = rules.filter(
-      (rule) => rule.stateId?._id === selectedStateId,
-    );
-  }
+    if (selectedServiceId) {
+      matchingRules = rules.filter(
+        (rule) =>
+          rule.stateId?._id === selectedStateId &&
+          rule.cityId?._id === selectedCityId &&
+          rule.serviceId?._id === selectedServiceId,
+      );
+    } else if (selectedParentServiceId) {
+      const childServiceIds = new Set(childServices.map((service) => service._id));
+      matchingRules = rules.filter(
+        (rule) =>
+          rule.stateId?._id === selectedStateId &&
+          rule.cityId?._id === selectedCityId &&
+          childServiceIds.has(rule.serviceId?._id),
+      );
+    } else if (selectedCityId) {
+      matchingRules = rules.filter(
+        (rule) =>
+          rule.stateId?._id === selectedStateId &&
+          rule.cityId?._id === selectedCityId,
+      );
+    } else if (selectedStateId) {
+      matchingRules = rules.filter(
+        (rule) => rule.stateId?._id === selectedStateId,
+      );
+    }
 
-  const [rule] = matchingRules;
-  setRequesterPrice(rule ? String(rule.requesterPrice) : "");
-  setProviderPrice(rule ? String(rule.providerPrice) : "");
-}, [
-  childServices,
-  pricingRules,
-  selectedCityId,
-  selectedParentServiceId,
-  selectedServiceId,
-  selectedStateId,
-]);
+    const [rule] = matchingRules;
+    setRequesterPrice(rule ? String(rule.requesterPrice) : "");
+    setProviderPrice(rule ? String(rule.providerPrice) : "");
+  }, [
+    childServices,
+    pricingRules,
+    selectedCityId,
+    selectedParentServiceId,
+    selectedServiceId,
+    selectedStateId,
+  ]);
 
-useEffect(() => {
-  loadExistingPricing();
-}, [loadExistingPricing]);
+  useEffect(() => {
+    loadExistingPricing();
+  }, [loadExistingPricing]);
 
   const pricingLevel = !selectedCityId
     ? "State"
@@ -165,33 +165,33 @@ useEffect(() => {
   };
 
   const handleStateChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-      console.log("Selected State =", event.target.value);
-   setSelectedStateId(event.target.value);
-setSelectedCityId("");
-setSelectedParentServiceId("");
-setSelectedServiceId("");
+    console.log("Selected State =", event.target.value);
+    setSelectedStateId(event.target.value);
+    setSelectedCityId("");
+    setSelectedParentServiceId("");
+    setSelectedServiceId("");
 
-clearMessages();
+    clearMessages();
   };
 
   const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-   setSelectedCityId(event.target.value);
-setSelectedParentServiceId("");
-setSelectedServiceId("");
+    setSelectedCityId(event.target.value);
+    setSelectedParentServiceId("");
+    setSelectedServiceId("");
 
-clearMessages();
+    clearMessages();
   };
 
   const handleParentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-   setSelectedParentServiceId(event.target.value);
-setSelectedServiceId("");
+    setSelectedParentServiceId(event.target.value);
+    setSelectedServiceId("");
 
-clearMessages();
+    clearMessages();
   };
 
   const handleServiceChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedServiceId(event.target.value);
-clearMessages();
+    clearMessages();
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -245,30 +245,55 @@ clearMessages();
   }
 
   return (
-    <div  style={{
-        marginLeft: "260px",
-        marginTop: "70px",
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "30px",
-      }} className="">
+    <div style={{
+      marginLeft: "260px",
+      marginTop: "70px",
+      minHeight: "100vh",
+      background: "#f5f7fb",
+      padding: "30px",
+    }} className="">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <div className="flex items-center gap-2 text-indigo-600">
-            <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-semibold">Smart pricing</span>
-          </div>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900">Pricing Management</h1>
-          <p className="mt-1 text-slate-600">Set a price at state, city, parent-service, or service level.</p>
+
+          <h1 className="mt-1  text-center" style={{
+            color: "#14344A",
+            fontWeight: 700,
+            marginBottom: 10,
+            alignItems: "center",
+          }}>Pricing Management</h1>
+
         </div>
-        <button
-          type="button"
-          onClick={() => void loadData()}
-          disabled={loading || saving}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginTop: 20,
+          }}
         >
-          <RefreshCw className="h-4 w-4" /> Refresh
-        </button>
+          <button
+            type="button"
+            onClick={() => void loadData()}
+            disabled={loading || saving}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+
+              border: "none",
+              background: "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+              color: "#14344A",
+              fontWeight: 700,
+              padding: "14px 24px",
+              borderRadius: 14,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+              transition: "0.3s",
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -279,84 +304,333 @@ clearMessages();
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl">
-          <div className="mb-6 flex items-center gap-3">
-            <MapPin className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-xl font-bold text-slate-800">Location</h2>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <label className="block text-sm font-semibold text-slate-700">
-              State
-              <select value={selectedStateId} onChange={handleStateChange} className="mt-2 w-full rounded-xl border border-slate-300 p-3 font-normal" aria-invalid={Boolean(errors.state)}>
-                <option value="">Select state</option>
-                {states.map((state) => <option key={state._id} value={state._id}>{state.name}</option>)}
-              </select>
-              {errors.state && <span className="mt-1 block text-xs text-red-600">{errors.state}</span>}
-            </label>
-            <label className="block text-sm font-semibold text-slate-700">
-              City <span className="font-normal text-slate-400">(optional)</span>
-              <select value={selectedCityId} onChange={handleCityChange} disabled={!selectedStateId} className="mt-2 w-full rounded-xl border border-slate-300 p-3 font-normal disabled:cursor-not-allowed disabled:bg-slate-100">
-                <option value="">All cities (state pricing)</option>
-                {filteredCities.map((city) => <option key={city._id} value={city._id}>{city.name}</option>)}
-              </select>
-            </label>
-          </div>
-        </section>
+        <div style={{
+          background: "#fff",
+          borderRadius: 24,
+          padding: 30,
+          marginBottom: 30,
+          boxShadow: "0 4px 20px rgba(0,0,0,.06)",
+        }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 25,
+            }}
+          >
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl">
-          <div className="mb-6 flex items-center gap-3">
-            <Wrench className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-xl font-bold text-slate-800">Service pricing</h2>
+            <MapPin size={24} color="#14344A" />
+
+            <h3
+              style={{
+                color: "#14344A",
+                fontSize: 24,
+                fontWeight: 700,
+                margin: 0,
+              }}
+            >
+              Location Details
+            </h3>
+
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <label className="block text-sm font-semibold text-slate-700">
-              Parent service <span className="font-normal text-slate-400">(optional)</span>
-              <select value={selectedParentServiceId} onChange={handleParentChange} disabled={!selectedCityId} className="mt-2 w-full rounded-xl border border-slate-300 p-3 font-normal disabled:cursor-not-allowed disabled:bg-slate-100">
-                <option value="">All services (city pricing)</option>
-                {parentServices.map((service) => <option key={service._id} value={service._id}>{service.name}</option>)}
-              </select>
-            </label>
-            <label className="block text-sm font-semibold text-slate-700">
-              Child service <span className="font-normal text-slate-400">(optional)</span>
-              <select value={selectedServiceId} onChange={handleServiceChange} disabled={!selectedParentServiceId} className="mt-2 w-full rounded-xl border border-slate-300 p-3 font-normal disabled:cursor-not-allowed disabled:bg-slate-100">
-                <option value="">All child services (parent pricing)</option>
-                {childServices.map((service) => <option key={service._id} value={service._id}>{service.name}</option>)}
-              </select>
-            </label>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 25,
+          }} >
+            <div>
+              <label style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }}>
+                State
+                <select value={selectedStateId} onChange={handleStateChange} aria-invalid={Boolean(errors.state)}
+                  style={{
+                    width: "100%",
+                    padding: 16,
+                    borderRadius: 14,
+                    border: "1px solid #ddd",
+                    outline: "none",
+                    fontSize: 15,
+                  }}>
+                  <option value="">Select state</option>
+                  {states.map((state) => <option key={state._id} value={state._id}>{state.name}</option>)}
+                </select>
+                {errors.state && <span >{errors.state}</span>}
+              </label>
+            </div>
+            <div>
+              <label style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }}>
+                City
+                <select value={selectedCityId} onChange={handleCityChange} disabled={!selectedStateId} style={{
+                  width: "100%",
+                  padding: 16,
+                  borderRadius: 14,
+                  border: "1px solid #ddd",
+                  outline: "none",
+                  fontSize: 15,
+                }} >
+                  <option value="">Select city</option>
+                  {filteredCities.map((city) => <option key={city._id} value={city._id}>{city.name}</option>)}
+                </select>
+              </label>
+            </div>
+
           </div>
-          <div className="mt-6 rounded-xl bg-indigo-50 px-4 py-3 text-sm text-indigo-800">
-            Applying <strong>{pricingLevel}</strong> pricing.
+        </div>
+
+        <div style={{
+          background: "#fff",
+          borderRadius: 24,
+          padding: 30,
+          marginBottom: 30,
+          boxShadow: "0 4px 20px rgba(0,0,0,.06)",
+        }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 25,
+            }}
+          >
+            <Wrench size={24} color="#14344A" />
+
+
+            <h3
+              style={{
+                color: "#14344A",
+                fontSize: 24,
+                fontWeight: 700,
+                margin: 0,
+              }}
+            >
+              Service Details
+            </h3>
+
           </div>
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            <label className="block text-sm font-semibold text-slate-700">
-              Requester price
-              <div className="relative mt-2"><DollarSign className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" /><input type="number" min="0" step="0.01" value={requesterPrice} onChange={(event) => setRequesterPrice(event.target.value)} className="w-full rounded-xl border border-slate-300 py-3 pl-9 pr-3 font-normal" placeholder="Enter requester price" /></div>
-              {errors.requesterPrice && <span className="mt-1 block text-xs text-red-600">{errors.requesterPrice}</span>}
-            </label>
-            <label className="block text-sm font-semibold text-slate-700">
-              Provider price
-              <div className="relative mt-2"><DollarSign className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" /><input type="number" min="0" step="0.01" value={providerPrice} onChange={(event) => setProviderPrice(event.target.value)} className="w-full rounded-xl border border-slate-300 py-3 pl-9 pr-3 font-normal" placeholder="Enter provider price" /></div>
-              {errors.providerPrice && <span className="mt-1 block text-xs text-red-600">{errors.providerPrice}</span>}
-            </label>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 25,
+          }} >
+            <div>
+              <label style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }} >
+                Service Category
+                <select value={selectedParentServiceId} onChange={handleParentChange} disabled={!selectedCityId} style={{
+                  width: "100%",
+                  padding: 16,
+                  borderRadius: 14,
+                  border: "1px solid #ddd",
+                  outline: "none",
+                  fontSize: 15,
+                }} >
+                  <option value="">Select service category</option>
+                  {parentServices.map((service) => <option key={service._id} value={service._id}>{service.name}</option>)}
+                </select>
+              </label>
+            </div>
+            <div>
+
+
+
+              <label style={{
+                fontWeight: 600,
+                color: "#14344A",
+                marginBottom: 10,
+                display: "block",
+              }} >
+                Service
+                <select value={selectedServiceId} onChange={handleServiceChange} disabled={!selectedParentServiceId} style={{
+                  width: "100%",
+                  padding: 16,
+                  borderRadius: 14,
+                  border: "1px solid #ddd",
+                  outline: "none",
+                  fontSize: 15,
+                }} >
+                  <option value="">Select service</option>
+                  {childServices.map((service) => <option key={service._id} value={service._id}>{service.name}</option>)}
+                </select>
+              </label>
+
+            </div>
+
           </div>
-          {status && <div className={`mt-6 rounded-xl p-4 text-sm ${status.type === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{status.text}</div>}
-          <div className="mt-8 flex justify-end">
-            <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 px-6 py-3 font-bold text-white shadow-lg transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60">
-              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-              {saving ? "Updating…" : "Update pricing"}
-            </button>
+        </div>
+
+
+
+        {/* input fields  */}
+
+        <section>
+
+
+          <div style={{
+            background: "#fff",
+            borderRadius: 24,
+            padding: 30,
+            marginBottom: 30,
+            boxShadow: "0 4px 20px rgba(0,0,0,.06)",
+          }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                marginBottom: 25,
+              }}
+            >
+              <DollarSign size={24} color="#14344A" />
+
+
+              <h3
+                style={{
+                  color: "#14344A",
+                  fontSize: 24,
+                  fontWeight: 700,
+                  margin: 0,
+                }}
+              >
+                Pricing Details
+              </h3>
+
+            </div>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 25,
+            }} >
+              <div>
+
+
+                <label style={{
+                  fontWeight: 600,
+                  color: "#14344A",
+                  marginBottom: 10,
+                  display: "block",
+                }} >
+                  Requester price
+                  <div style={{
+                    position: "relative",
+                    marginTop: 8,
+                  }}>
+                    <DollarSign style={{
+                      position: "absolute",
+                      left: 16,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "#94A3B8",
+                      width: 18,
+                      height: 18,
+                      pointerEvents: "none",
+                    }} />
+                    <input type="number" min="0" step="0.01" value={requesterPrice} onChange={(event) => setRequesterPrice(event.target.value)} style={{
+                      width: "100%",
+                      padding: "16px 16px 16px 48px",
+                      borderRadius: 14,
+                      border: "1px solid #ddd",
+                      outline: "none",
+                      fontSize: 15,
+                      boxSizing: "border-box",
+                    }} placeholder="Enter requester price" /></div>
+                  {errors.requesterPrice && <span className="mt-1 block text-xs text-red-600">{errors.requesterPrice}</span>}
+                </label>
+              </div>
+
+              <div>
+                <label style={{
+                  fontWeight: 600,
+                  color: "#14344A",
+                  marginBottom: 10,
+                  display: "block",
+                }} >
+                  Provider price
+                  <div
+                    style={{
+                      position: "relative",
+                      marginTop: 8,
+                    }}
+                  >
+                    <DollarSign
+                      style={{
+                        position: "absolute",
+                        left: 16,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#94A3B8",
+                        width: 18,
+                        height: 18,
+                        pointerEvents: "none",
+                      }}
+                    />
+
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={providerPrice}
+                      onChange={(event) => setProviderPrice(event.target.value)}
+                      placeholder="Enter provider price"
+                      style={{
+                        width: "100%",
+                        padding: "16px 16px 16px 48px",
+                        borderRadius: 14,
+                        border: "1px solid #ddd",
+                        outline: "none",
+                        fontSize: 15,
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+                  {errors.providerPrice && <span className="mt-1 block text-xs text-red-600">{errors.providerPrice}</span>}
+                </label>
+              </div>
+
+            </div>
+
+            {status && <div className={`mt-6 rounded-xl p-4 text-sm ${status.type === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{status.text}</div>}
+            <div className="mt-8 flex justify-end">
+              <button type="submit" disabled={saving} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+
+                border: "none",
+                background: "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+                color: "#14344A",
+                fontWeight: 700,
+                padding: "14px 24px",
+                borderRadius: 14,
+                boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+                transition: "0.3s",
+                cursor: "pointer",
+              }}>
+                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                {saving ? "Updating…" : "Update pricing"}
+              </button>
+            </div>
           </div>
+
+
+
         </section>
       </form>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-        <div className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-4 text-white"><Building2 className="h-5 w-5" /><h2 className="text-xl font-bold">Existing pricing rules</h2></div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm"><thead className="bg-slate-100 text-left text-slate-600"><tr><th className="px-5 py-4">State</th><th className="px-5 py-4">City</th><th className="px-5 py-4">Service</th><th className="px-5 py-4 text-right">Requester</th><th className="px-5 py-4 text-right">Provider</th></tr></thead>
-            <tbody>{pricingRules.length === 0 ? <tr><td colSpan={5} className="px-5 py-10 text-center text-slate-500">No pricing rules available.</td></tr> : pricingRules.map((rule) => <tr key={rule._id} className="border-t border-slate-100 hover:bg-slate-50"><td className="px-5 py-4">{getRuleLabel(rule, "stateId")}</td><td className="px-5 py-4">{getRuleLabel(rule, "cityId")}</td><td className="px-5 py-4">{getRuleLabel(rule, "serviceId")}</td><td className="px-5 py-4 text-right font-semibold text-emerald-600">${rule.requesterPrice}</td><td className="px-5 py-4 text-right font-semibold text-indigo-600">${rule.providerPrice}</td></tr>)}</tbody>
-          </table>
-        </div>
-      </section>
+
     </div>
   );
 };

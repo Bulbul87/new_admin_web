@@ -10,7 +10,7 @@ import {
   FaEdit,
   FaLayerGroup,
   FaTag,
- 
+
   FaClock,
   FaFileAlt,
   FaFire,
@@ -105,8 +105,8 @@ const EditService: React.FC = () => {
     useState(
       service.popularity
         ? String(
-            service.popularity
-          )
+          service.popularity
+        )
         : ""
     );
 
@@ -434,7 +434,7 @@ const EditService: React.FC = () => {
             }}
           >
 
-            <DollarSign  
+            <DollarSign
               style={{
                 position: "absolute",
 
