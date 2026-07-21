@@ -40,64 +40,9 @@ const [showSsmid, setShowSsmid] = useState(false);
     fetchProviderDetails();
 
   }, [id]);
-//   const handleSsmidHover = async () => {
-//     try {
-//       if (ssmidValue || loadingSsmid) return;
 
-//       setLoadingSsmid(true);
 
-//       const identity = provider?.providerInfo?.identityData;
 
-//       if (!identity) {
-//         setSsmidValue("SSN Not Available");
-//         return;
-//       }
-
-//       // CASE 1: full SSN → decrypt
-//       if (identity.ssn) {
-//         try {
-//           const decrypted = await decryptData(identity.ssn);
-//           setSsmidValue(decrypted || "Failed to decrypt");
-//            console.log(
-//   provider.firstName,
-//   provider.lastName,
-//   decrypted
-// );
-//         } catch (err) {
-//           console.log("Decrypt error:", err);
-//           setSsmidValue("Invalid SSN");
-//         }
-//         return;
-//       }
-
-//       // // CASE 2: last4 only → no decrypt
-//       // if (identity.ssnLast4) {
-//       //   setSsmidValue(identity.ssnLast4);
-//       //   return;
-//       // }
-//        // CASE 1: full SSNlas4 → decrypt
-//       if (identity.ssnLast4) {
-//         try {
-//           const decrypted = await decryptData(identity.ssnLast4);
-//           setSsmidValue(decrypted || "Failed to decrypt");
-//            console.log(
-//   provider.firstName,
-//   provider.lastName,
-//   decrypted
-// );
-//         } catch (err) {
-//           console.log("Decrypt error:", err);
-//           setSsmidValue("Invalid SSN");
-//         }
-//         return;
-//       }
-
-//       setSsmidValue("Not Available");
-//     } finally {
-//       setLoadingSsmid(false);
-//     }
-   
-//   };
   const handleSsmidHover = async () => {
   setShowSsmid(true);
 

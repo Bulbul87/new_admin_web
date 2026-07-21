@@ -185,10 +185,12 @@ const RequesterDetails: React.FC = () => {
             style={{
               color: "#14344A",
               fontWeight: 700,
+              fontSize:24,
+              
               marginBottom: 10,
             }}
           >
-            {requester.name}
+           {requester.firstName} {requester.lastName}
           </h2>
 
         

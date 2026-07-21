@@ -159,8 +159,11 @@ useEffect(() => {
     }
 
     const filteredData = originalData.filter((item) => {
+      const fullName =
+  item.name ||
+  `${item.firstName || ""} ${item.lastName || ""}`;
 
-      const nameMatch = item.name
+      const nameMatch = fullName
         ?.toLowerCase()
         .includes(search.toLowerCase());
 
@@ -388,7 +391,7 @@ useEffect(() => {
        style={{
     width: "100%",
     borderCollapse: "collapse",
-    minWidth: "1100px", // ya 1500px
+    minWidth: "1100px", 
   }}
     >
       <thead >
@@ -408,7 +411,7 @@ zIndex: 10,
             style={{
               width: "20%",
               padding: "0 25px",
-              textAlign: "left",
+            textAlign: "center",
               color: "#14344A",
               fontWeight: 700,
               fontSize: 15,
@@ -424,7 +427,7 @@ zIndex: 10,
             style={{
               width: "24%",
               padding: "0 20px",
-              textAlign: "left",
+               textAlign: "center",
               color: "#14344A",
               fontWeight: 700,
               fontSize: 15,
@@ -439,7 +442,7 @@ zIndex: 10,
             style={{
               width: "18%",
               padding: "0 20px",
-              textAlign: "left",
+               textAlign: "center",
               color: "#14344A",
               fontWeight: 700,
               fontSize: 15,
@@ -458,6 +461,7 @@ zIndex: 10,
               color: "#14344A",
               fontWeight: 700,
               fontSize: 15,
+             
             }}
           >
             Action
@@ -512,7 +516,7 @@ zIndex: 10,
       }}
     >
       <FaUserCircle
-        size={28}
+        size={20}
         color="#14344A"
       />
     </div>
@@ -526,7 +530,7 @@ zIndex: 10,
           marginBottom: 4,
         }}
       >
-        {item.name || "-"}
+         {item.firstName} {item.lastName}
       </div>
 
       <div

@@ -268,6 +268,7 @@ const Pricing: React.FC = () => {
             display: "flex",
             justifyContent: "flex-end",
             marginTop: 20,
+            marginBottom:20,
           }}
         >
           <button
@@ -533,7 +534,7 @@ const Pricing: React.FC = () => {
                       left: 16,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      color: "#94A3B8",
+                      color:"#14344A",
                       width: 18,
                       height: 18,
                       pointerEvents: "none",
@@ -571,7 +572,7 @@ const Pricing: React.FC = () => {
                         left: 16,
                         top: "50%",
                         transform: "translateY(-50%)",
-                        color: "#94A3B8",
+                        color:"#14344A",
                         width: 18,
                         height: 18,
                         pointerEvents: "none",
