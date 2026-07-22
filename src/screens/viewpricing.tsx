@@ -360,7 +360,7 @@ const PricingRules: React.FC = () => {
               alignItems: "center",
             }}>
 
-              Pricing Rules
+              Pricing Dashboard
 
             </h1>
 

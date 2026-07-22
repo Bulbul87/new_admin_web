@@ -348,18 +348,10 @@ const Dashboard: React.FC = () => {
             fontSize: 34,
           }}
         >
-          Dashboard
+         Senioramerica Dashboard
         </h1>
 
-        <p
-          style={{
-            color: "#6b7280",
-            marginTop: 8,
-            fontSize: 16,
-          }}
-        >
-          Welcome Back Admin 👋
-        </p>
+        
       </div>
 
       {/* TOP CARDS */}
