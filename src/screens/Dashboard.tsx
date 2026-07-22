@@ -34,8 +34,10 @@ import {
   getAllProviders,
   getAdminStats,
 } from "../service/admin.service";
-
-import { serviceApi } from "../service/serviceapi";
+import {
+  getServiceCatalog,
+  type ServiceCategory,
+} from "../service/service_catlog";
 
 // ==============================
 // CUSTOM TOOLTIP
@@ -99,7 +101,7 @@ const Dashboard: React.FC = () => {
   // ==============================
 
   const [services, setServices] =
-    useState<any[]>([]);
+  useState<ServiceCategory[]>([]);
 
   const [providers, setProviders] =
     useState<any[]>([]);
@@ -137,44 +139,42 @@ const Dashboard: React.FC = () => {
           // USERS
           await getAllUsers();
 
-          // PROVIDERS
-          const providersData =
-            await getAllProviders();
+        // PROVIDERS
+const providersData =
+  await getAllProviders();
 
-          // SERVICES
-          const servicesData =
-            await serviceApi.getAllServices({
-              page: 1,
-              limit: 1000,
-            });
+// SERVICE CATALOG
+const catalogData =
+  await getServiceCatalog();
 
-          // ADMIN STATS
-          const statsRes: any =
-            await getAdminStats();
+setServices(catalogData || []);
 
-          console.log(
-            "ADMIN STATS 👉",
-            statsRes
-          );
+const total =
+  (catalogData || []).reduce(
+    (count, category) =>
+      count +
+      (category.services?.length || 0),
+    0
+  );
 
-          setStatsData(
-            statsRes || {}
-          );
+setTotalServices(total);
 
-          // PROVIDERS SAVE
-          setProviders(
-            providersData || []
-          );
+// ADMIN STATS
+const statsRes: any =
+  await getAdminStats();
 
-          // SERVICES
-          setServices(
-            servicesData?.services || []
-          );
+console.log(
+  "ADMIN STATS 👉",
+  statsRes
+);
 
-          setTotalServices(
-            servicesData?.services
-              ?.length || 0
-          );
+setStatsData(statsRes || {});
+
+// SAVE PROVIDERS
+setProviders(providersData || []);
+
+
+          
 
         } catch (error) {
           console.log(
@@ -217,27 +217,20 @@ const Dashboard: React.FC = () => {
   const totalRevenue =
     statsData?.revenue?.total || 0;
 
+
+
   // ==============================
-  // SERVICES CATEGORY CHART
-  // ==============================
+// SERVICES CATEGORY CHART
+// ==============================
 
-  const categoryMap: any = {};
+const servicesChartData = services.map(
+  (category) => ({
+    category: category.categoryName,
+    count: category.services?.length || 0,
+  })
+);
 
-  services.forEach((service) => {
-    const category =
-      service.category || "Other";
-
-    categoryMap[category] =
-      (categoryMap[category] || 0) + 1;
-  });
-
-  const servicesChartData =
-    Object.keys(categoryMap).map(
-      (key) => ({
-        category: key,
-        count: categoryMap[key],
-      })
-    );
+  
 
   // ==============================
   // PIE CHART DATA

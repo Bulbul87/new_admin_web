@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   MapPin,
   Building2,
   Layers3,
- 
   Map,
   ListTree,
 } from "lucide-react";
@@ -15,21 +14,31 @@ import {
   getServiceCatalog,
   type StateType,
   type CityType,
-
-  type ServiceCatalog,
+  type ServiceCategory,
+  type ServiceItem,
 } from "../service/service_catlog";
 
 const ServiceRequestForm = () => {
+  // ==========================
+  // STATES
+  // ==========================
+
   const [states, setStates] = useState<StateType[]>([]);
   const [cities, setCities] = useState<CityType[]>([]);
-  const [services, setServices] = useState<ServiceCatalog[]>([]);
+
+  // Complete Service Catalog
+  const [services, setServices] = useState<ServiceCategory[]>([]);
 
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
 
-  const [selectedService, setSelectedService] = useState("");
+  // Selected Category
+  const [selectedCategory, setSelectedCategory] =
+    useState("");
 
-
+  // Selected Child Service
+  const [selectedService, setSelectedService] =
+    useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -45,19 +54,51 @@ const ServiceRequestForm = () => {
     try {
       setLoading(true);
 
-      const [stateRes, serviceRes] = await Promise.all([
-        getStates(),
-        getServiceCatalog(),
-      ]);
+      const [stateRes, catalogRes] =
+        await Promise.all([
+          getStates(),
+          getServiceCatalog(),
+        ]);
 
-      setStates(stateRes);
-      setServices(serviceRes);
+      setStates(stateRes || []);
+      setServices(catalogRes || []);
     } catch (err) {
-      console.log(err);
+      console.log("Load Error :", err);
     } finally {
       setLoading(false);
     }
   };
+
+  // ==========================
+  // TOTAL SERVICES
+  // ==========================
+
+  const totalServices = useMemo(() => {
+    return services.reduce(
+      (total, category) =>
+        total +
+        (category.services?.length || 0),
+      0
+    );
+  }, [services]);
+
+  // ==========================
+  // SELECTED CATEGORY
+  // ==========================
+
+  const selectedCategoryData =
+    services.find(
+      (category) =>
+        category.categoryId ===
+        selectedCategory
+    );
+
+  // ==========================
+  // CHILD SERVICES
+  // ==========================
+
+  const childServices: ServiceItem[] =
+    selectedCategoryData?.services || [];
 
   // ==========================
   // STATE CHANGE
@@ -70,17 +111,32 @@ const ServiceRequestForm = () => {
 
     setSelectedState(id);
     setSelectedCity("");
+
     setCities([]);
 
     if (!id) return;
 
     try {
-      const data = await getCitiesByState(id);
+      const cityData =
+        await getCitiesByState(id);
 
-      setCities(data);
+      setCities(cityData);
     } catch (err) {
       console.log(err);
     }
+  };
+
+  // ==========================
+  // CATEGORY CHANGE
+  // ==========================
+
+  const handleCategoryChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setSelectedCategory(e.target.value);
+
+    // Reset child service
+    setSelectedService("");
   };
 
   // ==========================
@@ -90,16 +146,11 @@ const ServiceRequestForm = () => {
   const handleServiceChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const id = e.target.value;
-
-    setSelectedService(id);
-   
-  }
-
- 
+    setSelectedService(e.target.value);
+  };
 
   // ==========================
-  // UI
+  // LOADING
   // ==========================
 
   if (loading) {
@@ -301,15 +352,15 @@ const ServiceRequestForm = () => {
             Total Services
           </p>
 
-          <h2
-            style={{
-              color: "#14344A",
-              fontSize: 34,
-              fontWeight: 700,
-            }}
-          >
-            {services.length}
-          </h2>
+       <h2
+  style={{
+    color: "#14344A",
+    fontSize: 34,
+    fontWeight: 700,
+  }}
+>
+  {totalServices}
+</h2>
         </div>
 
       </div>
@@ -495,44 +546,89 @@ const ServiceRequestForm = () => {
         >
           {/* All Services */}
 
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: 10,
-                color: "#14344A",
-                fontWeight: 600,
-              }}
-            >
-             All Services
-            </label>
+  {/* CATEGORY */}
 
-            <select
-              value={selectedService}
-              onChange={handleServiceChange}
-              style={{
-                width: "100%",
-                padding: 16,
-                borderRadius: 14,
-                border: "1px solid #ddd",
-                outline: "none",
-                fontSize: 15,
-              }}
-            >
-              <option value="">
-                Select Service
-              </option>
+  <div>
+    <label
+      style={{
+        display: "block",
+        marginBottom: 10,
+        color: "#14344A",
+        fontWeight: 600,
+      }}
+    >
+      Category
+    </label>
 
-              {services.map((service) => (
-                <option
-                  key={service._id}
-                  value={service._id}
-                >
-                  {service.name}
-                </option>
-              ))}
-            </select>
-          </div>
+    <select
+      value={selectedCategory}
+      onChange={handleCategoryChange}
+      style={{
+        width: "100%",
+        padding: 16,
+        borderRadius: 14,
+        border: "1px solid #ddd",
+        outline: "none",
+        fontSize: 15,
+      }}
+    >
+      <option value="">
+        Select Category
+      </option>
+
+      {services.map((category) => (
+        <option
+          key={category._id}
+          value={category.categoryId}
+        >
+          {category.categoryName}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* SERVICE */}
+
+  <div>
+    <label
+      style={{
+        display: "block",
+        marginBottom: 10,
+        color: "#14344A",
+        fontWeight: 600,
+      }}
+    >
+      Service
+    </label>
+
+    <select
+      value={selectedService}
+      onChange={handleServiceChange}
+      disabled={!selectedCategory}
+      style={{
+        width: "100%",
+        padding: 16,
+        borderRadius: 14,
+        border: "1px solid #ddd",
+        outline: "none",
+        fontSize: 15,
+      }}
+    >
+      <option value="">
+        Select Service
+      </option>
+
+      {childServices.map((service) => (
+        <option
+          key={service._id}
+          value={service.servId}
+        >
+          {service.name}
+        </option>
+      ))}
+    </select>
+  </div>
+
 
           
         </div>
@@ -613,14 +709,30 @@ const ServiceRequestForm = () => {
             <strong> Service</strong>
 
             <p style={{ marginTop: 8 }}>
-              {services.find(
-                (x) =>
-                  x._id ===
-                  selectedService
-              )?.name || "-"}
+              {childServices.find(
+  (x) =>
+    x.servId === selectedService
+)?.name || "-"}
             </p>
           </div>
 
+
+<div
+  style={{
+    background: "#F8FBFF",
+    padding: 18,
+    borderRadius: 16,
+  }}
+>
+  <strong>Category</strong>
+
+  <p style={{ marginTop: 8 }}>
+    {services.find(
+      (x) =>
+        x.categoryId === selectedCategory
+    )?.categoryName || "-"}
+  </p>
+</div>
          
         </div>
 

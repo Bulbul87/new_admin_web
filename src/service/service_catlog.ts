@@ -16,15 +16,30 @@ export interface CityType {
   stateId: StateType;
 }
 
-export interface ChildService {
+export interface ServiceItem {
   _id: string;
+  servId: string;
   name: string;
+  description: string;
+  icon: string;
+  sortOrder: number;
+  isActive: boolean;
 }
 
-export interface ServiceCatalog {
+export interface ServiceCategory {
   _id: string;
-  name: string;
-  children: ChildService[];
+  categoryId: string;
+  categoryName: string;
+  sortOrder: number;
+  isActive: boolean;
+  services: ServiceItem[];
+}
+
+interface ServiceCatalogResponse {
+  success: boolean;
+  message: string;
+  count: number;
+  data: ServiceCategory[];
 }
 
 // ======================
@@ -51,10 +66,6 @@ export const getCitiesByState = async (
   return cities.filter((city) => city.stateId?._id === stateId);
 };
 
-// ======================
-// SERVICE CATALOG
-// ======================
-
-export const getServiceCatalog = async (): Promise<ServiceCatalog[]> => {
-  return await api.get<ServiceCatalog[]>("/services/service-catalog");
+export const getServiceCatalog = async (): Promise<ServiceCategory[]> => {
+  return await api.get<ServiceCategory[]>("/services/service-catalog");
 };
