@@ -6,8 +6,7 @@ import { useAdminAuth } from "../context/Authcontext";
 import Login from "../screens/Login";
 import Dashboard from "../screens/Dashboard";
 import Services from "../screens/Services";
-import AddService from "../screens/Addservice";
-import EditService from "../screens/Editservice";
+
 import Users from "../screens/Adminuserlist";
 import ProviderDetails from "../screens/providerdetail";
 import RequesterDetails from "../screens/requesterdetail";
@@ -53,8 +52,7 @@ const AppNavigator = () => {
 />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/view-pricing" element={<PricingRules />} />
-          <Route path="/add-service" element={<AddService />} />
-          <Route path="/edit-service" element={<EditService />} />
+         
           <Route path="/users" element={<Users />} />
           <Route  path="/provider-details/:id" element={< ProviderDetails />} />
           <Route path="/requester-details/:id" element={<RequesterDetails />} />

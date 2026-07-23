@@ -22,6 +22,9 @@ export interface ServiceItem {
   name: string;
   description: string;
   icon: string;
+    // Future fields
+  duration?: string;
+  tooltip?: string;
   sortOrder: number;
   isActive: boolean;
 }
