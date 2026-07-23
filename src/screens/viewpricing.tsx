@@ -128,35 +128,84 @@ const PricingRules: React.FC = () => {
   // Helpers
   // ============================================
 
+  // NOTE: `rule.serviceId` / `rule.categoryId` coming back from the API are
+  // plain business code strings (e.g. "S1A" / "S1"), NOT populated Mongo
+  // objects. The catalog (`services`) links up via `category.categoryId`
+  // (business code) and `service.servId` (business code) — matching on
+  // `_id` here would never work since the rule doesn't carry the Mongo
+  // `_id` at all for these fields.
+  const getCategoryForRule = (
+    rule: PricingRule
+  ): ServiceCatalogItem | null => {
 
+    if (!rule.categoryId) {
+      return null;
+    }
 
-  const getChildService = (
-    serviceId: string
-  ) => {
-
-    return services.find(
-      (service) =>
-        service._id === serviceId
+    return (
+      services.find(
+        (category) => category.categoryId === rule.categoryId
+      ) ?? null
     );
 
   };
 
-  const getParentService = (
-    serviceId: string
+  const getServiceForRule = (
+    rule: PricingRule
   ) => {
 
-    const child = getChildService(serviceId);
+    const category = getCategoryForRule(rule);
 
-    if (!child?.parentId) {
+    if (category) {
 
-      return null;
+      const service = category.services?.find(
+        (item) => item.servId === rule.serviceId
+      );
+
+      if (service) {
+        return service;
+      }
 
     }
 
-    return services.find(
-      (service) =>
-        service._id === child.parentId?._id
-    );
+    // Legacy fallback: some older records store the service's Mongo `_id`
+    // in `serviceId` instead of the business code. Try matching that way
+    // across all categories before giving up.
+    for (const cat of services) {
+
+      const legacyMatch = cat.services?.find(
+        (item) => item._id === rule.serviceId
+      );
+
+      if (legacyMatch) {
+        return legacyMatch;
+      }
+
+    }
+
+    return null;
+
+  };
+
+  // Prefer the name the API already gives us on the rule itself; only fall
+  // back to a catalog lookup when that's missing (older/legacy records).
+  const getCategoryName = (rule: PricingRule): string => {
+
+    if (rule.categoryName) {
+      return rule.categoryName;
+    }
+
+    return getCategoryForRule(rule)?.categoryName ?? "-";
+
+  };
+
+  const getServiceName = (rule: PricingRule): string => {
+
+    if (rule.serviceName) {
+      return rule.serviceName;
+    }
+
+    return getServiceForRule(rule)?.name ?? "-";
 
   };
   // ============================================
@@ -226,9 +275,7 @@ const PricingRules: React.FC = () => {
       // ------------------------
 
       if (selectedParentServiceId) {
-        const parent = getParentService(
-          rule.serviceId._id
-        );
+        const parent = getCategoryForRule(rule);
 
         if (
           parent?._id !==
@@ -242,12 +289,15 @@ const PricingRules: React.FC = () => {
       // Child Service
       // ------------------------
 
-      if (
-        selectedServiceId &&
-        rule.serviceId._id !==
-        selectedServiceId
-      ) {
-        return false;
+      if (selectedServiceId) {
+        const service = getServiceForRule(rule);
+
+        if (
+          service?._id !==
+          selectedServiceId
+        ) {
+          return false;
+        }
       }
 
       // ------------------------
@@ -257,13 +307,9 @@ const PricingRules: React.FC = () => {
       if (search.trim()) {
         const keyword = search.toLowerCase();
 
-        const parentName =
-          getParentService(rule.serviceId._id)
-            ?.name ?? "";
+        const parentName = getCategoryName(rule);
 
-        const childName =
-          getChildService(rule.serviceId._id)
-            ?.name ?? "";
+        const childName = getServiceName(rule);
 
         const stateName =
           rule.stateId?.name ?? "";
@@ -876,14 +922,14 @@ const PricingRules: React.FC = () => {
 
                 </option>
 
-                {parentServices.map((service) => (
+                {parentServices.map((category) => (
 
                   <option
-                    key={service._id}
-                    value={service._id}
+                    key={category._id}
+                    value={category._id}
                   >
 
-                    {service.name}
+                    {category.categoryName}
 
                   </option>
 
@@ -1223,8 +1269,8 @@ const PricingRules: React.FC = () => {
 
                 filteredPricingRules.map((rule, index) => {
 
-                  const child = getChildService(rule.serviceId._id);
-                  const parent = getParentService(rule.serviceId._id);
+                  const categoryDisplayName = getCategoryName(rule);
+                  const serviceDisplayName = getServiceName(rule);
 
                   return (
 
@@ -1300,7 +1346,7 @@ const PricingRules: React.FC = () => {
                       }}>
 
                         <span >
-                          {parent?.name ?? "-"}
+                          {categoryDisplayName}
                         </span>
 
                       </td>
@@ -1319,7 +1365,7 @@ const PricingRules: React.FC = () => {
                       }}>
 
                         <span >
-                          {child?.name ?? "-"}
+                          {serviceDisplayName}
                         </span>
 
                       </td>
