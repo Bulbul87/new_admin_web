@@ -34,11 +34,7 @@ const Sidebar = () => {
       path: "/services",
       icon: <BriefcaseBusiness size={20} />,
     },
-    {
-      name: "Service Catalog",
-      path: "/service-catalog",
-      icon: <Layers3 size={20} />,
-    },
+    
     {
       name: "Pricing",
       path: "/pricing",

@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -9,7 +10,6 @@ import {
   MapPinned,
   RefreshCw,
   Search,
-
 } from "lucide-react";
 
 import {
@@ -44,43 +44,35 @@ const PricingRules: React.FC = () => {
   // ============================================
 
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState<string | null>(null);
-
-
 
   // ============================================
   // Filters
   // ============================================
 
-  const [selectedStateId, setSelectedStateId] =
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState("");
+
+  // IMPORTANT:
+  // This stores ServiceCatalog.categoryId
+  const [selectedParentServiceId, setSelectedParentServiceId] =
     useState("");
 
-  const [selectedCityId, setSelectedCityId] =
-    useState("");
+  // IMPORTANT:
+  // This stores ServiceCatalog.services[].servId
+  const [selectedServiceId, setSelectedServiceId] = useState("");
 
-  const [selectedParentServiceId,
-    setSelectedParentServiceId] =
-    useState("");
-
-  const [selectedServiceId,
-    setSelectedServiceId] =
-    useState("");
-
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
   // ============================================
   // Load Data
   // ============================================
 
   const loadData = useCallback(async () => {
-
     setLoading(true);
     setError(null);
 
     try {
-
       const [
         statesData,
         citiesData,
@@ -93,25 +85,26 @@ const PricingRules: React.FC = () => {
         getPricingRules(),
       ]);
 
+      console.log("VIEW PRICING - STATES:", statesData);
+      console.log("VIEW PRICING - CITIES:", citiesData);
+      console.log("VIEW PRICING - SERVICE CATALOG:", servicesData);
+      console.log("VIEW PRICING - PRICING RULES:", pricingData);
+
       setStates(statesData);
       setCities(citiesData);
       setServices(servicesData);
       setPricingRules(pricingData);
-
     } catch (err) {
+      console.error("Pricing Rules Load Error:", err);
 
       setError(
         err instanceof Error
           ? err.message
           : "Unable to load pricing rules."
       );
-
     } finally {
-
       setLoading(false);
-
     }
-
   }, []);
 
   // ============================================
@@ -119,95 +112,192 @@ const PricingRules: React.FC = () => {
   // ============================================
 
   const handleRefresh = async () => {
-
     await loadData();
-
   };
 
   // ============================================
-  // Helpers
+  // Category lookup
   // ============================================
 
-  // NOTE: `rule.serviceId` / `rule.categoryId` coming back from the API are
-  // plain business code strings (e.g. "S1A" / "S1"), NOT populated Mongo
-  // objects. The catalog (`services`) links up via `category.categoryId`
-  // (business code) and `service.servId` (business code) — matching on
-  // `_id` here would never work since the rule doesn't carry the Mongo
-  // `_id` at all for these fields.
   const getCategoryForRule = (
     rule: PricingRule
   ): ServiceCatalogItem | null => {
+    const categoryId = String(rule.categoryId || "").trim();
 
-    if (!rule.categoryId) {
+    if (!categoryId) {
+      // If backend already provided categoryName,
+      // try resolving by name.
+      if (rule.categoryName) {
+        const categoryByName = services.find(
+          (item) =>
+            String(item.categoryName || "")
+              .trim()
+              .toLowerCase() ===
+            String(rule.categoryName || "")
+              .trim()
+              .toLowerCase()
+        );
+
+        if (categoryByName) {
+          return categoryByName;
+        }
+      }
+
       return null;
     }
 
-    return (
-      services.find(
-        (category) => category.categoryId === rule.categoryId
-      ) ?? null
+    // ============================================
+    // 1. Business categoryId
+    // ============================================
+
+    const category = services.find(
+      (item) =>
+        String(item.categoryId || "").trim() === categoryId
     );
 
+    if (category) {
+      return category;
+    }
+
+    // ============================================
+    // 2. Legacy Mongo _id fallback
+    // ============================================
+
+    const legacyCategory = services.find(
+      (item) =>
+        String(item._id || "").trim() === categoryId
+    );
+
+    if (legacyCategory) {
+      return legacyCategory;
+    }
+
+    // ============================================
+    // 3. categoryName fallback
+    // ============================================
+
+    if (rule.categoryName) {
+      const categoryByName = services.find(
+        (item) =>
+          String(item.categoryName || "")
+            .trim()
+            .toLowerCase() ===
+          String(rule.categoryName || "")
+            .trim()
+            .toLowerCase()
+      );
+
+      if (categoryByName) {
+        return categoryByName;
+      }
+    }
+
+    return null;
   };
 
-  const getServiceForRule = (
-    rule: PricingRule
-  ) => {
+  // ============================================
+  // Service lookup
+  // ============================================
+
+  const getServiceForRule = (rule: PricingRule) => {
+    const serviceId = String(rule.serviceId || "").trim();
+
+    if (!serviceId) {
+      return null;
+    }
+
+    // ============================================
+    // 1. Find category first
+    // ============================================
 
     const category = getCategoryForRule(rule);
 
     if (category) {
-
+      // Business ID
       const service = category.services?.find(
-        (item) => item.servId === rule.serviceId
+        (item) =>
+          String(item.servId || "").trim() === serviceId
       );
 
       if (service) {
         return service;
       }
 
-    }
-
-    // Legacy fallback: some older records store the service's Mongo `_id`
-    // in `serviceId` instead of the business code. Try matching that way
-    // across all categories before giving up.
-    for (const cat of services) {
-
-      const legacyMatch = cat.services?.find(
-        (item) => item._id === rule.serviceId
+      // Legacy Mongo _id
+      const legacyService = category.services?.find(
+        (item) =>
+          String(item._id || "").trim() === serviceId
       );
 
-      if (legacyMatch) {
-        return legacyMatch;
+      if (legacyService) {
+        return legacyService;
       }
+    }
 
+    // ============================================
+    // 2. Search entire catalog by servId
+    // ============================================
+
+    for (const categoryItem of services) {
+      const service = categoryItem.services?.find(
+        (item) =>
+          String(item.servId || "").trim() === serviceId
+      );
+
+      if (service) {
+        return service;
+      }
+    }
+
+    // ============================================
+    // 3. Search entire catalog by Mongo _id
+    // ============================================
+
+    for (const categoryItem of services) {
+      const service = categoryItem.services?.find(
+        (item) =>
+          String(item._id || "").trim() === serviceId
+      );
+
+      if (service) {
+        return service;
+      }
     }
 
     return null;
-
   };
 
-  // Prefer the name the API already gives us on the rule itself; only fall
-  // back to a catalog lookup when that's missing (older/legacy records).
-  const getCategoryName = (rule: PricingRule): string => {
+  // ============================================
+  // Category Name
+  // ============================================
 
-    if (rule.categoryName) {
+  const getCategoryName = (
+    rule: PricingRule
+  ): string => {
+    if (rule.categoryName?.trim()) {
       return rule.categoryName;
     }
 
-    return getCategoryForRule(rule)?.categoryName ?? "-";
-
+    return (
+      getCategoryForRule(rule)?.categoryName ??
+      "-"
+    );
   };
 
-  const getServiceName = (rule: PricingRule): string => {
+  // ============================================
+  // Service Name
+  // ============================================
 
-    if (rule.serviceName) {
+  const getServiceName = (
+    rule: PricingRule
+  ): string => {
+    if (rule.serviceName?.trim()) {
       return rule.serviceName;
     }
 
     return getServiceForRule(rule)?.name ?? "-";
-
   };
+
   // ============================================
   // Initial Load
   // ============================================
@@ -217,25 +307,74 @@ const PricingRules: React.FC = () => {
   }, [loadData]);
 
   // ============================================
-  // Dropdown Data
+  // Filtered Cities
   // ============================================
 
   const filteredCities = useMemo(() => {
-    if (!selectedStateId) return [];
+    if (!selectedStateId) {
+      return [];
+    }
 
     return cities.filter(
       (city) =>
-        getStateIdFromCity(city) === selectedStateId
+        String(getStateIdFromCity(city)) ===
+        String(selectedStateId)
     );
   }, [cities, selectedStateId]);
+
+  // ============================================
+  // Parent Categories
+  // ============================================
 
   const parentServices = useMemo(() => {
     return getParentServices(services);
   }, [services]);
 
-  const childServices = useMemo(() => {
-    if (!selectedParentServiceId) return [];
+  // ============================================
+  // Child Services
+  // ============================================
 
+  const childServices = useMemo(() => {
+    if (!selectedParentServiceId) {
+      return [];
+    }
+
+    console.log(
+      "Selected Category ID:",
+      selectedParentServiceId
+    );
+
+    console.log(
+      "All Categories:",
+      services
+    );
+
+    const selectedCategory = services.find(
+      (category) =>
+        String(category.categoryId || "").trim() ===
+        String(selectedParentServiceId).trim()
+    );
+
+    console.log(
+      "Selected Category:",
+      selectedCategory
+    );
+
+    console.log(
+      "Selected Category Services:",
+      selectedCategory?.services
+    );
+
+    // Direct catalog lookup
+    if (selectedCategory) {
+      return (
+        selectedCategory.services?.filter(
+          (service) => service.isActive !== false
+        ) || []
+      );
+    }
+
+    // Existing helper fallback
     return getChildServices(
       services,
       selectedParentServiceId
@@ -248,68 +387,105 @@ const PricingRules: React.FC = () => {
 
   const filteredPricingRules = useMemo(() => {
     return pricingRules.filter((rule) => {
-      // ------------------------
+      // ==========================================
       // State
-      // ------------------------
+      // ==========================================
 
-      if (
-        selectedStateId &&
-        rule.stateId?._id !== selectedStateId
-      ) {
-        return false;
+      if (selectedStateId) {
+        const ruleStateId = String(
+          rule.stateId?._id || ""
+        );
+
+        if (ruleStateId !== String(selectedStateId)) {
+          return false;
+        }
       }
 
-      // ------------------------
+      // ==========================================
       // City
-      // ------------------------
+      // ==========================================
 
-      if (
-        selectedCityId &&
-        rule.cityId?._id !== selectedCityId
-      ) {
-        return false;
+      if (selectedCityId) {
+        const ruleCityId = String(
+          rule.cityId?._id || ""
+        );
+
+        if (ruleCityId !== String(selectedCityId)) {
+          return false;
+        }
       }
 
-      // ------------------------
-      // Parent Service
-      // ------------------------
+      // ==========================================
+      // Service Category
+      // ==========================================
 
       if (selectedParentServiceId) {
         const parent = getCategoryForRule(rule);
 
-        if (
-          parent?._id !==
+        if (!parent) {
+          return false;
+        }
+
+        const parentCategoryId = String(
+          parent.categoryId || ""
+        ).trim();
+
+        const selectedCategoryId = String(
           selectedParentServiceId
+        ).trim();
+
+        // IMPORTANT:
+        // Compare business categoryId
+        if (
+          parentCategoryId !==
+          selectedCategoryId
         ) {
           return false;
         }
       }
 
-      // ------------------------
+      // ==========================================
       // Child Service
-      // ------------------------
+      // ==========================================
 
       if (selectedServiceId) {
         const service = getServiceForRule(rule);
 
+        if (!service) {
+          return false;
+        }
+
+        const serviceBusinessId = String(
+          service.servId || ""
+        ).trim();
+
+        const selectedBusinessServiceId =
+          String(selectedServiceId).trim();
+
+        // IMPORTANT:
+        // Compare business servId
         if (
-          service?._id !==
-          selectedServiceId
+          serviceBusinessId !==
+          selectedBusinessServiceId
         ) {
           return false;
         }
       }
 
-      // ------------------------
+      // ==========================================
       // Search
-      // ------------------------
+      // ==========================================
 
       if (search.trim()) {
-        const keyword = search.toLowerCase();
+        const keyword = search
+          .trim()
+          .toLowerCase();
 
-        const parentName = getCategoryName(rule);
+        const parentName =
+          getCategoryName(rule);
 
-        const childName = getServiceName(rule);
+        const childName =
+          getServiceName(rule);
 
         const stateName =
           rule.stateId?.name ?? "";
@@ -368,12 +544,17 @@ const PricingRules: React.FC = () => {
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
         <Loader2 className="mr-3 h-6 w-6 animate-spin text-indigo-600" />
+
         <span className="text-lg font-medium text-slate-600">
           Loading pricing rules...
         </span>
       </div>
     );
   }
+
+  // ============================================
+  // UI
+  // ============================================
 
   return (
     <div
@@ -388,53 +569,34 @@ const PricingRules: React.FC = () => {
       {/* HERO HEADER */}
       {/* ========================================================= */}
 
-      <div className="relative overflow-hidden rounded-[32px] ">
-
-
-
-
+      <div className="relative overflow-hidden rounded-[32px]">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center">
-
-          <div className="flex text-align: center; ">
-
-
-
-            <h1 style={{
-              color: "#14344A",
-              fontWeight: 700,
-              marginBottom: 10,
-              alignItems: "center",
-            }}>
-
+          <div className="flex">
+            <h1
+              style={{
+                color: "#14344A",
+                fontWeight: 700,
+                marginBottom: 10,
+                alignItems: "center",
+              }}
+            >
               Pricing Dashboard
-
             </h1>
-
-
-
           </div>
 
           <div className="flex gap-4 justify-end lg:ml-auto">
-
             <button
               onClick={handleRefresh}
               style={{
                 border: "none",
-
                 background:
                   "linear-gradient(to right, #FFFF6D, #8FDAFA)",
-
                 color: "#14344A",
-
                 fontWeight: 700,
-
                 padding: "14px 24px",
-
                 borderRadius: 14,
-
                 boxShadow:
                   "0 6px 20px rgba(0,0,0,0.08)",
-
                 transition: "0.3s",
               }}
             >
@@ -442,11 +604,8 @@ const PricingRules: React.FC = () => {
 
               Refresh Data
             </button>
-
           </div>
-
         </div>
-
       </div>
 
       {/* ========================================================= */}
@@ -454,43 +613,40 @@ const PricingRules: React.FC = () => {
       {/* ========================================================= */}
 
       {error && (
-
         <div className="mt-8 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700 shadow">
-
           <AlertCircle className="h-6 w-6" />
-
           <span>{error}</span>
-
         </div>
-
       )}
 
       {/* ========================================================= */}
       {/* DASHBOARD STATS */}
       {/* ========================================================= */}
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit, minmax(240px, 1fr))",
-        gap: 20,
-        marginBottom: 35,
-        paddingTop: 20,
-      }}>
-
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 20,
+          marginBottom: 35,
+          paddingTop: 20,
+        }}
+      >
         {/* Total Rules */}
-
-        <div style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: 25,
-          boxShadow:
-            "0 8px 30px rgba(0,0,0,0.06)",
-          position: "relative" as const,
-          overflow: "hidden" as const,
-          cursor: "pointer",
-          transition: "0.3s",
-        }}>
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 24,
+            padding: 25,
+            boxShadow:
+              "0 8px 30px rgba(0,0,0,0.06)",
+            position: "relative" as const,
+            overflow: "hidden" as const,
+            cursor: "pointer",
+            transition: "0.3s",
+          }}
+        >
           <div
             style={{
               width: 40,
@@ -528,19 +684,20 @@ const PricingRules: React.FC = () => {
           </h1>
         </div>
 
-
         {/* Showing */}
-        <div style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: 25,
-          boxShadow:
-            "0 8px 30px rgba(0,0,0,0.06)",
-          position: "relative" as const,
-          overflow: "hidden" as const,
-          cursor: "pointer",
-          transition: "0.3s",
-        }}>
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 24,
+            padding: 25,
+            boxShadow:
+              "0 8px 30px rgba(0,0,0,0.06)",
+            position: "relative" as const,
+            overflow: "hidden" as const,
+            cursor: "pointer",
+            transition: "0.3s",
+          }}
+        >
           <div
             style={{
               width: 40,
@@ -578,19 +735,20 @@ const PricingRules: React.FC = () => {
           </h1>
         </div>
 
-
         {/* States */}
-        <div style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: 25,
-          boxShadow:
-            "0 8px 30px rgba(0,0,0,0.06)",
-          position: "relative" as const,
-          overflow: "hidden" as const,
-          cursor: "pointer",
-          transition: "0.3s",
-        }}>
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 24,
+            padding: 25,
+            boxShadow:
+              "0 8px 30px rgba(0,0,0,0.06)",
+            position: "relative" as const,
+            overflow: "hidden" as const,
+            cursor: "pointer",
+            transition: "0.3s",
+          }}
+        >
           <div
             style={{
               width: 40,
@@ -628,20 +786,20 @@ const PricingRules: React.FC = () => {
           </h1>
         </div>
 
-
-
         {/* Services */}
-        <div style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: 25,
-          boxShadow:
-            "0 8px 30px rgba(0,0,0,0.06)",
-          position: "relative" as const,
-          overflow: "hidden" as const,
-          cursor: "pointer",
-          transition: "0.3s",
-        }}>
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 24,
+            padding: 25,
+            boxShadow:
+              "0 8px 30px rgba(0,0,0,0.06)",
+            position: "relative" as const,
+            overflow: "hidden" as const,
+            cursor: "pointer",
+            transition: "0.3s",
+          }}
+        >
           <div
             style={{
               width: 40,
@@ -664,8 +822,7 @@ const PricingRules: React.FC = () => {
               fontSize: 20,
             }}
           >
-            Total Services
-
+            All categories
           </h4>
 
           <h1
@@ -679,27 +836,24 @@ const PricingRules: React.FC = () => {
             {services.length}
           </h1>
         </div>
-
       </div>
 
       {/* ========================================================= */}
       {/* FILTER TOOLBAR */}
       {/* ========================================================= */}
 
-
-      <section className="mt-8 overflow-hidden  ">
-
-
+      <section className="mt-8 overflow-hidden">
+        {/* LOCATION */}
         <div
           style={{
             background: "#fff",
             borderRadius: 24,
             padding: 30,
             marginBottom: 30,
-            boxShadow: "0 4px 20px rgba(0,0,0,.06)",
+            boxShadow:
+              "0 4px 20px rgba(0,0,0,.06)",
           }}
         >
-
           <div
             style={{
               display: "flex",
@@ -708,7 +862,6 @@ const PricingRules: React.FC = () => {
               marginBottom: 25,
             }}
           >
-
             <MapPin size={24} color="#14344A" />
 
             <h3
@@ -721,7 +874,6 @@ const PricingRules: React.FC = () => {
             >
               Location Details
             </h3>
-
           </div>
 
           <div
@@ -731,11 +883,8 @@ const PricingRules: React.FC = () => {
               gap: 25,
             }}
           >
-
             {/* STATE */}
-
             <div>
-
               <label
                 style={{
                   fontWeight: 600,
@@ -750,11 +899,8 @@ const PricingRules: React.FC = () => {
               <select
                 value={selectedStateId}
                 onChange={(e) => {
-
                   setSelectedStateId(e.target.value);
-
                   setSelectedCityId("");
-
                 }}
                 style={{
                   width: "100%",
@@ -766,29 +912,22 @@ const PricingRules: React.FC = () => {
                 }}
               >
                 <option value="">
-
                   Select State
-
                 </option>
 
                 {states.map((state) => (
-
                   <option
                     key={state._id}
                     value={state._id}
                   >
-
                     {state.name}
-
                   </option>
-
                 ))}
               </select>
-
             </div>
-            {/* city */}
-            <div>
 
+            {/* CITY */}
+            <div>
               <label
                 style={{
                   fontWeight: 600,
@@ -816,41 +955,33 @@ const PricingRules: React.FC = () => {
                 }}
               >
                 <option value="">
-
                   Select City
-
                 </option>
 
                 {filteredCities.map((city) => (
-
                   <option
                     key={city._id}
                     value={city._id}
                   >
-
                     {city.name}
-
                   </option>
-
                 ))}
               </select>
-
             </div>
-
           </div>
-
         </div>
 
+        {/* SERVICE */}
         <div
           style={{
             background: "#fff",
             borderRadius: 24,
             padding: 30,
             marginBottom: 30,
-            boxShadow: "0 4px 20px rgba(0,0,0,.06)",
+            boxShadow:
+              "0 4px 20px rgba(0,0,0,.06)",
           }}
         >
-
           <div
             style={{
               display: "flex",
@@ -859,7 +990,6 @@ const PricingRules: React.FC = () => {
               marginBottom: 25,
             }}
           >
-
             <MapPin size={24} color="#14344A" />
 
             <h3
@@ -872,7 +1002,6 @@ const PricingRules: React.FC = () => {
             >
               Service Details
             </h3>
-
           </div>
 
           <div
@@ -882,11 +1011,8 @@ const PricingRules: React.FC = () => {
               gap: 25,
             }}
           >
-
-            {/* PARENT SERVICE */}
-
+            {/* SERVICE CATEGORY */}
             <div>
-
               <label
                 style={{
                   fontWeight: 600,
@@ -901,11 +1027,19 @@ const PricingRules: React.FC = () => {
               <select
                 value={selectedParentServiceId}
                 onChange={(e) => {
+                  const categoryId =
+                    e.target.value;
 
-                  setSelectedParentServiceId(e.target.value);
+                  console.log(
+                    "CATEGORY SELECTED:",
+                    categoryId
+                  );
+
+                  setSelectedParentServiceId(
+                    categoryId
+                  );
 
                   setSelectedServiceId("");
-
                 }}
                 style={{
                   width: "100%",
@@ -917,29 +1051,22 @@ const PricingRules: React.FC = () => {
                 }}
               >
                 <option value="">
-
                   Select Service Category
-
                 </option>
 
                 {parentServices.map((category) => (
-
                   <option
-                    key={category._id}
-                    value={category._id}
+                    key={category.categoryId}
+                    value={category.categoryId}
                   >
-
                     {category.categoryName}
-
                   </option>
-
                 ))}
               </select>
-
             </div>
-            {/* SUB SERVICE */}
-            <div>
 
+            {/* SERVICES */}
+            <div>
               <label
                 style={{
                   fontWeight: 600,
@@ -954,9 +1081,11 @@ const PricingRules: React.FC = () => {
               <select
                 value={selectedServiceId}
                 disabled={!selectedParentServiceId}
-                onChange={(e) =>
-                  setSelectedServiceId(e.target.value)
-                }
+                onChange={(e) => {
+                  setSelectedServiceId(
+                    e.target.value
+                  );
+                }}
                 style={{
                   width: "100%",
                   padding: 16,
@@ -967,34 +1096,24 @@ const PricingRules: React.FC = () => {
                 }}
               >
                 <option value="">
-
-                  Select Services
-
+                  Select Service
                 </option>
 
                 {childServices.map((service) => (
-
                   <option
-                    key={service._id}
-                    value={service._id}
+                    key={service.servId}
+                    value={service.servId}
                   >
-
                     {service.name}
-
                   </option>
-
                 ))}
               </select>
-
             </div>
-
           </div>
-
         </div>
 
-        {/* Search + Clear Button */}
-        <div className="mt-8 flex items-center " >
-          {/* Search Bar */}
+        {/* SEARCH */}
+        <div className="mt-8 flex items-center">
           <div
             style={{
               width: 450,
@@ -1008,7 +1127,8 @@ const PricingRules: React.FC = () => {
               paddingBottom: "18px",
               paddingLeft: "18px",
               paddingRight: "0px",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+              boxShadow:
+                "0 4px 20px rgba(0,0,0,0.06)",
               flexShrink: 0,
             }}
           >
@@ -1022,7 +1142,9 @@ const PricingRules: React.FC = () => {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
               placeholder="Search data by state, city, services"
               style={{
                 border: "none",
@@ -1033,75 +1155,53 @@ const PricingRules: React.FC = () => {
                 fontSize: 14,
               }}
             />
-            {/* Clear Button */}
+
             <button
               onClick={clearFilters}
               style={{
                 border: "none",
-
                 background:
                   "linear-gradient(to right, #FFFF6D, #8FDAFA)",
-
                 color: "#14344A",
-
                 fontWeight: 700,
-
                 padding: "14px 24px",
-
                 borderTopRightRadius: 14,
                 borderBottomRightRadius: 14,
-
                 boxShadow:
                   "0 6px 20px rgba(0,0,0,0.08)",
-
                 transition: "0.3s",
               }}
-
             >
-
               Clear
             </button>
           </div>
-
-
         </div>
-
-
       </section>
 
-
-
-
       {/* ========================================================= */}
-      {/* PREMIUM PRICING TABLE */}
+      {/* PRICING TABLE */}
       {/* ========================================================= */}
 
-      <section className="mt-10 overflow-hidden  ">
-
-
-        <div style={{
-          padding: "3px",
-          borderRadius: "20px",
-          marginTop: 20,
-          background: "linear-gradient(to right, #FFFF6D, #8FDAFA)",
-          maxHeight: "600px",
-          overflowY: "auto",
-          overflowX: "hidden",
-
-        }}>
-
-          <table className="min-w-full border-collapse" style={{
-            width: "100%",
-
-
-          }} >
-
-            {/* ========================================================= */}
-            {/* TABLE HEADER */}
-            {/* ========================================================= */}
-
+      <section className="mt-10 overflow-hidden">
+        <div
+          style={{
+            padding: "3px",
+            borderRadius: "20px",
+            marginTop: 20,
+            background:
+              "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+            maxHeight: "600px",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          <table
+            className="min-w-full border-collapse"
+            style={{
+              width: "100%",
+            }}
+          >
             <thead>
-
               <tr
                 style={{
                   background:
@@ -1111,144 +1211,40 @@ const PricingRules: React.FC = () => {
                   borderTopLeftRadius: 20,
                   borderTopRightRadius: 20,
                   top: -3,
-                  zIndex: 100
+                  zIndex: 100,
                 }}
               >
-
-                <th style={{
-                  color: "#14344A",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  padding: "18px 24px",
-                  borderRight: "1px solid rgba(255,255,255,0.18)",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                  textAlign: "center",
-
-
-                }}>
-                  #
-                </th>
-
-                <th style={{
-                  color: "#14344A",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  padding: "18px 24px",
-                  borderRight: "1px solid rgba(255,255,255,0.18)",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                  textAlign: "center",
-
-                }}>
-                  State
-                </th>
-
-                <th style={{
-                  color: "#14344A",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  padding: "18px 24px",
-                  borderRight: "1px solid rgba(255,255,255,0.18)",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                  textAlign: "center",
-
-                }}>
-                  City
-                </th>
-
-                <th style={{
-                  color: "#14344A",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  padding: "18px 24px",
-                  borderRight: "1px solid rgba(255,255,255,0.18)",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                  textAlign: "center",
-
-                }}>
+                <th style={headerStyle}>#</th>
+                <th style={headerStyle}>State</th>
+                <th style={headerStyle}>City</th>
+                <th style={headerStyle}>
                   Service Category
                 </th>
-
-                <th style={{
-                  color: "#14344A",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  padding: "18px 24px",
-                  borderRight: "1px solid rgba(255,255,255,0.18)",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                  textAlign: "center",
-
-                }}>
+                <th style={headerStyle}>
                   Services
                 </th>
-
-                <th style={{
-                  color: "#14344A",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  padding: "18px 24px",
-                  borderRight: "1px solid rgba(255,255,255,0.18)",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                  textAlign: "center",
-
-                }}>
+                <th style={headerStyle}>
                   Requester Price
                 </th>
-
-                <th style={{
-                  color: "#14344A",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: "1px",
-                  textTransform: "uppercase",
-                  padding: "18px 24px",
-                  borderRight: "1px solid rgba(255,255,255,0.18)",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-                  textAlign: "center",
-
-                }}>
+                <th style={headerStyle}>
                   Provider Price
                 </th>
-
               </tr>
-
             </thead>
 
             <tbody style={{ background: "#fff" }}>
               {filteredPricingRules.length === 0 ? (
-
-                <tr >
+                <tr>
                   <td
                     colSpan={7}
-
                     style={{
                       color: "#14344A",
-
                       border: "1px solid #cde3f8",
                       padding: "18px 20px",
                       fontWeight: 600,
                     }}
                   >
                     <div className="flex flex-col items-center">
-
                       <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 shadow-lg">
                         <Search className="h-10 w-10 text-indigo-500" />
                       </div>
@@ -1260,182 +1256,117 @@ const PricingRules: React.FC = () => {
                       <p className="mt-3 text-base text-slate-500">
                         Try changing filters or search keywords.
                       </p>
-
                     </div>
                   </td>
                 </tr>
-
               ) : (
+                filteredPricingRules.map(
+                  (rule, index) => {
+                    const categoryDisplayName =
+                      getCategoryName(rule);
 
-                filteredPricingRules.map((rule, index) => {
+                    const serviceDisplayName =
+                      getServiceName(rule);
 
-                  const categoryDisplayName = getCategoryName(rule);
-                  const serviceDisplayName = getServiceName(rule);
+                    return (
+                      <tr
+                        key={rule._id}
+                        style={{
+                          borderBottom:
+                            "2px solid #78bcf3",
+                        }}
+                      >
+                        {/* SR NO */}
+                        <td style={cellStyle}>
+                          {index + 1}
+                        </td>
 
-                  return (
+                        {/* STATE */}
+                        <td style={cellStyle}>
+                          <p className="font-bold text-indigo-900">
+                            {rule.stateId?.name || "-"}
+                          </p>
+                        </td>
 
-                    <tr
-                      key={rule._id}
-                      style={{
-                        borderBottom: "2px solid #78bcf3",
+                        {/* CITY */}
+                        <td style={cellStyle}>
+                          <p className="font-bold text-indigo-900">
+                            {rule.cityId?.name || "-"}
+                          </p>
+                        </td>
 
-                      }}
+                        {/* CATEGORY */}
+                        <td style={cellStyle}>
+                          <span>
+                            {categoryDisplayName}
+                          </span>
+                        </td>
 
-                    >
+                        {/* SERVICE */}
+                        <td style={cellStyle}>
+                          <span>
+                            {serviceDisplayName}
+                          </span>
+                        </td>
 
-                      {/* ================================================= */}
-                      {/* SR NO */}
-                      {/* ================================================= */}
+                        {/* REQUESTER PRICE */}
+                        <td style={cellStyle}>
+                          <span>
+                            ${rule.requesterPrice}
+                          </span>
+                        </td>
 
-                      <td style={{
-                        color: "#14344A",
-
-                        borderRight: "1px solid #bbd5ea",
-                        padding: "14px",
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }}>
-
-                        {index + 1}
-                      </td>
-
-                      {/* ================================================= */}
-                      {/* STATE */}
-                      {/* ================================================= */}
-
-                      <td style={{
-                        color: "#14344A",
-
-                        borderRight: "1px solid #bbd5ea",
-                        padding: "14px",
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }}>
-                        <p className="font-bold text-indigo-900">
-                          {rule.stateId?.name}
-                        </p>            </td>
-
-                      {/* ================================================= */}
-                      {/* CITY */}
-                      {/* ================================================= */}
-
-                      <td style={{
-                        color: "#14344A",
-
-                        borderRight: "1px solid #bbd5ea",
-                        padding: "14px",
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }}>
-
-                        <p className="font-bold text-indigo-900">
-                          {rule.cityId?.name}
-                        </p>
-                      </td>
-                      {/* ================================================= */}
-                      {/* PARENT SERVICE */}
-                      {/* ================================================= */}
-
-                      <td style={{
-                        color: "#14344A",
-
-                        borderRight: "1px solid #bbd5ea",
-                        padding: "14px",
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }}>
-
-                        <span >
-                          {categoryDisplayName}
-                        </span>
-
-                      </td>
-
-                      {/* ================================================= */}
-                      {/* SUB SERVICE */}
-                      {/* ================================================= */}
-
-                      <td style={{
-                        color: "#14344A",
-
-                        borderRight: "1px solid #bbd5ea",
-                        padding: "14px",
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }}>
-
-                        <span >
-                          {serviceDisplayName}
-                        </span>
-
-                      </td>
-
-
-
-                      {/* ================================================= */}
-                      {/* REQUESTER PRICE */}
-                      {/* ================================================= */}
-
-                      <td style={{
-                        color: "#14344A",
-
-                        borderRight: "1px solid #bbd5ea",
-                        padding: "14px",
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }} >
-
-                        <span >
-                          ${rule.requesterPrice}
-                        </span>
-
-
-
-                      </td>
-
-                      {/* ================================================= */}
-                      {/* PROVIDER PRICE */}
-                      {/* ================================================= */}
-
-                      <td style={{
-                        color: "#14344A",
-                        fontSize: 14,
-
-                        padding: "14px ",
-                        fontWeight: 600,
-                      }}>
-
-                        <span>
-                          ${rule.providerPrice}
-                        </span>
-
-
-
-                      </td>
-
-                    </tr>
-
-                  );
-
-                })
-
+                        {/* PROVIDER PRICE */}
+                        <td
+                          style={{
+                            ...cellStyle,
+                            borderRight: "none",
+                          }}
+                        >
+                          <span>
+                            ${rule.providerPrice}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
               )}
-
             </tbody>
-
-
           </table>
-
         </div>
-
       </section>
-
-
-
     </div>
-
   );
+};
 
+// ============================================================
+// TABLE STYLES
+// ============================================================
+
+const headerStyle: React.CSSProperties = {
+  color: "#14344A",
+  fontWeight: 700,
+  fontSize: 13,
+  letterSpacing: "1px",
+  textTransform: "uppercase",
+  padding: "18px 24px",
+  borderRight:
+    "1px solid rgba(255,255,255,0.18)",
+  borderBottom:
+    "1px solid rgba(255,255,255,0.15)",
+  textShadow:
+    "0 1px 2px rgba(0,0,0,0.2)",
+  textAlign: "center",
+};
+
+const cellStyle: React.CSSProperties = {
+  color: "#14344A",
+  borderRight: "1px solid #bbd5ea",
+  padding: "14px",
+  fontWeight: 600,
+  fontSize: 14,
 };
 
 export default PricingRules;
+

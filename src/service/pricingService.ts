@@ -1,12 +1,8 @@
 
-
-
-
-
 import { api } from "../service/api";
 
 // ======================================================
-// State
+// STATE
 // ======================================================
 
 export interface StateOption {
@@ -22,7 +18,7 @@ export interface StateRef {
 }
 
 // ======================================================
-// City
+// CITY
 // ======================================================
 
 export interface CityOption {
@@ -37,47 +33,80 @@ export interface CityRef {
 }
 
 // ======================================================
-// Service Catalog
+// SERVICE CATALOG
 // ======================================================
 
 export interface ServiceItem {
   _id: string;
+
+  // Business service ID
   servId: string;
+
+  // Backend ServiceCatalog field
   name: string;
+
   description: string;
-  icon: string;
+
+  icon?: string;
+
   sortOrder: number;
+
   isActive: boolean;
+
+  price?: number;
+
+  duration?: number;
+
+  progressTimeMinutes?: number;
 }
 
 export interface ServiceCatalogItem {
   _id: string;
+
+  // Business category ID
   categoryId: string;
+
   categoryName: string;
+
   sortOrder: number;
+
   isActive: boolean;
+
+  category?: string;
+
+  careTier?: "simple" | "advanced";
+
+  basePrice?: number;
+
+  serviceBookingFee?: number;
+
+  progressTimeMinutes?: number;
+
+  duration?: {
+    value?: number;
+    unit?: "minutes" | "hours" | "days";
+  };
+
+  icon?: string;
+
   services: ServiceItem[];
 }
+
 // ======================================================
-// Pricing Rule
+// PRICING RULE
 // ======================================================
 
 export interface PricingRule {
-
   _id: string;
 
   stateId: StateRef;
 
   cityId: CityRef;
 
-  // NOTE: the API returns `serviceId` as a plain business code string
-  // (e.g. "S1A"), not a populated object. `categoryId` is similarly a
-  // business code string (e.g. "S1"). Newer records also include
-  // `categoryName` / `serviceName` directly on the rule; older/legacy
-  // records may have these blank, in which case they need to be
-  // resolved via the service catalog instead.
+  // Business service ID
   serviceId: string;
 
+  // Business category ID
   categoryId?: string;
 
   categoryName?: string;
@@ -93,11 +122,10 @@ export interface PricingRule {
   createdAt?: string;
 
   updatedAt?: string;
-
 }
 
 // ======================================================
-// Smart Pricing Level
+// SMART PRICING LEVEL
 // ======================================================
 
 export type PricingLevel =
@@ -106,9 +134,10 @@ export type PricingLevel =
   | "parent"
   | "service";
 
-  // ======================================================
-// Smart Pricing Payload
 // ======================================================
+// SMART PRICING PAYLOAD
+// ======================================================
+
 export interface SmartPricingPayload {
   level: PricingLevel;
 
@@ -126,23 +155,17 @@ export interface SmartPricingPayload {
 }
 
 // ======================================================
-// API Responses
+// API RESPONSES
 // ======================================================
 
 export interface PricingRuleResponse {
-
   success: boolean;
-
   count: number;
-
   data: PricingRule[];
-
 }
 
 export interface SmartPricingResponse {
-
   success: boolean;
-
   message: string;
 
   data?: PricingRule;
@@ -156,83 +179,118 @@ export interface SmartPricingResponse {
   totalRecords?: number;
 
   updatedServices?: number;
-
 }
 
 // ======================================================
-// API Endpoints
+// ENDPOINTS
 // ======================================================
 
 const ENDPOINTS = {
-
   states: "/services/states",
 
   cities: "/services/cities",
 
-  serviceCatalog: "/services/service-catalog",
+  serviceCatalog: "/service-catalog",
 
   pricingRules: "/pricing-rules",
 
   smartPricingUpdate: "/pricing-rules/update",
-
 };
 
 // ======================================================
-// Safe Array Extractor
+// SAFE ARRAY EXTRACTOR
 // ======================================================
-// Handles both possible shapes coming back from `api.get`:
-//   1) The raw array itself                -> [...]
-//   2) A wrapped response object           -> { success, count, data: [...] }
-// This prevents `undefined.map(...)` crashes in the UI no matter
-// how the underlying `api` wrapper is implemented.
-function extractArray<T>(response: any): T[] {
+
+function extractArray<T>(response: unknown): T[] {
+  // api.ts already returns data.data when backend response
+  // contains a data property.
+
   if (Array.isArray(response)) {
     return response;
   }
 
-  if (response && Array.isArray(response.data)) {
-    return response.data;
+  if (
+    response &&
+    typeof response === "object" &&
+    Array.isArray((response as any).data)
+  ) {
+    return (response as any).data;
   }
 
   return [];
 }
 
 // ======================================================
-// Helper Functions
+// STATE ID FROM CITY
 // ======================================================
 
 export function getStateIdFromCity(
   city: CityOption
 ): string {
+  if (typeof city.stateId === "string") {
+    return city.stateId;
+  }
 
-  return typeof city.stateId === "string"
-    ? city.stateId
-    : city.stateId._id;
-
+  return city.stateId?._id || "";
 }
 
 // ======================================================
-// Service Hierarchy Helpers
+// GET PARENT SERVICES / CATEGORIES
 // ======================================================
+
 export function getParentServices(
-  services: ServiceCatalogItem[]
+  categories: ServiceCatalogItem[]
 ): ServiceCatalogItem[] {
-
-  return services;
-
+  return categories || [];
 }
+
+// ======================================================
+// GET CHILD SERVICES OF CATEGORY
+// ======================================================
 
 export function getChildServices(
   categories: ServiceCatalogItem[],
   categoryId: string
 ): ServiceItem[] {
-
-  const category = categories.find(
-    item => item._id === categoryId
+  const category = (categories || []).find(
+    item => item.categoryId === categoryId
   );
 
   return category?.services || [];
+}
 
+// ======================================================
+// GET ALL ACTIVE CHILD SERVICES
+// ======================================================
+
+export function getAllServiceChildren(
+  categories: ServiceCatalogItem[]
+): Array<{
+  categoryId: string;
+  serviceId: string;
+  name: string;
+}> {
+  const services: Array<{
+    categoryId: string;
+    serviceId: string;
+    name: string;
+  }> = [];
+
+  for (const category of categories || []) {
+    const activeServices = (category.services || []).filter(
+      service => service.isActive !== false
+    );
+
+    services.push(
+      ...activeServices.map(service => ({
+        categoryId: category.categoryId,
+        serviceId: service.servId,
+        name: service.name,
+      }))
+    );
+  }
+
+  return services;
 }
 
 // ======================================================
@@ -240,7 +298,9 @@ export function getChildServices(
 // ======================================================
 
 export async function getStates(): Promise<StateOption[]> {
-  const response = await api.get<any>(ENDPOINTS.states);
+  const response = await api.get<any>(
+    ENDPOINTS.states
+  );
 
   console.log("States API =", response);
 
@@ -252,7 +312,9 @@ export async function getStates(): Promise<StateOption[]> {
 // ======================================================
 
 export async function getCities(): Promise<CityOption[]> {
-  const response = await api.get<any>(ENDPOINTS.cities);
+  const response = await api.get<any>(
+    ENDPOINTS.cities
+  );
 
   console.log("Cities API =", response);
 
@@ -260,25 +322,71 @@ export async function getCities(): Promise<CityOption[]> {
 }
 
 // ======================================================
+// GET CITIES BY STATE
+// ======================================================
+
+export async function getCitiesByState(
+  stateId: string,
+  cities?: CityOption[]
+): Promise<CityOption[]> {
+  const allCities =
+    cities || (await getCities());
+
+  return allCities.filter(city => {
+    const cityStateId =
+      typeof city.stateId === "string"
+        ? city.stateId
+        : city.stateId?._id;
+
+    return cityStateId === stateId;
+  });
+}
+
+// ======================================================
 // GET SERVICE CATALOG
 // ======================================================
 
 export async function getServiceCatalog(): Promise<ServiceCatalogItem[]> {
-  const response = await api.get<any>(ENDPOINTS.serviceCatalog);
+  const response = await api.get<any>(
+    ENDPOINTS.serviceCatalog
+  );
 
   console.log("Service Catalog API =", response);
 
-  return extractArray<ServiceCatalogItem>(response);
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (response && Array.isArray(response.categories)) {
+    return response.categories;
+  }
+
+  if (
+    response &&
+    response.data &&
+    Array.isArray(response.data.categories)
+  ) {
+    return response.data.categories;
+  }
+
+  return [];
 }
 
 // ======================================================
 // GET ALL PRICING RULES
 // ======================================================
 
-export async function getPricingRules(): Promise<PricingRule[]> {
-  const response = await api.get<any>(ENDPOINTS.pricingRules);
+export async function getPricingRules(): Promise<
+  PricingRule[]
+> {
+  const response = await api.get<any>(
+    ENDPOINTS.pricingRules
+  );
 
-  console.log("Pricing Rules API =", response);
+  console.log(
+    "Pricing Rules API =",
+    response
+  );
 
   return extractArray<PricingRule>(response);
 }
@@ -291,67 +399,64 @@ export async function getPricingRules(): Promise<PricingRule[]> {
 export async function updatePricing(
   payload: SmartPricingPayload
 ): Promise<SmartPricingResponse> {
-
   return await api.put<SmartPricingResponse>(
     ENDPOINTS.smartPricingUpdate,
     payload
   );
-
 }
 
 // ======================================================
-// BUILD SMART PAYLOAD
+// BUILD SMART PRICING PAYLOAD
 // ======================================================
 
 interface BuildPayloadParams {
   stateId: string;
+
   cityId?: string;
+
   categoryId?: string;
+
   serviceId?: string;
+
   requesterPrice: number;
+
   providerPrice: number;
 }
 
 export function buildPricingPayload(
   params: BuildPayloadParams
 ): SmartPricingPayload {
+  const {
+    stateId,
+    cityId,
+    categoryId,
+    serviceId,
+    requesterPrice,
+    providerPrice,
+  } = params;
 
-const {
-  stateId,
-  cityId,
-  categoryId,
-  serviceId,
-  requesterPrice,
-  providerPrice,
-} = params;
-
-  // -------------------------------
-  // CASE 1 : STATE
-  // -------------------------------
+  // ====================================================
+  // CASE 1: STATE LEVEL
+  // ====================================================
 
   if (!cityId) {
-
     return {
-
       level: "state",
 
       stateId,
 
       requesterPrice,
 
-      providerPrice
-
+      providerPrice,
     };
-
   }
 
-  // -------------------------------
-  // CASE 2 : CITY
-  // -------------------------------
-if (!categoryId) {
+  // ====================================================
+  // CASE 2: CITY LEVEL
+  // ====================================================
 
+  if (!categoryId) {
     return {
-
       level: "city",
 
       stateId,
@@ -360,135 +465,173 @@ if (!categoryId) {
 
       requesterPrice,
 
-      providerPrice
-
+      providerPrice,
     };
-
   }
 
-  // -------------------------------
-  // CASE 3 : PARENT SERVICE
-  // -------------------------------
+  // ====================================================
+  // CASE 3: CATEGORY / PARENT LEVEL
+  // ====================================================
 
   if (!serviceId) {
-
     return {
-
       level: "parent",
-  stateId,
-  cityId,
-  categoryId,
-  requesterPrice,
-  providerPrice,
 
+      stateId,
+
+      cityId,
+
+      categoryId,
+
+      requesterPrice,
+
+      providerPrice,
     };
-
   }
 
-  // -------------------------------
-  // CASE 4 : SINGLE SERVICE
-  // -------------------------------
+  // ====================================================
+  // CASE 4: SINGLE SERVICE LEVEL
+  // ====================================================
 
   return {
+    level: "service",
 
-     level: "service",
-  stateId,
-  cityId,
-  categoryId,
-  serviceId,
-  requesterPrice,
-  providerPrice,
+    stateId,
 
+    cityId,
+
+    categoryId,
+
+    serviceId,
+
+    requesterPrice,
+
+    providerPrice,
   };
-
 }
 
 // ======================================================
-// Utility Helpers
+// GET SERVICE NAME
+// IMPORTANT:
+// PricingRule.serviceId stores servId,
+// NOT ServiceCatalog subdocument _id.
 // ======================================================
-
-
-
-
 
 export function getServiceName(
   categories: ServiceCatalogItem[],
   serviceId: string
 ): string {
-
-  for (const category of categories) {
-
-    const service = category.services.find(
-      item => item._id === serviceId
+  for (const category of categories || []) {
+    const service = (category.services || []).find(
+      item => item.servId === serviceId
     );
 
     if (service) {
       return service.name;
     }
-
   }
 
   return "";
-
 }
+
+// ======================================================
+// GET CATEGORY NAME
+// IMPORTANT:
+// PricingRule.categoryId stores categoryId,
+// NOT MongoDB _id.
+// ======================================================
 
 export function getCategoryName(
   categories: ServiceCatalogItem[],
   categoryId: string
 ): string {
-
   return (
-    categories.find(
-      category => category._id === categoryId
-    )?.categoryName ?? ""
+    (categories || []).find(
+      category =>
+        category.categoryId === categoryId
+    )?.categoryName || ""
   );
-
 }
+
+// ======================================================
+// GET CITY NAME
+// ======================================================
 
 export function getCityName(
   cities: CityOption[],
   cityId: string
 ): string {
-
   return (
-    cities.find(
+    (cities || []).find(
       city => city._id === cityId
-    )?.name ?? ""
+    )?.name || ""
   );
-
 }
+
+// ======================================================
+// GET STATE NAME
+// ======================================================
 
 export function getStateName(
   states: StateOption[],
   stateId: string
 ): string {
-
   return (
-    states.find(
+    (states || []).find(
       state => state._id === stateId
-    )?.name ?? ""
+    )?.name || ""
   );
-
 }
 
 // ======================================================
-// Selection Helpers
+// FIND CATEGORY
+// ======================================================
+
+export function findCategory(
+  categories: ServiceCatalogItem[],
+  categoryId: string
+): ServiceCatalogItem | undefined {
+  return (categories || []).find(
+    category =>
+      category.categoryId === categoryId
+  );
+}
+
+// ======================================================
+// FIND SERVICE
+// ======================================================
+
+export function findService(
+  categories: ServiceCatalogItem[],
+  serviceId: string
+): ServiceItem | undefined {
+  for (const category of categories || []) {
+    const service = (category.services || []).find(
+      item => item.servId === serviceId
+    );
+
+    if (service) {
+      return service;
+    }
+  }
+
+  return undefined;
+}
+
+// ======================================================
+// SELECTION HELPERS
 // ======================================================
 
 export function hasStateSelected(
   stateId?: string
 ): boolean {
-
   return Boolean(stateId);
-
 }
 
 export function hasCitySelected(
   cityId?: string
 ): boolean {
-
   return Boolean(cityId);
-
 }
 
 export function hasCategorySelected(
@@ -500,7 +643,6 @@ export function hasCategorySelected(
 export function hasServiceSelected(
   serviceId?: string
 ): boolean {
-
   return Boolean(serviceId);
-
 }
+

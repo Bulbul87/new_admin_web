@@ -3,9 +3,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FaSearch, FaClock } from "react-icons/fa";
 
 import {
-  getServiceCatalog,
-  type ServiceCategory,
-  type ServiceItem,
+  serviceApi,
+  type ServiceCatalogCategory,
+  type ServiceCatalogItem,
 } from "../service/service_catlog";
 
 const Services: React.FC = () => {
@@ -13,31 +13,37 @@ const Services: React.FC = () => {
   // DATA
   // ======================================================
 
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [categories, setCategories] = useState<ServiceCatalogCategory[]>([]);
 
   // ======================================================
   // UI STATE
   // ======================================================
 
   const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
 
   // ======================================================
-  // LOAD DATA
+  // LOAD SERVICES FROM API
   // ======================================================
 
   const loadData = async () => {
     try {
       setLoading(true);
+      setError("");
 
-      const catalogData = await getServiceCatalog();
+      const response = await serviceApi.getServiceCatalog({
+        isActive: true,
+      });
 
-      setCategories(catalogData || []);
+      console.log("Service Catalog API Response =", response);
 
-      console.log("Service Catalog =", catalogData);
+      setCategories(response?.categories || []);
     } catch (error) {
-      console.error("Load Error :", error);
+      console.error("Load Services Error:", error);
+
+      setError("Failed to load services. Please try again.");
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -50,41 +56,39 @@ const Services: React.FC = () => {
   // ======================================================
   // SEARCH FILTER
   // ======================================================
-  // NOTE: this `useMemo` (and every other hook) must run on *every* render,
-  // regardless of loading state — that's why it's declared here, before the
-  // `if (loading) return ...` early-return below. Hooks can never sit after
-  // a conditional return, or React sees a different number of hooks between
-  // renders and throws "Rendered more hooks than during the previous
-  // render."
 
   const filteredCategories = useMemo(() => {
-    if (!search.trim()) return categories;
+    if (!search.trim()) {
+      return categories;
+    }
 
-    const keyword = search.toLowerCase();
+    const keyword = search.toLowerCase().trim();
 
     return categories
       .map((category) => {
-        // Category Name Match
+        // Category name match
         const categoryMatched = category.categoryName
-          .toLowerCase()
+          ?.toLowerCase()
           .includes(keyword);
 
-        // Service Match
-        const services = category.services.filter((service) => {
-          return (
-            service.name
-              .toLowerCase()
-              .includes(keyword) ||
-            service.description
-              ?.toLowerCase()
-              .includes(keyword)
-          );
-        });
+        // Service match
+        const services = (category.services || []).filter(
+          (service: ServiceCatalogItem) => {
+            return (
+              service.name?.toLowerCase().includes(keyword) ||
+              service.description?.toLowerCase().includes(keyword) ||
+              service.servId?.toLowerCase().includes(keyword)
+            );
+          }
+        );
 
+        // If category itself matches,
+        // show all services of that category
         if (categoryMatched) {
           return category;
         }
 
+        // Otherwise show only matching services
         return {
           ...category,
           services,
@@ -92,6 +96,29 @@ const Services: React.FC = () => {
       })
       .filter((category) => category.services.length > 0);
   }, [categories, search]);
+
+  // ======================================================
+  // TOTAL SERVICES
+  // ======================================================
+
+  const totalFilteredServices = useMemo(() => {
+    return filteredCategories.reduce(
+      (total, category) => total + (category.services?.length || 0),
+      0
+    );
+  }, [filteredCategories]);
+
+  // ======================================================
+  // DURATION FORMAT
+  // ======================================================
+
+  const formatDuration = (duration?: number) => {
+    if (!duration) {
+      return "—";
+    }
+
+    return `${duration} mins`;
+  };
 
   // ======================================================
   // LOADING
@@ -105,9 +132,61 @@ const Services: React.FC = () => {
           marginTop: "80px",
           display: "flex",
           justifyContent: "center",
+          alignItems: "center",
+          minHeight: "300px",
         }}
       >
         <div className="spinner-border" />
+      </div>
+    );
+  }
+
+  // ======================================================
+  // ERROR
+  // ======================================================
+
+  if (error) {
+    return (
+      <div
+        style={{
+          marginLeft: "260px",
+          marginTop: "70px",
+          minHeight: "100vh",
+          background: "#F5F7FB",
+          padding: "30px",
+        }}
+      >
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 20,
+            padding: 40,
+            textAlign: "center",
+            color: "#DC2626",
+            fontWeight: 600,
+            boxShadow: "0 4px 18px rgba(0,0,0,0.06)",
+          }}
+        >
+          {error}
+
+          <br />
+
+          <button
+            onClick={loadData}
+            style={{
+              marginTop: 15,
+              padding: "10px 20px",
+              border: "none",
+              borderRadius: 10,
+              background: "#14344A",
+              color: "#fff",
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -140,13 +219,11 @@ const Services: React.FC = () => {
             color: "#14344A",
             fontWeight: 700,
             marginBottom: 8,
-            textAlign:"center"
+            textAlign: "center",
           }}
         >
-          Services 
+          Services
         </h1>
-
-        
       </div>
 
       {/* ========================================= */}
@@ -164,7 +241,8 @@ const Services: React.FC = () => {
       >
         <div
           style={{
-            width: 420,
+            width: "100%",
+            maxWidth: 420,
             height: 50,
             background: "#F8FAFC",
             border: "1px solid #E5E7EB",
@@ -174,18 +252,13 @@ const Services: React.FC = () => {
             padding: "0px 18px",
           }}
         >
-          <FaSearch
-            color="#64748B"
-            size={15}
-          />
+          <FaSearch color="#64748B" size={15} />
 
           <input
             type="text"
             placeholder="Search category or service..."
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e) => setSearch(e.target.value)}
             style={{
               flex: 1,
               marginLeft: 12,
@@ -198,7 +271,7 @@ const Services: React.FC = () => {
         </div>
       </div>
 
-            {/* ========================================= */}
+      {/* ========================================= */}
       {/* CATEGORY LIST */}
       {/* ========================================= */}
 
@@ -258,7 +331,7 @@ const Services: React.FC = () => {
                     opacity: 0.9,
                   }}
                 >
-                  {category.services.length} Services
+                  {category.services?.length || 0} Services
                 </small>
               </div>
 
@@ -296,112 +369,105 @@ const Services: React.FC = () => {
                       color: "#14344A",
                     }}
                   >
-                    <th style={thStyle}>
-                      Service ID
-                    </th>
+                    <th style={thStyle}>Service ID</th>
 
-                    <th style={thStyle}>
-                      Service Name
-                    </th>
+                    <th style={thStyle}>Service Name</th>
 
-                    <th style={thStyle}>
-                      Description
-                    </th>
+                    <th style={thStyle}>Description</th>
 
-                    <th style={thStyle}>
-                      Duration
-                    </th>
+                    <th style={thStyle}>Duration</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {category.services.map((service) => {
-                    return (
-                      <tr
-                        key={service._id}
-                        style={{
-                          borderBottom:
-                            "1px solid #EEF2F7",
-                          transition: "0.25s",
-                        }}
-                      >
-                        {/* ============================= */}
-                        {/* SERVICE ID */}
-                        {/* ============================= */}
-
-                        <td style={tdStyle}>
-                          <div
-                            style={{
-                              fontWeight: 700,
-                              color: "#14344A",
-                              fontSize: 14,
-                            }}
-                          >
-                            {service.servId}
-                          </div>
-                        </td>
-
-                        {/* ============================= */}
-                        {/* SERVICE NAME */}
-                        {/* ============================= */}
-
-                        <td style={tdStyle}>
-                          <div
-                            style={{
-                              fontWeight: 700,
-                              color: "#14344A",
-                              fontSize: 15,
-                            }}
-                          >
-                            {service.name}
-                          </div>
-                        </td>
-
-                        {/* ============================= */}
-                        {/* DESCRIPTION */}
-                        {/* ============================= */}
-
-                        <td
+                  {(category.services || []).map(
+                    (service: ServiceCatalogItem) => {
+                      return (
+                        <tr
+                          key={service._id || service.servId}
                           style={{
-                            ...tdStyle,
-                            maxWidth: 380,
-                            color: "#4B5563",
-                            lineHeight: 1.6,
+                            borderBottom: "1px solid #EEF2F7",
+                            transition: "0.25s",
                           }}
                         >
-                          {service.description}
-                        </td>
+                          {/* ============================= */}
+                          {/* SERVICE ID */}
+                          {/* ============================= */}
 
-                        {/* ============================= */}
-                        {/* DURATION */}
-                        {/* ============================= */}
+                          <td style={tdStyle}>
+                            <div
+                              style={{
+                                fontWeight: 700,
+                                color: "#14344A",
+                                fontSize: 14,
+                              }}
+                            >
+                              {service.servId}
+                            </div>
+                          </td>
 
-                        <td style={tdStyle}>
-                          <div
+                          {/* ============================= */}
+                          {/* SERVICE NAME */}
+                          {/* ============================= */}
+
+                          <td style={tdStyle}>
+                            <div
+                              style={{
+                                fontWeight: 700,
+                                color: "#14344A",
+                                fontSize: 15,
+                              }}
+                            >
+                              {service.name}
+                            </div>
+                          </td>
+
+                          {/* ============================= */}
+                          {/* DESCRIPTION */}
+                          {/* ============================= */}
+
+                          <td
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
+                              ...tdStyle,
+                              maxWidth: 380,
+                              color: "#4B5563",
+                              lineHeight: 1.6,
                             }}
                           >
-                            <FaClock color="#14344A" />
+                            {service.description || "—"}
+                          </td>
 
-                            {/* Future API Field */}
-                            <span>
-                              30 mins
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          {/* ============================= */}
+                          {/* DURATION */}
+                          {/* ============================= */}
+
+                          <td style={tdStyle}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                              }}
+                            >
+                              <FaClock color="#14344A" />
+
+                              <span>
+                                {formatDuration(service.duration)}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         ))
       )}
-            {/* ========================================= */}
+
+      {/* ========================================= */}
       {/* FOOTER */}
       {/* ========================================= */}
 
@@ -415,6 +481,8 @@ const Services: React.FC = () => {
         }}
       >
         Total Categories : <b>{filteredCategories.length}</b>
+        {"  |  "}
+        Total Services : <b>{totalFilteredServices}</b>
       </div>
     </div>
   );
@@ -442,3 +510,4 @@ const tdStyle: React.CSSProperties = {
 };
 
 export default Services;
+

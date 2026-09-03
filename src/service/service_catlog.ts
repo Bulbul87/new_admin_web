@@ -1,74 +1,210 @@
-import { api } from "./api";
+import { api } from './api';
 
-// ======================
-// TYPES
-// ======================
+export type ServiceCareTier = 'simple' | 'advanced';
 
-export interface StateType {
-  _id: string;
+export interface ServiceSubService {
+  _id?: string;
   name: string;
-  code: string;
+  description?: string;
+  /** Grid icon key from catalog seed (e.g. "10"). */
+  icon?: string;
+  /** service_catalog servId (e.g. S1A). */
+  servId?: string;
+  price?: number;
+  duration?: number;
+  progressTimeMinutes?: number;
+  isActive?: boolean;
 }
 
-export interface CityType {
+export interface Service {
   _id: string;
-  name: string;
-  stateId: StateType;
-}
-
-export interface ServiceItem {
-  _id: string;
-  servId: string;
   name: string;
   description: string;
-  icon: string;
-    // Future fields
-  duration?: string;
-  tooltip?: string;
-  sortOrder: number;
+  category: string;
+  basePrice: number;
+  /** Flat once-per-booking fee from catalog (USD), in addition to hourly labor — see backend Service.serviceBookingFee */
+  serviceBookingFee?: number;
+  /** Nested duration from Mongo when present */
+  duration?: { value: number; unit: string } | number;
+  /** Requestor Home time progress bar (minutes) */
+  progressTimeMinutes?: number;
+  icon?: string;
   isActive: boolean;
+  popularity?: number;
+  tags?: string[];
+  subCategory?: string;
+  careTier?: ServiceCareTier;
+  subServices?: ServiceSubService[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ServiceCategory {
+  name: string;
+  serviceCount: number;
+  averagePrice: number;
+}
+
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalServices?: number;
+  totalResults?: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface ServiceListResponse {
+  services: Service[];
+  pagination: PaginationInfo;
+}
+
+export interface ServiceSearchResponse extends ServiceListResponse {
+  searchQuery: string;
+}
+
+export interface GetAllServicesParams {
+  category?: string;
+  isActive?: boolean;
+  sortBy?: 'popularity' | 'price' | 'name' | 'createdAt';
+  order?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+export interface SearchServicesParams {
+  q?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  tags?: string | string[];
+  page?: number;
+  limit?: number;
+}
+
+export interface ServiceCatalogItem {
+  _id?: string;
+  servId: string;
+  name: string;
+  description: string;
+  icon?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+  price?: number;
+  duration?: number;
+  progressTimeMinutes?: number;
+  operationalSubServiceId?: string;
+}
+
+export interface ServiceCatalogCategory {
   _id: string;
   categoryId: string;
   categoryName: string;
-  sortOrder: number;
-  isActive: boolean;
-  services: ServiceItem[];
+  sortOrder?: number;
+  isActive?: boolean;
+  basePrice?: number;
+  serviceBookingFee?: number;
+  progressTimeMinutes?: number;
+  careTier?: string;
+  category?: string;
+  operationalServiceId?: string;
+  services: ServiceCatalogItem[];
 }
 
-interface ServiceCatalogResponse {
-  success: boolean;
-  message: string;
-  count: number;
-  data: ServiceCategory[];
+export interface ServiceCatalogResponse {
+  categories: ServiceCatalogCategory[];
+  totalCategories: number;
+  totalServices: number;
 }
 
-// ======================
-// STATES
-// ======================
+class ServiceApi {
+  /**
+   * Get all services with filters and pagination
+   */
+  async getAllServices(params?: GetAllServicesParams): Promise<ServiceListResponse> {
+    const queryParams = new URLSearchParams();
 
-export const getStates = async (): Promise<StateType[]> => {
-  return await api.get<StateType[]>("/services/states");
-};
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.isActive !== undefined) queryParams.append('isActive', String(params.isActive));
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.order) queryParams.append('order', params.order);
+    if (params?.page) queryParams.append('page', String(params.page));
+    if (params?.limit) queryParams.append('limit', String(params.limit));
 
-// ======================
-// CITIES
-// ======================
+    const queryString = queryParams.toString();
+    const endpoint = `/services${queryString ? `?${queryString}` : ''}`;
 
-export const getCitiesByState = async (
-  stateId: string
-): Promise<CityType[]> => {
-  const cities = await api.get<CityType[]>("/services/cities");
-
-  if (!stateId) {
-    return cities;
+    return api.get<ServiceListResponse>(endpoint);
   }
 
-  return cities.filter((city) => city.stateId?._id === stateId);
-};
+  /** Senior Care catalog — categories, service names, descriptions, icons. */
+  async getServiceCatalog(params?: { isActive?: boolean }): Promise<ServiceCatalogResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.isActive !== undefined) {
+      queryParams.append('isActive', String(params.isActive));
+    }
+    const queryString = queryParams.toString();
+    const endpoint = `/service-catalog${queryString ? `?${queryString}` : ''}`;
+    return api.get<ServiceCatalogResponse>(endpoint);
+  }
 
-export const getServiceCatalog = async (): Promise<ServiceCategory[]> => {
-  return await api.get<ServiceCategory[]>("/services/service-catalog");
-};
+  /**
+   * Get service by ID
+   */
+  async getServiceById(id: string): Promise<{ service: Service }> {
+    return api.get<{ service: Service }>(`/services/${id}`);
+  }
+
+  /**
+   * Search services
+   */
+  async searchServices(params: SearchServicesParams): Promise<ServiceSearchResponse> {
+    const queryParams = new URLSearchParams();
+
+    if (params.q) queryParams.append('q', params.q);
+    if (params.category) queryParams.append('category', params.category);
+    if (params.minPrice) queryParams.append('minPrice', String(params.minPrice));
+    if (params.maxPrice) queryParams.append('maxPrice', String(params.maxPrice));
+    if (params.tags) {
+      const tagsString = Array.isArray(params.tags) ? params.tags.join(',') : params.tags;
+      queryParams.append('tags', tagsString);
+    }
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.limit) queryParams.append('limit', String(params.limit));
+
+    const queryString = queryParams.toString();
+    const endpoint = `/services/search${queryString ? `?${queryString}` : ''}`;
+
+    return api.get<ServiceSearchResponse>(endpoint);
+  }
+
+  /**
+   * Get all service categories
+   */
+  async getCategories(): Promise<{ categories: ServiceCategory[] }> {
+    return api.get<{ categories: ServiceCategory[] }>('/services/categories');
+  }
+
+  /**
+   * Get popular services
+   */
+  async getPopularServices(limit: number = 10): Promise<{ services: Service[] }> {
+    return api.get<{ services: Service[] }>(`/services/popular?limit=${limit}`);
+  }
+
+  /**
+   * Get services by category
+   */
+  async getServicesByCategory(
+    category: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<ServiceListResponse & { category: string }> {
+    return api.get<ServiceListResponse & { category: string }>(
+      `/services/category/${category}?page=${page}&limit=${limit}`
+    );
+  }
+}
+
+export const serviceApi = new ServiceApi();

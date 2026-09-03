@@ -88,7 +88,6 @@ export const getPendingProviders = async (): Promise<User[]> => {
   return res?.providers || [];
 };
 
-// ✅ Get admin stats
 export const getAdminStats = async () => {
   return api.get("/admin/stats");
 };

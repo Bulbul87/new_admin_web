@@ -1,6 +1,5 @@
 
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import {
   BarChart,
@@ -23,10 +22,14 @@ import {
   FaDollarSign,
 } from "react-icons/fa";
 
+import {
+  Layers3,
+} from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 
 // ==============================
-// APIs
+// ADMIN APIs
 // ==============================
 
 import {
@@ -34,9 +37,14 @@ import {
   getAllProviders,
   getAdminStats,
 } from "../service/admin.service";
+
+// ==============================
+// SERVICE API
+// ==============================
+
 import {
-  getServiceCatalog,
-  type ServiceCategory,
+  serviceApi,
+  type ServiceCatalogCategory,
 } from "../service/service_catlog";
 
 // ==============================
@@ -48,19 +56,15 @@ const CustomTooltip = ({
   payload,
   label,
 }: any) => {
-  if (
-    active &&
-    payload &&
-    payload.length
-  ) {
+  if (active && payload && payload.length) {
     return (
       <div
         style={{
           background: "#fff",
           borderRadius: 12,
           padding: "10px 14px",
-          boxShadow:
-            "0 6px 20px rgba(0,0,0,0.12)",
+          boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+          border: "1px solid #E5E7EB",
         }}
       >
         <p
@@ -100,91 +104,162 @@ const Dashboard: React.FC = () => {
   // STATES
   // ==============================
 
-  const [services, setServices] =
-  useState<ServiceCategory[]>([]);
-
   const [providers, setProviders] =
     useState<any[]>([]);
+
+  const [services, setServices] =
+    useState<ServiceCatalogCategory[]>([]);
 
   const [totalServices, setTotalServices] =
     useState(0);
 
+  const [totalCategories, setTotalCategories] =
+    useState(0);
+
   const [statsData, setStatsData] =
     useState<any>({
-      users: { total: 0 },
+      users: {
+        total: 0,
+      },
+
       providers: {
         total: 0,
         verified: 0,
       },
+
       bookings: {
         total: 0,
         completed: 0,
       },
-      revenue: { total: 0 },
+
+      revenue: {
+        total: 0,
+      },
     });
 
   const [loading, setLoading] =
     useState(true);
 
   // ==============================
-  // FETCH DATA
+  // FETCH DASHBOARD DATA
   // ==============================
 
   useEffect(() => {
-    const fetchDashboardData =
-      async () => {
-        try {
-          setLoading(true);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
 
-          // USERS
+        // ==========================
+        // REQUESTERS
+        // ==========================
+
+        const usersData =
           await getAllUsers();
 
+        console.log(
+          "USERS API 👉",
+          usersData
+        );
+
+        // ==========================
         // PROVIDERS
-const providersData =
-  await getAllProviders();
+        // ==========================
 
-// SERVICE CATALOG
-const catalogData =
-  await getServiceCatalog();
+        const providersData =
+          await getAllProviders();
 
-setServices(catalogData || []);
+        console.log(
+          "PROVIDERS API 👉",
+          providersData
+        );
 
-const total =
-  (catalogData || []).reduce(
-    (count, category) =>
-      count +
-      (category.services?.length || 0),
-    0
-  );
+        setProviders(
+          providersData || []
+        );
 
-setTotalServices(total);
+        // ==========================
+        // SERVICE CATALOG
+        // ==========================
 
-// ADMIN STATS
-const statsRes: any =
-  await getAdminStats();
+        const catalogData =
+          await serviceApi.getServiceCatalog({
+            isActive: true,
+          });
 
-console.log(
-  "ADMIN STATS 👉",
-  statsRes
-);
+        console.log(
+          "SERVICE CATALOG 👉",
+          catalogData
+        );
 
-setStatsData(statsRes || {});
+        const categories =
+          catalogData?.categories || [];
 
-// SAVE PROVIDERS
-setProviders(providersData || []);
+        setServices(categories);
 
+        // Total Categories
+        setTotalCategories(
+          catalogData?.totalCategories ||
+            categories.length
+        );
 
-          
-
-        } catch (error) {
-          console.log(
-            "Dashboard Error:",
-            error
+        // Total Services
+        const calculatedTotalServices =
+          categories.reduce(
+            (total, category) =>
+              total +
+              (category.services?.length || 0),
+            0
           );
-        } finally {
-          setLoading(false);
-        }
-      };
+
+        setTotalServices(
+          catalogData?.totalServices ||
+            calculatedTotalServices
+        );
+
+        // ==========================
+        // ADMIN STATS
+        // ==========================
+
+        const statsRes: any =
+          await getAdminStats();
+
+        console.log(
+          "ADMIN STATS 👉",
+          statsRes
+        );
+
+        console.log(
+          "USERS 👉",
+          statsRes?.users
+        );
+
+        console.log(
+          "PROVIDERS 👉",
+          statsRes?.providers
+        );
+
+        console.log(
+          "BOOKINGS 👉",
+          statsRes?.bookings
+        );
+
+        console.log(
+          "REVENUE 👉",
+          statsRes?.revenue
+        );
+
+        setStatsData(
+          statsRes || {}
+        );
+      } catch (error) {
+        console.error(
+          "Dashboard Error:",
+          error
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchDashboardData();
   }, []);
@@ -200,37 +275,39 @@ setProviders(providersData || []);
     statsData?.providers?.total || 0;
 
   const verifiedProviders =
-    statsData?.providers
-      ?.verified || 0;
+    statsData?.providers?.verified || 0;
 
   const unverifiedProviders =
-    totalProviders -
-    verifiedProviders;
+    Math.max(
+      totalProviders -
+        verifiedProviders,
+      0
+    );
 
   const totalBookings =
     statsData?.bookings?.total || 0;
 
   const completedBookings =
-    statsData?.bookings
-      ?.completed || 0;
+    statsData?.bookings?.completed || 0;
 
   const totalRevenue =
     statsData?.revenue?.total || 0;
 
-
-
   // ==============================
-// SERVICES CATEGORY CHART
-// ==============================
+  // SERVICE CATEGORY CHART DATA
+  // ==============================
 
-const servicesChartData = services.map(
-  (category) => ({
-    category: category.categoryName,
-    count: category.services?.length || 0,
-  })
-);
+  const servicesChartData = useMemo(() => {
+    return services.map(
+      (category) => ({
+        category:
+          category.categoryName,
 
-  
+        count:
+          category.services?.length || 0,
+      })
+    );
+  }, [services]);
 
   // ==============================
   // PIE CHART DATA
@@ -241,10 +318,12 @@ const servicesChartData = services.map(
       name: "Verified Providers",
       value: verifiedProviders,
     },
+
     {
       name: "Bookings",
       value: totalBookings,
     },
+
     {
       name: "Completed Bookings",
       value: completedBookings,
@@ -252,7 +331,7 @@ const servicesChartData = services.map(
   ];
 
   // ==============================
-  // PROVIDERS BAR CHART
+  // PROVIDER BAR CHART DATA
   // ==============================
 
   const providerChartData = [
@@ -260,6 +339,7 @@ const servicesChartData = services.map(
       name: "Verified",
       count: verifiedProviders,
     },
+
     {
       name: "Unverified",
       count: unverifiedProviders,
@@ -267,7 +347,7 @@ const servicesChartData = services.map(
   ];
 
   // ==============================
-  // COLORS
+  // PIE COLORS
   // ==============================
 
   const COLORS = [
@@ -289,6 +369,7 @@ const servicesChartData = services.map(
           padding: "30px",
           fontSize: "20px",
           fontWeight: 600,
+          color: "#14344A",
         }}
       >
         Loading Dashboard...
@@ -302,13 +383,20 @@ const servicesChartData = services.map(
 
   const cardStyle = {
     background: "#fff",
+
     borderRadius: 24,
+
     padding: 25,
+
     boxShadow:
       "0 8px 30px rgba(0,0,0,0.06)",
+
     position: "relative" as const,
+
     overflow: "hidden" as const,
+
     cursor: "pointer",
+
     transition: "0.3s",
   };
 
@@ -320,13 +408,19 @@ const servicesChartData = services.map(
     <div
       style={{
         marginLeft: "260px",
+
         marginTop: "70px",
+
         padding: "25px",
-        
+
         minHeight: "100vh",
+
+        background: "#F5F7FB",
       }}
     >
+      {/* ========================================= */}
       {/* HEADER */}
+      {/* ========================================= */}
 
       <div
         style={{
@@ -336,36 +430,44 @@ const servicesChartData = services.map(
         <h1
           style={{
             margin: 0,
+
             color: "#14344A",
+
             fontWeight: 800,
+
             fontSize: 34,
           }}
         >
-         Senioramerica Dashboard
+          Senioramerica Dashboard
         </h1>
-
-        
       </div>
 
+      {/* ========================================= */}
       {/* TOP CARDS */}
+      {/* ========================================= */}
 
       <div
         style={{
           display: "grid",
+
           gridTemplateColumns:
-            "repeat(auto-fit, minmax(260px, 1fr))",
+            "repeat(auto-fit, minmax(240px, 1fr))",
+
           gap: 25,
+
           marginBottom: 35,
         }}
       >
+        {/* ========================================= */}
         {/* USERS */}
+        {/* ========================================= */}
 
         <div
           style={cardStyle}
           onClick={() =>
             navigate("/users", {
               state: {
-                  activeTab: "requester",
+                activeTab: "requester",
               },
             })
           }
@@ -373,13 +475,20 @@ const servicesChartData = services.map(
           <div
             style={{
               width: 60,
+
               height: 60,
+
               borderRadius: 18,
+
               background:
                 "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+
               display: "flex",
+
               alignItems: "center",
+
               justifyContent: "center",
+
               marginBottom: 18,
             }}
           >
@@ -392,6 +501,7 @@ const servicesChartData = services.map(
           <h4
             style={{
               color: "#6b7280",
+              marginBottom: 8,
             }}
           >
             Total Requesters
@@ -400,8 +510,11 @@ const servicesChartData = services.map(
           <h1
             style={{
               margin: "8px 0",
+
               color: "#14344A",
+
               fontWeight: 800,
+
               fontSize: 42,
             }}
           >
@@ -409,14 +522,16 @@ const servicesChartData = services.map(
           </h1>
         </div>
 
+        {/* ========================================= */}
         {/* PROVIDERS */}
+        {/* ========================================= */}
 
         <div
           style={cardStyle}
           onClick={() =>
             navigate("/users", {
               state: {
-                 activeTab: "provider",
+                activeTab: "provider",
               },
             })
           }
@@ -424,13 +539,20 @@ const servicesChartData = services.map(
           <div
             style={{
               width: 60,
+
               height: 60,
+
               borderRadius: 18,
+
               background:
                 "linear-gradient(to right, #14344A, #34B7EA)",
+
               display: "flex",
+
               alignItems: "center",
+
               justifyContent: "center",
+
               marginBottom: 18,
             }}
           >
@@ -443,6 +565,7 @@ const servicesChartData = services.map(
           <h4
             style={{
               color: "#6b7280",
+              marginBottom: 8,
             }}
           >
             Total Providers
@@ -451,8 +574,11 @@ const servicesChartData = services.map(
           <h1
             style={{
               margin: "8px 0",
+
               color: "#34B7EA",
+
               fontWeight: 800,
+
               fontSize: 42,
             }}
           >
@@ -460,7 +586,9 @@ const servicesChartData = services.map(
           </h1>
         </div>
 
+        {/* ========================================= */}
         {/* SERVICES */}
+        {/* ========================================= */}
 
         <div
           style={cardStyle}
@@ -471,13 +599,20 @@ const servicesChartData = services.map(
           <div
             style={{
               width: 60,
+
               height: 60,
+
               borderRadius: 18,
+
               background:
                 "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+
               display: "flex",
+
               alignItems: "center",
+
               justifyContent: "center",
+
               marginBottom: 18,
             }}
           >
@@ -490,6 +625,7 @@ const servicesChartData = services.map(
           <h4
             style={{
               color: "#6b7280",
+              marginBottom: 8,
             }}
           >
             Total Services
@@ -498,8 +634,11 @@ const servicesChartData = services.map(
           <h1
             style={{
               margin: "8px 0",
+
               color: "#14344A",
+
               fontWeight: 800,
+
               fontSize: 42,
             }}
           >
@@ -507,24 +646,94 @@ const servicesChartData = services.map(
           </h1>
         </div>
 
+        {/* ========================================= */}
+        {/* CATEGORIES */}
+        {/* ========================================= */}
+
+        <div
+          style={cardStyle}
+          onClick={() =>
+            navigate("/services")
+          }
+        >
+          <div
+            style={{
+              width: 60,
+
+              height: 60,
+
+              borderRadius: 18,
+
+              background:
+                "linear-gradient(to right, #14344A, #34B7EA)",
+
+              display: "flex",
+
+              alignItems: "center",
+
+              justifyContent: "center",
+
+              marginBottom: 18,
+            }}
+          >
+            <Layers3
+              size={28}
+              color="#fff"
+            />
+          </div>
+
+          <h4
+            style={{
+              color: "#6b7280",
+              marginBottom: 8,
+            }}
+          >
+            Total Categories
+          </h4>
+
+          <h1
+            style={{
+              margin: "8px 0",
+
+              color: "#14344A",
+
+              fontWeight: 800,
+
+              fontSize: 42,
+            }}
+          >
+            {totalCategories}
+          </h1>
+        </div>
+
+        {/* ========================================= */}
         {/* REVENUE */}
+        {/* ========================================= */}
 
         <div
           style={{
             ...cardStyle,
+
             cursor: "default",
           }}
         >
           <div
             style={{
               width: 60,
+
               height: 60,
+
               borderRadius: 18,
+
               background:
                 "linear-gradient(to right, #34B7EA, #8FDAFA)",
+
               display: "flex",
+
               alignItems: "center",
+
               justifyContent: "center",
+
               marginBottom: 18,
             }}
           >
@@ -537,6 +746,7 @@ const servicesChartData = services.map(
           <h4
             style={{
               color: "#6b7280",
+              marginBottom: 8,
             }}
           >
             Total Revenue
@@ -545,8 +755,11 @@ const servicesChartData = services.map(
           <h1
             style={{
               margin: "8px 0",
+
               color: "#14344A",
+
               fontWeight: 800,
+
               fontSize: 32,
             }}
           >
@@ -555,79 +768,144 @@ const servicesChartData = services.map(
         </div>
       </div>
 
-      {/* SERVICE CHART FULL WIDTH */}
+      {/* ========================================= */}
+      {/* SERVICE CATEGORY CHART */}
+      {/* ========================================= */}
 
       <div
         style={{
           ...cardStyle,
+
           height: 520,
+
           marginBottom: 30,
+
           cursor: "default",
         }}
       >
         <h2
           style={{
             marginBottom: 25,
+
             color: "#14344A",
+
             fontWeight: 700,
           }}
         >
           Service Categories Analytics
         </h2>
 
-        <ResponsiveContainer
-          width="100%"
-          height="88%"
-        >
-          <BarChart
-            data={servicesChartData}
+        {servicesChartData.length === 0 ? (
+          <div
+            style={{
+              height: "85%",
+
+              display: "flex",
+
+              alignItems: "center",
+
+              justifyContent: "center",
+
+              color: "#64748B",
+
+              fontWeight: 600,
+            }}
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="#e5e7eb"
-            />
+            No service category data found.
+          </div>
+        ) : (
+          <ResponsiveContainer
+            width="100%"
+            height="88%"
+          >
+            <BarChart
+              data={servicesChartData}
+              margin={{
+                top: 10,
+                right: 30,
+                left: 10,
+                bottom: 60,
+              }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e5e7eb"
+              />
 
-            <XAxis dataKey="category" />
+              <XAxis
+                dataKey="category"
+                angle={-25}
+                textAnchor="end"
+                height={80}
+                tick={{
+                  fontSize: 13,
+                  fill: "#14344A",
+                }}
+              />
 
-            <YAxis />
+              <YAxis
+                allowDecimals={false}
+                tick={{
+                  fontSize: 13,
+                  fill: "#14344A",
+                }}
+              />
 
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={false}
-            />
+              <Tooltip
+                content={
+                  <CustomTooltip />
+                }
+                cursor={false}
+              />
 
-            <Bar
-              dataKey="count"
-              fill="#34B7EA"
-              radius={[10, 10, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+              <Bar
+                dataKey="count"
+                fill="#34B7EA"
+                radius={[
+                  10,
+                  10,
+                  0,
+                  0,
+                ]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
+      {/* ========================================= */}
       {/* BOTTOM CHARTS */}
+      {/* ========================================= */}
 
       <div
         style={{
           display: "grid",
+
           gridTemplateColumns:
             "1fr 1fr",
+
           gap: 25,
         }}
       >
-        {/* PIE CHART */}
+        {/* ========================================= */}
+        {/* BOOKING PIE CHART */}
+        {/* ========================================= */}
 
         <div
           style={{
             ...cardStyle,
+
             height: 500,
+
             cursor: "default",
           }}
         >
           <h2
             style={{
               marginBottom: 25,
+
               color: "#14344A",
+
               fontWeight: 700,
             }}
           >
@@ -646,12 +924,18 @@ const servicesChartData = services.map(
                 cx="50%"
                 cy="50%"
                 outerRadius={120}
-                label={({ name, value }) =>
+                label={({
+                  name,
+                  value,
+                }) =>
                   `${name}: ${value}`
                 }
               >
                 {pieData.map(
-                  (entry, index) => (
+                  (
+                    entry,
+                    index
+                  ) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={
@@ -672,19 +956,25 @@ const servicesChartData = services.map(
           </ResponsiveContainer>
         </div>
 
-        {/* VERIFIED / UNVERIFIED */}
+        {/* ========================================= */}
+        {/* PROVIDER VERIFICATION */}
+        {/* ========================================= */}
 
         <div
           style={{
             ...cardStyle,
+
             height: 500,
+
             cursor: "default",
           }}
         >
           <h2
             style={{
               marginBottom: 25,
+
               color: "#14344A",
+
               fontWeight: 700,
             }}
           >
@@ -703,18 +993,29 @@ const servicesChartData = services.map(
                 stroke="#e5e7eb"
               />
 
-              <XAxis dataKey="name" />
+              <XAxis
+                dataKey="name"
+              />
 
-              <YAxis />
+              <YAxis
+                allowDecimals={false}
+              />
 
               <Tooltip
-                content={<CustomTooltip />}
+                content={
+                  <CustomTooltip />
+                }
               />
 
               <Bar
                 dataKey="count"
                 fill="#14344A"
-                radius={[10, 10, 0, 0]}
+                radius={[
+                  10,
+                  10,
+                  0,
+                  0,
+                ]}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -725,3 +1026,4 @@ const servicesChartData = services.map(
 };
 
 export default Dashboard;
+
