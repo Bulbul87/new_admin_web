@@ -149,6 +149,88 @@ class ServiceApi {
     return api.get<ServiceCatalogResponse>(endpoint);
   }
 
+
+  // ==============================
+// CATEGORY CRUD
+// ==============================
+
+async createServiceCategory(data: {
+  categoryName: string;
+  description?: string;
+  icon?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}) {
+  return api.post<ServiceCatalogCategory>('/service-catalog', data);
+}
+
+async updateServiceCategory(
+  categoryId: string,
+  data: {
+    categoryName?: string;
+    description?: string;
+    icon?: string;
+    sortOrder?: number;
+    isActive?: boolean;
+  }
+) {
+  return api.put<ServiceCatalogCategory>(
+    `/service-catalog/${categoryId}`,
+    data
+  );
+}
+
+async deleteServiceCategory(categoryId: string) {
+  return api.delete<{ message: string }>(
+    `/service-catalog/${categoryId}`
+  );
+}
+
+
+// ==============================
+// SERVICE CRUD
+// ==============================
+
+async addServiceToCategory(
+  categoryId: string,
+  data: {
+    servId?: string | null;
+    serviceName: string;
+    description?: string;
+    isActive?: boolean;
+  }
+) {
+  return api.post<ServiceCatalogCategory>(
+    `/service-catalog/${categoryId}/services`,
+    data
+  );
+}
+
+async updateServiceInCategory(
+  categoryId: string,
+  serviceId: string,
+  data: {
+    serviceName?: string;
+    description?: string;
+    servId?: string | null;
+    isActive?: boolean;
+  }
+) {
+  return api.put<ServiceCatalogCategory>(
+    `/service-catalog/${categoryId}/services/${serviceId}`,
+    data
+  );
+}
+
+async deleteServiceFromCategory(
+  categoryId: string,
+  serviceId: string
+) {
+  return api.delete<ServiceCatalogCategory>(
+    `/service-catalog/${categoryId}/services/${serviceId}`
+  );
+}
+
   /**
    * Get service by ID
    */
@@ -205,6 +287,10 @@ class ServiceApi {
       `/services/category/${category}?page=${page}&limit=${limit}`
     );
   }
+
+
+
 }
 
 export const serviceApi = new ServiceApi();
+
