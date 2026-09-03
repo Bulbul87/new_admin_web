@@ -23,7 +23,7 @@ import {
 import "./service_crud.css";
 
 // ============================================================
-// TYPES
+// TYPES modified from service_catlog.ts
 // ============================================================
 
 type ModalType =
