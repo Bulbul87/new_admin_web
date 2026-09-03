@@ -20,6 +20,7 @@ import ForgotPassword from "./screens/forgetpassword";
 
 import Pricing from "./screens/pricing";
 import PricingRules from "./screens/viewpricing";
+import ServiceCrudScreen from "./screens/service_crud";
 
 function App() {
   return (
@@ -44,7 +45,7 @@ function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/services" element={<Services />} />
-            
+              <Route path="/service-crud" element={<ServiceCrudScreen />} />
             <Route path="/pricing" element={<Pricing />} />
               <Route path="/view-pricing" element={<PricingRules />} />
            

@@ -3,12 +3,14 @@
    ============================================================ */
 
 .service-crud-page {
-  width: 100%;
-  min-height: 100%;
-  padding: 24px;
-  background: #f7f8fa;
-  box-sizing: border-box;
-}
+    margin-left: 260px;
+    margin-top: 70px;
+    min-height: 100vh;
+    background: #F5F7FB;
+    padding: 30px;
+  }
+        
+
 
 /* ============================================================
    HEADER

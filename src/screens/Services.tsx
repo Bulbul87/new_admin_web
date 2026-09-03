@@ -1,5 +1,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { FaSearch, FaClock } from "react-icons/fa";
 
 import {
@@ -9,6 +11,7 @@ import {
 } from "../service/service_catlog";
 
 const Services: React.FC = () => {
+    const navigate = useNavigate();
   // ======================================================
   // DATA
   // ======================================================
@@ -210,21 +213,39 @@ const Services: React.FC = () => {
       {/* ========================================= */}
 
       <div
-        style={{
-          marginBottom: 25,
-        }}
-      >
-        <h1
-          style={{
-            color: "#14344A",
-            fontWeight: 700,
-            marginBottom: 8,
-            textAlign: "center",
-          }}
-        >
-          Services
-        </h1>
-      </div>
+  style={{
+    marginBottom: 25,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  }}
+>
+  <h1
+    style={{
+      color: "#14344A",
+      fontWeight: 700,
+      margin: 0,
+    }}
+  >
+    Services
+  </h1>
+
+  <button
+    onClick={() => navigate("/service-crud")}
+    style={{
+      padding: "11px 20px",
+      border: "none",
+      borderRadius: 10,
+      background: "#14344A",
+      color: "#fff",
+      cursor: "pointer",
+      fontWeight: 600,
+      fontSize: 14,
+    }}
+  >
+    Manage Services
+  </button>
+</div>
 
       {/* ========================================= */}
       {/* SEARCH */}
