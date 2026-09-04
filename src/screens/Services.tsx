@@ -233,14 +233,18 @@ const Services: React.FC = () => {
   <button
     onClick={() => navigate("/service-crud")}
     style={{
-      padding: "11px 20px",
-      border: "none",
-      borderRadius: 10,
-      background: "#14344A",
-      color: "#fff",
-      cursor: "pointer",
-      fontWeight: 600,
-      fontSize: 14,
+       border: "none",
+              background:
+                "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+              color: "#14344A",
+              fontWeight: 700,
+              padding: "14px 24px",
+              borderRadius: 14,
+              boxShadow:
+                "0 6px 20px rgba(0,0,0,0.08)",
+              transition: "0.3s",
+              cursor: "pointer",
+             
     }}
   >
     Manage Services

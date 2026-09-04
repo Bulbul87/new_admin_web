@@ -605,7 +605,12 @@ const ServiceCrudScreen: React.FC = () => {
             </div>
 
             <div>
-              <h1>Service Catalog</h1>
+              <h1  style={{
+      color: "#14344A",
+      fontSize: "34px",
+      fontWeight: 700,
+      margin: 0,
+    }} >Service Catalog</h1>
               <p>
                 Manage service categories and services available to
                 customers.
@@ -750,10 +755,7 @@ const ServiceCrudScreen: React.FC = () => {
           )}
         </div>
 
-        <div className="service-result-count">
-          {filteredCategories.length} categor
-          {filteredCategories.length === 1 ? "y" : "ies"}
-        </div>
+        
       </div>
 
       {/* ======================================================
@@ -828,9 +830,7 @@ const ServiceCrudScreen: React.FC = () => {
                   </button>
 
                   <div className="service-category-icon">
-                    {category.categoryName
-                      ?.charAt(0)
-                      ?.toUpperCase() || "S"}
+                     {category.categoryId || "—"}
                   </div>
 
                   <div className="service-category-info">
@@ -852,12 +852,7 @@ const ServiceCrudScreen: React.FC = () => {
                     </div>
 
                     <div className="service-category-meta">
-                      <span>
-                        ID:{" "}
-                        <strong>
-                          {category.categoryId || "—"}
-                        </strong>
-                      </span>
+                      
 
                       <span>
                         {services.length} service
@@ -954,21 +949,19 @@ const ServiceCrudScreen: React.FC = () => {
                               <tr key={service._id || service.servId}>
                                 <td>
                                   <div className="service-name-cell">
-                                    <div className="service-item-icon">
-                                      {service.icon || "S"}
-                                    </div>
+                                    
 
                                     <div>
                                       <strong>
                                         {service.name}
                                       </strong>
 
-                                      {service.price !==
+                                      {/* {service.price !==
                                         undefined && (
                                         <small>
                                           ${service.price}
                                         </small>
-                                      )}
+                                      )} */}
                                     </div>
                                   </div>
                                 </td>
