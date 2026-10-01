@@ -21,7 +21,7 @@ import ForgotPassword from "./screens/forgetpassword";
 import Pricing from "./screens/pricing";
 import PricingRules from "./screens/viewpricing";
 import ServiceCrudScreen from "./screens/service_crud";
-import ServiceAccessCode from "./screens/serviveaccesscode";
+import  Adminconfigscreen from "./screens/adminconfig";
 
 function App() {
   return (
@@ -54,7 +54,7 @@ function App() {
             <Route path="/provider-details/:id" element={<ProviderDetails />} />
             <Route path="/requester-details/:id" element={<RequesterDetails />} 
             />
-              <Route path="/service-access-code" element={<ServiceAccessCode />} />
+              <Route path="/service-access-code" element={<Adminconfigscreen />} />
             <Route
           path="/change-password"
           element={<ChangePassword />}

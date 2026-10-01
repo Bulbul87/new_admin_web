@@ -51,7 +51,7 @@ const Sidebar = () => {
       icon: <Users size={20} />,
     },
     {
-      name: "View Access Codes",
+      name: "Admin Config",
       path: "/service-access-code",
       icon: <KeyRound size={20} />,
     },
