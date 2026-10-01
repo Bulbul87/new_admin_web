@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { FaShieldAlt, FaLock } from 'react-icons/fa';
-import { api } from '../service/api'; // Apne api.ts ke actual path ke according change karein
-
+// import { api } from '../service/api'; // Apne api.ts ke actual path ke according change karein
+import { testapi } from '../service/testapi'; // Apne api.ts ke actual path ke according change karein
 interface AgeSettings {
   registrationMinAge: number;
   requestorBookingMinAge: number;
@@ -29,7 +29,7 @@ const Adminconfigscreen: React.FC = () => {
       setLoading(true);
       setError('');
 
-      const response = await api.get<AgeSettings>('/admin/settings/age');
+      const response = await testapi.get<AgeSettings>('/age');
 
       setSettings({
         registrationMinAge: Number(response.registrationMinAge),
@@ -74,8 +74,8 @@ const Adminconfigscreen: React.FC = () => {
       setError('');
       setMessage('');
 
-      const response = await api.put<AgeSettings>(
-        '/admin/settings/age',
+      const response = await testapi.put<AgeSettings>(
+        '/age',
         settings
       );
 
@@ -103,7 +103,7 @@ const Adminconfigscreen: React.FC = () => {
       setError('');
       setMessage('');
 
-      const response = await api.delete<AgeSettings>('/admin/settings/age');
+      const response = await testapi.delete<AgeSettings>('/age');
 
       setSettings({
         registrationMinAge: Number(response.registrationMinAge),
