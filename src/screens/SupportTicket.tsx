@@ -7,6 +7,8 @@ import {
   type SupportTicket as SupportTicketType,
 } from "../service/supportTickets";
 import "./support.css";
+import { Ticket } from "lucide-react";
+import { MdOutlineAirplaneTicket, MdOutlineCheckCircle, MdOutlinePendingActions } from "react-icons/md";
 
 const SupportTicket: React.FC = () => {
   const [tickets, setTickets] = useState<SupportTicketType[]>([]);
@@ -34,7 +36,25 @@ const SupportTicket: React.FC = () => {
       setError("");
 
       const data = await getAllSupportTickets();
-      setTickets(data || []);
+
+      // Support API can return tickets in different response shapes.
+      // Normalize everything to a plain ticket array before rendering.
+      let ticketList: SupportTicketType[] = [];
+
+      if (Array.isArray(data)) {
+        ticketList = data;
+      } else if (Array.isArray((data as any)?.tickets)) {
+        ticketList = (data as any).tickets;
+      } else if (Array.isArray((data as any)?.data)) {
+        ticketList = (data as any).data;
+      } else if (Array.isArray((data as any)?.data?.tickets)) {
+        ticketList = (data as any).data.tickets;
+      }
+
+      console.log("🎫 Support tickets received:", data);
+      console.log("🎫 Normalized ticket list:", ticketList);
+
+      setTickets(ticketList);
     } catch (err: any) {
       console.error("Failed to load support tickets:", err);
       setError(
@@ -62,11 +82,14 @@ const SupportTicket: React.FC = () => {
 
       setSelectedTicket(ticket);
 
-      const id = ticket._id;
+      const id = ticket._id || ticket.ticketId;
 
-      if (!id) return;
+      if (!id) {
+        setError("Ticket ID is missing.");
+        return;
+      }
 
-      const data = await getSupportTicketById(id);
+      const data = await getSupportTicketById(String(id));
 
       setSelectedTicket(data);
     } catch (err: any) {
@@ -309,6 +332,20 @@ const SupportTicket: React.FC = () => {
         <button
           className="support-refresh-btn"
           onClick={loadTickets}
+           style={{
+       border: "none",
+              background:
+                "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+              color: "#14344A",
+              fontWeight: 700,
+              padding: "14px 24px",
+              borderRadius: 14,
+              boxShadow:
+                "0 6px 20px rgba(0,0,0,0.08)",
+              transition: "0.3s",
+              cursor: "pointer",
+             
+    }}
           disabled={loading}
         >
           <span className={loading ? "spin" : ""}>
@@ -323,7 +360,7 @@ const SupportTicket: React.FC = () => {
       <div className="support-stats">
         <div className="support-stat-card">
           <div className="stat-icon total-icon">
-            <span>▤</span>
+            <span><Ticket size={20}     color="#14344A"/></span>
           </div>
 
           <div>
@@ -334,7 +371,7 @@ const SupportTicket: React.FC = () => {
 
         <div className="support-stat-card">
           <div className="stat-icon open-icon">
-            <span>●</span>
+            <span><MdOutlineAirplaneTicket size={20} color="#14344A"/></span>
           </div>
 
           <div>
@@ -345,7 +382,7 @@ const SupportTicket: React.FC = () => {
 
         <div className="support-stat-card">
           <div className="stat-icon pending-icon">
-            <span>◷</span>
+            <span><MdOutlinePendingActions size={20} color="#14344A"/></span>
           </div>
 
           <div>
@@ -356,7 +393,7 @@ const SupportTicket: React.FC = () => {
 
         <div className="support-stat-card">
           <div className="stat-icon resolved-icon">
-            <span>✓</span>
+            <span><MdOutlineCheckCircle size={20} color="#14344A"/></span>
           </div>
 
           <div>
@@ -484,7 +521,7 @@ const SupportTicket: React.FC = () => {
                 </p>
               </div>
             ) : (
-              filteredTickets.map((ticket) => {
+              filteredTickets.map((ticket, index) => {
                 const isSelected =
                   selectedTicket?._id ===
                   ticket._id;
@@ -833,4 +870,3 @@ const SupportTicket: React.FC = () => {
 };
 
 export default SupportTicket;
-

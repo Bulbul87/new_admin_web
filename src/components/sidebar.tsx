@@ -14,7 +14,9 @@ import {
   LogOut,
   DollarSign,
   Ticket,
+  MapPin,
 } from "lucide-react";
+import { MdOutlineSentimentVeryDissatisfied } from "react-icons/md";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -60,6 +62,11 @@ const Sidebar = () => {
       name: "Support Tickets",
       path: "/support-tickets",
       icon: <Ticket size={20} />,
+    },
+    {
+      name: "View code",
+      path: "/view-access-code",
+      icon: <MapPin size={20} />,
     },
     {
       name: "Change Password",
