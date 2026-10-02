@@ -16,7 +16,7 @@ import {
   Ticket,
   MapPin,
 } from "lucide-react";
-import { MdOutlineSentimentVeryDissatisfied } from "react-icons/md";
+
 
 const Sidebar = () => {
   const navigate = useNavigate();
