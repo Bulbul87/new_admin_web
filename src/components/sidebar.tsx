@@ -13,6 +13,7 @@ import {
   KeyRound,
   LogOut,
   DollarSign,
+  Ticket,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -53,7 +54,12 @@ const Sidebar = () => {
     {
       name: "Admin Config",
       path: "/service-access-code",
-      icon: <KeyRound size={20} />,
+      icon: <Layers3 size={20} />,
+    },
+    {
+      name: "Support Tickets",
+      path: "/support-tickets",
+      icon: <Ticket size={20} />,
     },
     {
       name: "Change Password",

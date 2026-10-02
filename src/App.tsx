@@ -21,7 +21,8 @@ import ForgotPassword from "./screens/forgetpassword";
 import Pricing from "./screens/pricing";
 import PricingRules from "./screens/viewpricing";
 import ServiceCrudScreen from "./screens/service_crud";
-import  Adminconfigscreen from "./screens/adminconfig";
+import Adminconfigscreen from "./screens/adminconfig";
+import SupportTicket from "./screens/SupportTicket";
 
 function App() {
   return (
@@ -32,9 +33,9 @@ function App() {
           {/* PUBLIC */}
           <Route path="/" element={<Login />} />
           <Route
-  path="/forgot-password"
-  element={<ForgotPassword />}
-/>
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
 
           {/* PROTECTED WITH SIDEBAR */}
           <Route
@@ -46,19 +47,20 @@ function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/services" element={<Services />} />
-              <Route path="/service-crud" element={<ServiceCrudScreen />} />
+            <Route path="/service-crud" element={<ServiceCrudScreen />} />
             <Route path="/pricing" element={<Pricing />} />
-              <Route path="/view-pricing" element={<PricingRules />} />
-           
+            <Route path="/view-pricing" element={<PricingRules />} />
+
             <Route path="/users" element={<AdminUserList />} />
             <Route path="/provider-details/:id" element={<ProviderDetails />} />
-            <Route path="/requester-details/:id" element={<RequesterDetails />} 
+            <Route path="/requester-details/:id" element={<RequesterDetails />}
             />
-              <Route path="/service-access-code" element={<Adminconfigscreen />} />
+            <Route path="/service-access-code" element={<Adminconfigscreen />} />
+            <Route path="/support-tickets" element={<SupportTicket />} />
             <Route
-          path="/change-password"
-          element={<ChangePassword />}
-        />
+              path="/change-password"
+              element={<ChangePassword />}
+            />
 
           </Route>
 

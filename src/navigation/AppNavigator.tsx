@@ -17,9 +17,10 @@ import ServiceCrudScreen from "../screens/service_crud";
 import Pricing from "../screens/pricing";
 import PricingRules from "../screens/viewpricing";
 import { Import } from "lucide-react";
-import  Adminconfigscreen from "../screens/adminconfig";
+import Adminconfigscreen from "../screens/adminconfig";
+import SupportTicket from "../screens/SupportTicket";
 
-const AppNavigator = () => { 
+const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
   // 🔄 Loader (same as RN)
@@ -39,9 +40,9 @@ const AppNavigator = () => {
         <>
           <Route path="/" element={<Login />} />
           <Route
-  path="/forgot-password"
-  element={<ForgotPassword />}
-/>
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
           <Route path="*" element={<Navigate to="/" />} />
         </>
       ) : (
@@ -52,15 +53,16 @@ const AppNavigator = () => {
           <Route path="/service-crud" element={<ServiceCrudScreen />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/view-pricing" element={<PricingRules />} />
-         
+
           <Route path="/users" element={<Users />} />
-          <Route  path="/provider-details/:id" element={< ProviderDetails />} />
+          <Route path="/provider-details/:id" element={< ProviderDetails />} />
           <Route path="/requester-details/:id" element={<RequesterDetails />} />
+          <Route path="/support-tickets" element={<SupportTicket />} />
           <Route path="/service-access-code" element={<Adminconfigscreen />} />
           <Route
-          path="/change-password"
-          element={<ChangePassword />}
-        />
+            path="/change-password"
+            element={<ChangePassword />}
+          />
           <Route path="/logout" element={<Logout />} />
 
           {/* default */}

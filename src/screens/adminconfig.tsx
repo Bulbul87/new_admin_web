@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { FaShieldAlt, FaLock } from 'react-icons/fa';
-// import { api } from '../service/api'; // Apne api.ts ke actual path ke according change karein
-import { testapi } from '../service/testapi'; // Apne api.ts ke actual path ke according change karein
+// import { api } from '../service/api'; 
+import { testapi } from '../service/testapi'; 
 interface AgeSettings {
   registrationMinAge: number;
   requestorBookingMinAge: number;
