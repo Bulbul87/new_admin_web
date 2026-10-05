@@ -24,6 +24,7 @@ import ServiceCrudScreen from "./screens/service_crud";
 import Adminconfigscreen from "./screens/adminconfig";
 import SupportTicket from "./screens/SupportTicket";
 import ViewAccessCode from "./screens/viewAccesscode";
+import AccessCodeList from "./screens/visitlist";
 
 function App() {
   return (
@@ -58,7 +59,8 @@ function App() {
             />
             <Route path="/service-access-code" element={<Adminconfigscreen />} />
             <Route path="/support-tickets" element={<SupportTicket />} />
-            <Route path="/view-access-code" element={<ViewAccessCode />} />
+              <Route path="/access-codes" element={<AccessCodeList/>} />
+            <Route path="/access-codes/:id" element={<ViewAccessCode />} />
             <Route
               path="/change-password"
               element={<ChangePassword />}

@@ -65,8 +65,9 @@ const Sidebar = () => {
     },
     {
       name: "View code",
-      path: "/view-access-code",
-      icon: <MapPin size={20} />,
+      path: "/access-codes",
+      icon: <MapPin size={20} />
+
     },
     {
       name: "Change Password",

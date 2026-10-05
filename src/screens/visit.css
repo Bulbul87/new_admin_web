@@ -1,0 +1,96 @@
+/* ================================
+   Access Code Pagination
+================================ */
+
+.access-pagination-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Records text */
+.access-pagination-info {
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.access-pagination-number {
+  font-weight: 600;
+  color: #14344a;
+}
+
+/* Pagination container */
+.access-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Common button */
+.access-pagination-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Normal button */
+.access-pagination-btn-normal {
+  background: #ffffff;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.access-pagination-btn-normal:hover {
+  background: #f3f6f8;
+  color: #14344a;
+  border-color: #14344a;
+}
+
+/* Active page */
+.access-pagination-btn-active {
+  background: #14344a;
+  color: #ffffff;
+  border-color: #14344a;
+  box-shadow: 0 3px 8px rgba(20, 52, 74, 0.18);
+}
+
+/* Disabled button */
+.access-pagination-btn-disabled {
+  background: #f9fafb;
+  color: #d1d5db;
+  border-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 640px) {
+  .access-pagination-wrapper {
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+
+  .access-pagination-info {
+    width: 100%;
+  }
+
+  .access-pagination {
+    justify-content: center;
+  }
+}

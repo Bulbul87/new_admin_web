@@ -16,10 +16,12 @@ import ForgotPassword from "../screens/forgetpassword";
 import ServiceCrudScreen from "../screens/service_crud";
 import Pricing from "../screens/pricing";
 import PricingRules from "../screens/viewpricing";
-import { Import } from "lucide-react";
+
 import Adminconfigscreen from "../screens/adminconfig";
 import SupportTicket from "../screens/SupportTicket";
 import  ViewAccessCode from "../screens/viewAccesscode";
+import  AccessCodeList from "../screens/visitlist";
+
 
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
@@ -60,7 +62,8 @@ const AppNavigator = () => {
           <Route path="/requester-details/:id" element={<RequesterDetails />} />
           <Route path="/support-tickets" element={<SupportTicket />} />
           <Route path="/service-access-code" element={<Adminconfigscreen />} />
-          <Route path="/view-access-code" element={<ViewAccessCode />} />
+          <Route path="/access-codes" element={<AccessCodeList/>} />
+            <Route path="/access-codes/:id" element={< ViewAccessCode/>} />
           <Route
             path="/change-password"
             element={<ChangePassword />}
