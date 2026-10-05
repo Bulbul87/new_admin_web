@@ -25,6 +25,7 @@ import Adminconfigscreen from "./screens/adminconfig";
 import SupportTicket from "./screens/SupportTicket";
 import ViewAccessCode from "./screens/viewAccesscode";
 import AccessCodeList from "./screens/visitlist";
+import ProviderOnlineOfflineStatus from "./screens/provideronlineoflinestatus";
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
             <Route path="/support-tickets" element={<SupportTicket />} />
               <Route path="/access-codes" element={<AccessCodeList/>} />
             <Route path="/access-codes/:id" element={<ViewAccessCode />} />
+             <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
             <Route
               path="/change-password"
               element={<ChangePassword />}

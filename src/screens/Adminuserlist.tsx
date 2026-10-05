@@ -194,86 +194,98 @@ useEffect(() => {
 
       {/* TOGGLE BUTTONS */}
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 20,
-          marginBottom: 30,
-        }}
-      >
+    <div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    gap: 20,
+    marginBottom: 30,
+  }}
+>
+  {/* REQUESTERS */}
 
-        <button
-          style={{
-            width: 180,
-            padding: "12px",
+  <button
+    style={{
+      width: 180,
+      padding: "12px",
+      borderRadius: 12,
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 600,
+      transition: "0.3s",
 
-            borderRadius: 12,
+      background:
+        activeTab === "requester"
+          ? "linear-gradient(to right, #FFFF6D, #8FDAFA)"
+          : "#fff",
 
-            border: "none",
+      color:
+        activeTab === "requester"
+          ? "#14344A"
+          : "#666",
 
-            cursor: "pointer",
+      boxShadow:
+        activeTab === "requester"
+          ? "0 6px 20px rgba(0,0,0,0.1)"
+          : "0 2px 10px rgba(0,0,0,0.06)",
+    }}
+    onClick={loadRequesters}
+  >
+    Requesters
+  </button>
 
-            fontWeight: 600,
+  {/* PROVIDERS */}
 
-            transition: "0.3s",
+  <button
+    style={{
+      width: 180,
+      padding: "12px",
+      borderRadius: 12,
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 600,
+      transition: "0.3s",
 
-            background:
-              activeTab === "requester"
-                ? "linear-gradient(to right, #FFFF6D, #8FDAFA)"
-                : "#fff",
+      background:
+        activeTab === "provider"
+          ? "linear-gradient(to right, #FFFF6D, #8FDAFA)"
+          : "#fff",
 
-            color:
-              activeTab === "requester"
-                ? "#14344A"
-                : "#666",
+      color:
+        activeTab === "provider"
+          ? "#14344A"
+          : "#666",
 
-            boxShadow:
-              activeTab === "requester"
-                ? "0 6px 20px rgba(0,0,0,0.1)"
-                : "0 2px 10px rgba(0,0,0,0.06)",
-          }}
-          onClick={loadRequesters}
-        >
-          Requesters
-        </button>
+      boxShadow:
+        activeTab === "provider"
+          ? "0 6px 20px rgba(0,0,0,0.1)"
+          : "0 2px 10px rgba(0,0,0,0.06)",
+    }}
+    onClick={loadProviders}
+  >
+    Providers
+  </button>
 
-        <button
-          style={{
-            width: 180,
-            padding: "12px",
+  {/* PROVIDER STATUS */}
 
-            borderRadius: 12,
-
-            border: "none",
-
-            cursor: "pointer",
-
-            fontWeight: 600,
-
-            transition: "0.3s",
-
-            background:
-              activeTab === "provider"
-                ? "linear-gradient(to right, #FFFF6D, #8FDAFA)"
-                : "#fff",
-
-            color:
-              activeTab === "provider"
-                ? "#14344A"
-                : "#666",
-
-            boxShadow:
-              activeTab === "provider"
-                ? "0 6px 20px rgba(0,0,0,0.1)"
-                : "0 2px 10px rgba(0,0,0,0.06)",
-          }}
-          onClick={loadProviders}
-        >
-          Providers
-        </button>
-
-      </div>
+  <button
+    style={{
+      width: 180,
+      padding: "12px",
+      borderRadius: 12,
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 600,
+      transition: "0.3s",
+      background: "#fff",
+      color: "#666",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+    }}
+    onClick={() => navigate("/provider-status")}
+  >
+    Provider Status
+  </button>
+</div>
 
       {/* SEARCH BAR */}
 
