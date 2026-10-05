@@ -10,8 +10,13 @@ const ProviderOnlineOfflineStatus = () => {
         background: '#f4f7fb',
         boxSizing: 'border-box',
       }}>
-      <h1>Provider Online/Offline Status</h1>
-      {/* Add your content here */}
+      <h1 style={{
+              color: '#14344A',
+              fontSize: '26px',
+              fontWeight: 700,
+              margin: '0 0 8px',
+            }} >Provider Online/Offline Status</h1>
+     
     </div>
   );
 };
