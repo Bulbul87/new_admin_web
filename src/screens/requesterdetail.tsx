@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import {
   FaEnvelope,
@@ -11,9 +11,10 @@ import {
 
 // API
 import { getAllUsers } from "../service/admin.service";
+import { ArrowLeft } from "lucide-react";
 
 const RequesterDetails: React.FC = () => {
-
+const navigate = useNavigate();
   const { id } = useParams();
 
   const [requester, setRequester] = useState<any>(null);
@@ -120,6 +121,26 @@ const RequesterDetails: React.FC = () => {
         padding: "30px",
       }}
     >
+
+    <button
+            onClick={() => navigate("/users")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "7px",
+              border: "none",
+              background: "transparent",
+              color: "#14344A",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: 0,
+              marginBottom: "12px",
+            }}
+          >
+            <ArrowLeft size={17} />
+            Back 
+          </button>
 
       {/* ============================== */}
       {/* TOP SECTION */}

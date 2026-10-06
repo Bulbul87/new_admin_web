@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 
 
 import {
@@ -20,8 +20,9 @@ import rating3 from "../assets/rating3.png";
 
 import { getAllProviders} from "../service/admin.service";
 import { decryptData } from "../utils/crypto";
+import { ArrowLeft } from "lucide-react";
 const ProviderDetails: React.FC = () => {
-
+const navigate = useNavigate();
   const { id } = useParams();
 
   const [provider, setProvider] = useState<any>(null);
@@ -197,6 +198,25 @@ const fetchProviderDetails = async () => {
       }}
     >
 
+             <button
+            onClick={() => navigate("/users")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "7px",
+              border: "none",
+              background: "transparent",
+              color: "#14344A",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: 0,
+              marginBottom: "12px",
+            }}
+          >
+            <ArrowLeft size={17} />
+            Back 
+          </button>
       {/* ============================== */}
       {/* TOP PROFILE CARD */}
       {/* ============================== */}

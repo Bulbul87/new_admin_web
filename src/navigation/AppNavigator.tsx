@@ -19,9 +19,11 @@ import PricingRules from "../screens/viewpricing";
 
 import Adminconfigscreen from "../screens/adminconfig";
 import SupportTicket from "../screens/SupportTicket";
-import  ViewAccessCode from "../screens/viewAccesscode";
-import  AccessCodeList from "../screens/visitlist";
+import ViewAccessCode from "../screens/viewAccesscode";
+import AccessCodeList from "../screens/visitlist";
 import ProviderOnlineOfflineStatus from "../screens/provideronlineoflinestatus";
+import ViewMessages from "../screens/viewmessages";
+import MessageDetail from "../screens/MessageDetail";
 
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
@@ -62,9 +64,14 @@ const AppNavigator = () => {
           <Route path="/requester-details/:id" element={<RequesterDetails />} />
           <Route path="/support-tickets" element={<SupportTicket />} />
           <Route path="/service-access-code" element={<Adminconfigscreen />} />
-          <Route path="/access-codes" element={<AccessCodeList/>} />
-            <Route path="/access-codes/:id" element={< ViewAccessCode/>} />
+          <Route path="/access-codes" element={<AccessCodeList />} />
+          <Route path="/access-codes/:id" element={< ViewAccessCode />} />
           <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
+          <Route path="/messages" element={<ViewMessages />} />
+          <Route
+            path="/messages/:conversationId"
+            element={<MessageDetail />}
+          />
           <Route
             path="/change-password"
             element={<ChangePassword />}

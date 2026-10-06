@@ -26,6 +26,8 @@ import SupportTicket from "./screens/SupportTicket";
 import ViewAccessCode from "./screens/viewAccesscode";
 import AccessCodeList from "./screens/visitlist";
 import ProviderOnlineOfflineStatus from "./screens/provideronlineoflinestatus";
+import ViewMessages from "./screens/viewmessages";
+import MessageDetail from "./screens/MessageDetail";
 
 function App() {
   return (
@@ -60,9 +62,14 @@ function App() {
             />
             <Route path="/service-access-code" element={<Adminconfigscreen />} />
             <Route path="/support-tickets" element={<SupportTicket />} />
-              <Route path="/access-codes" element={<AccessCodeList/>} />
+            <Route path="/access-codes" element={<AccessCodeList />} />
             <Route path="/access-codes/:id" element={<ViewAccessCode />} />
-             <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
+            <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
+            <Route path="/messages" element={<ViewMessages />} />
+            <Route
+              path="/messages/:conversationId"
+              element={<MessageDetail />}
+            />
             <Route
               path="/change-password"
               element={<ChangePassword />}

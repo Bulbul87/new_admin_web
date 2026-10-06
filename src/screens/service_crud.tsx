@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
+  ArrowLeft,
   Check,
   ChevronDown,
   ChevronRight,
@@ -21,6 +22,7 @@ import {
 } from "../service/service_catlog";
 
 import "./service_crud.css";
+import { useNavigate } from "react-router-dom";
 
 // ============================================================
 // TYPES modified from service_catlog.ts
@@ -72,6 +74,8 @@ const emptyServiceForm: ServiceForm = {
 // ============================================================
 
 const ServiceCrudScreen: React.FC = () => {
+
+  const navigate = useNavigate();
   // ----------------------------------------------------------
   // DATA
   // ----------------------------------------------------------
@@ -593,18 +597,41 @@ const ServiceCrudScreen: React.FC = () => {
 
   return (
     <div className="service-crud-page">
+
       {/* ======================================================
           HEADER
       ====================================================== */}
 
       <div className="service-crud-header">
         <div>
+                <button
+            onClick={() => navigate("/services")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "7px",
+              border: "none",
+              background: "transparent",
+              color: "#14344A",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: 0,
+              marginBottom: "12px",
+            }}
+          >
+            <ArrowLeft size={17} />
+            Back 
+          </button>
           <div className="service-crud-title-row">
+
             <div className="service-crud-title-icon">
               <FolderPlus size={22} />
             </div>
 
             <div>
+
+        
               <h1  style={{
       color: "#14344A",
       fontSize: "34px",
