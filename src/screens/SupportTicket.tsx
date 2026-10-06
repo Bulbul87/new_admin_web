@@ -521,7 +521,7 @@ const SupportTicket: React.FC = () => {
                 </p>
               </div>
             ) : (
-              filteredTickets.map((ticket, index) => {
+              filteredTickets.map((ticket) => {
                 const isSelected =
                   selectedTicket?._id ===
                   ticket._id;

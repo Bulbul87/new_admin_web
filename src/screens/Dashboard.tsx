@@ -104,8 +104,8 @@ const Dashboard: React.FC = () => {
   // STATES
   // ==============================
 
-  const [providers, setProviders] =
-    useState<any[]>([]);
+  // const [ setProviders] =
+  //   useState<any[]>([]);
 
   const [services, setServices] =
     useState<ServiceCatalogCategory[]>([]);
@@ -173,9 +173,9 @@ const Dashboard: React.FC = () => {
           providersData
         );
 
-        setProviders(
-          providersData || []
-        );
+        // setProviders(
+        //   providersData || []
+        // );
 
         // ==========================
         // SERVICE CATALOG
@@ -933,7 +933,7 @@ const Dashboard: React.FC = () => {
               >
                 {pieData.map(
                   (
-                    entry,
+                    _entry,
                     index
                   ) => (
                     <Cell
