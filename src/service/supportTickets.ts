@@ -1,4 +1,4 @@
-import { testapi } from "../service/testapi";
+import { api } from "../service/api";
 
 // ==============================
 // TYPES
@@ -55,7 +55,7 @@ export interface SupportReply {
 // testapi already returns data?.data || data,
 // therefore `res` is the ticket array directly.
 export const getAllSupportTickets = async (): Promise<SupportTicket[]> => {
-  const res = await testapi.get<SupportTicket[]>("/admin/tickets");
+  const res = await api.get<SupportTicket[]>("/admin/tickets");
 
   console.log("🟢 Support API Response:", res);
 
@@ -71,7 +71,7 @@ export const getAllSupportTickets = async (): Promise<SupportTicket[]> => {
 export const getSupportTicketById = async (
   id: string
 ): Promise<SupportTicket> => {
-  const res = await testapi.get<SupportTicket>(
+  const res = await api.get<SupportTicket>(
     `/admin/tickets/${id}`
   );
 
@@ -89,7 +89,7 @@ export const replyToSupportTicket = async (
   id: string,
   message: string
 ) => {
-  return testapi.post(
+  return api.post(
     `/admin/tickets/${id}/replies`,
     {
       message,

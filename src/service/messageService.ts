@@ -1,4 +1,4 @@
-import { testapi } from "./testapi";
+import { api } from "../service/api";
 
 /* =========================
    USER
@@ -121,7 +121,7 @@ export const getAdminConversations = async (
   limit: number = 20
 ): Promise<AdminConversationsData> => {
   try {
-    const response = await testapi.get<AdminConversationsData>(
+    const response = await api.get<AdminConversationsData>(
       `/admin/conversations?page=${page}&limit=${limit}`
     );
 
@@ -156,7 +156,7 @@ export const getAdminConversation = async (
   limit: number = 50
 ): Promise<AdminConversationData> => {
   try {
-    const response = await testapi.get<AdminConversationData>(
+    const response = await api.get<AdminConversationData>(
       `/admin/conversation/${conversationId}?page=${page}&limit=${limit}`
     );
 

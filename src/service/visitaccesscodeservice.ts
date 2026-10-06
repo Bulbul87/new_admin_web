@@ -1,4 +1,4 @@
-import { testapi } from "./testapi";
+import { api } from "../service/api";
 
 export interface AccessCodeVisit {
   _id: string;
@@ -189,7 +189,7 @@ export interface PopulatedService { _id: string; name?: string; }
 export const getAccessCodeVisit = async (
   id: string
 ): Promise<AccessCodeVisit> => {
-  const response = await testapi.get<AccessCodeVisit>(
+  const response = await api.get<AccessCodeVisit>(
     `/admin/access-codes/${id}`
   );
 
@@ -242,7 +242,7 @@ export const getAllAccessCodeVisits = async (params?: {
   }
 
   const response = await fetch(
-    `http://localhost:5001/api/admin/access-codes?${query.toString()}`,
+    `'https://api.senioramerica.us/api/admin/access-codes?${query.toString()}`,
     {
       method: "GET",
       headers: {
