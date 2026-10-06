@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
 import {
   FaUser,
   FaLock,
@@ -11,23 +11,30 @@ import { useNavigate } from "react-router-dom";
 import img from "../assets/image.png";
 
 const Login: React.FC = () => {
+  const {
+    login,
+    isAuthenticated,
+    isLoading: authLoading,
+  } = useAdminAuth();
 
-  const { login } = useAdminAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const [isLoading, setIsLoading] =
-    useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [showPassword, setShowPassword] =
     useState<boolean>(false);
 
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
   const handleLogin = async () => {
-
     try {
-
       if (!email || !password) {
         alert("Please enter email and password");
         return;
@@ -35,22 +42,14 @@ const Login: React.FC = () => {
 
       setIsLoading(true);
 
-      // ✅ Login
       await login(email, password);
 
-      // ✅ Navigate
       navigate("/dashboard");
 
     } catch (error: any) {
-
-      alert(
-        error.message || "Login Failed"
-      );
-
+      alert(error.message || "Login Failed");
     } finally {
-
       setIsLoading(false);
-
     }
   };
 
