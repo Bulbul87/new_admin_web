@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   BriefcaseBusiness,
@@ -29,6 +30,7 @@ import type {
 } from "../service/pricingService";
 
 const PricingRules: React.FC = () => {
+  const navigate =useNavigate();
   // ============================================
   // Master Data
   // ============================================
@@ -595,33 +597,36 @@ const PricingRules: React.FC = () => {
       {/* ========================================================= */}
 
       <div className="relative overflow-hidden rounded-[32px]">
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center">
+        <div className="relative z-10 d-flex flex-col lg:flex-row lg:items-center" style={{justifyContent:"space-between"}}>
           <div className="flex">
             <h1
               style={{
                 color: "#14344A",
                 fontWeight: 700,
-                marginBottom: 10,
+                fontSize:"27px",
+                margin: 0,
                 alignItems: "center",
               }}
             >
-              Pricing Dashboard
+            Pricing Records
             </h1>
           </div>
 
-          <div className="flex gap-4 justify-end lg:ml-auto">
+          <div className="d-flex gap-4 justify-end lg:ml-auto">
             <button
               onClick={handleRefresh}
               style={{
                 border: "none",
+                 padding: "11px 20px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
                 background:
                   "linear-gradient(to right, #FFFF6D, #8FDAFA)",
                 color: "#14344A",
-                fontWeight: 700,
-                padding: "14px 24px",
-                borderRadius: 14,
-                boxShadow:
-                  "0 6px 20px rgba(0,0,0,0.08)",
+               
                 transition: "0.3s",
               }}
             >
@@ -629,6 +634,22 @@ const PricingRules: React.FC = () => {
 
               Refresh Data
             </button>
+             <button
+          onClick={() => navigate("/pricing")}
+          style={{
+            background: "linear-gradient(135deg, #14344A, #163A5F)",
+            color: "#fff",
+            border: "none",
+            padding: "11px 20px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+          }}
+        >
+         pricing management
+        </button>
           </div>
         </div>
       </div>

@@ -38,11 +38,7 @@ const Sidebar = () => {
       icon: <BriefcaseBusiness size={20} />,
     },
     
-    {
-      name: "Pricing",
-      path: "/pricing",
-      icon: <DollarSign size={20} />,
-    },
+    
     {
       name: "View Pricing ",
       path: "/view-pricing",

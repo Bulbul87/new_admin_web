@@ -171,7 +171,7 @@ const Adminconfigscreen: React.FC = () => {
           <h2
             style={{
               color: '#14344A',
-              fontSize: '26px',
+              fontSize: '27px',
               fontWeight: 700,
               margin: '0 0 8px',
             }}

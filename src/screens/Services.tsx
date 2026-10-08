@@ -224,6 +224,7 @@ const Services: React.FC = () => {
     style={{
       color: "#14344A",
       fontWeight: 700,
+      fontSize:"27px",
       margin: 0,
     }}
   >
@@ -238,8 +239,8 @@ const Services: React.FC = () => {
                 "linear-gradient(to right, #FFFF6D, #8FDAFA)",
               color: "#14344A",
               fontWeight: 700,
-              padding: "14px 24px",
-              borderRadius: 14,
+              padding: "10px 24px",
+              borderRadius: 8,
               boxShadow:
                 "0 6px 20px rgba(0,0,0,0.08)",
               transition: "0.3s",

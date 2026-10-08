@@ -331,7 +331,7 @@ const MessageDetail: React.FC = () => {
             border: "1px solid #d9e1e8",
             background: "#fff",
             color: "#14344A",
-            borderRadius: "10px",
+            borderRadius: "8px",
             padding: "10px 16px",
             fontWeight: 600,
             cursor: refreshing ? "not-allowed" : "pointer",

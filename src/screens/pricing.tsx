@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
+  ArrowLeft,
   DollarSign,
   Loader2,
   MapPin,
@@ -47,6 +49,7 @@ interface StatusMessage {
 // ======================================================
 
 const Pricing: React.FC = () => {
+  const navigate = useNavigate();
   // ======================================================
   // MASTER DATA
   // ======================================================
@@ -793,8 +796,16 @@ const Pricing: React.FC = () => {
           style={{
             display: "flex",
             justifyContent: "flex-end",
+            gap:"4px",
           }}
         >
+           <button
+                onClick={() => navigate("/view-pricing")}
+                className="booking-back-btn"
+              >
+                <ArrowLeft size={17} />
+                Back
+              </button>
           <button
             type="button"
             onClick={() => void loadData()}
@@ -808,8 +819,8 @@ const Pricing: React.FC = () => {
                 "linear-gradient(to right, #FFFF6D, #8FDAFA)",
               color: "#14344A",
               fontWeight: 700,
-              padding: "14px 24px",
-              borderRadius: 14,
+              padding: "8px 24px",
+              borderRadius: 8,
               boxShadow:
                 "0 6px 20px rgba(0,0,0,0.08)",
               transition: "0.3s",
@@ -1524,8 +1535,8 @@ const Pricing: React.FC = () => {
                   alignItems: "center",
                   gap: 10,
                   border: "none",
-                  padding: "14px 28px",
-                  borderRadius: 14,
+                  padding: "10px 28px",
+                  borderRadius: 8,
                   cursor: saving
                     ? "not-allowed"
                     : "pointer",
