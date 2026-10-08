@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaInfoCircle } from "react-icons/fa";
-import { useParams,useNavigate } from "react-router-dom";
+import { useParams,useNavigate, useLocation } from "react-router-dom";
 
 
 import {
@@ -23,6 +23,7 @@ import { decryptData } from "../utils/crypto";
 import { ArrowLeft } from "lucide-react";
 const ProviderDetails: React.FC = () => {
 const navigate = useNavigate();
+const location = useLocation();
   const { id } = useParams();
 
   const [provider, setProvider] = useState<any>(null);
@@ -199,7 +200,14 @@ const fetchProviderDetails = async () => {
     >
 
              <button
-            onClick={() => navigate("/users")}
+           onClick={() =>
+    navigate("/users", {
+      state: {
+        activeTab:
+          location.state?.activeTab || "provider",
+      },
+    })
+  }
             style={{
               display: "flex",
               alignItems: "center",

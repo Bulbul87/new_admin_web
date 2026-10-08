@@ -22,7 +22,7 @@ const AdminUsers: React.FC = () => {
 const location = useLocation();
 
 const [activeTab, setActiveTab] = useState<
-  "requester" | "provider"
+  "requester" | "provider" 
 >(
   location.state?.activeTab === "provider"
     ? "provider"
@@ -280,6 +280,7 @@ useEffect(() => {
       background: "#fff",
       color: "#666",
       boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+      
     }}
     onClick={() => navigate("/provider-status")}
   >
@@ -710,28 +711,36 @@ zIndex: 10,
     {/* SEE PROFILE */}
 
     <button
-      onClick={() =>
-        navigate(
-          activeTab === "provider"
-            ? `/provider-details/${item._id}`
-            : `/requester-details/${item._id}`
-        )
-      }
-      style={{
-        padding: "9px 18px",
-        border: "none",
-        borderRadius: 10,
-        cursor: "pointer",
-        fontWeight: 700,
-        color: "#14344A",
-        background:
-          "linear-gradient(to right,#FFFF6D,#8FDAFA)",
-        boxShadow: "0 4px 12px rgba(0,0,0,.08)",
-        transition: ".3s",
-      }}
-    >
-      See Profile
-    </button>
+  onClick={() => {
+    if (activeTab === "provider") {
+      navigate(`/provider-details/${item._id}`, {
+        state: {
+          activeTab: "provider",
+        },
+      });
+    } else {
+      navigate(`/requester-details/${item._id}`, {
+        state: {
+          activeTab: "requester",
+        },
+      });
+    }
+  }}
+  style={{
+    padding: "9px 18px",
+    border: "none",
+    borderRadius: 10,
+    cursor: "pointer",
+    fontWeight: 700,
+    color: "#14344A",
+    background:
+      "linear-gradient(to right,#FFFF6D,#8FDAFA)",
+    boxShadow: "0 4px 12px rgba(0,0,0,.08)",
+    transition: ".3s",
+  }}
+>
+  See Profile
+</button>
   </div>
 </td>
           </tr>
