@@ -1362,91 +1362,295 @@ const PricingRules: React.FC = () => {
               )}
             </tbody>
           </table>
-
           {/* ===================================================== */}
-          {/* PAGINATION */}
-          {/* ===================================================== */}
+{/* PAGINATION */}
+{/* ===================================================== */}
 
-          <div
-            className="flex flex-col gap-4 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between"
-            style={{
-              borderTop: "1px solid #e5e7eb",
-            }}
-          >
-            {/* LEFT */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-slate-600">
-                Rows per page
-              </span>
+<div
+  className=" w-full items-center "
+  style={{
+   display:"flex",
+   justifyContent:"space-between",
+    minHeight: "64px",
+    padding: "12px 18px",
+    marginTop: "12px",
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "16px",
+    boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+  }}
+>
+  {/* ================= LEFT ================= */}
+  <div
+   
+    style={{
+display:"flex",
+alignItems:"center",
+      gap: "18px",
+    }}
+  >
+    {/* Total */}
+    <div
+      className="flex items-center"
+      style={{
+        gap: "8px",
+        whiteSpace: "nowrap",
+        display:"flex",
+       
+      }}
+    >
+      <span
+        style={{
+          fontSize: "13px",
+          fontWeight: 500,
+          color: "#64748b",
+        }}
+      >
+        Total :
+      </span>
 
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(
-                    Number(e.target.value)
-                  );
-                  setCurrentPage(1);
-                }}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
+      <span
+        style={{
+          fontSize: "13px",
+          fontWeight: 700,
+          color: "#14344A",
+        }}
+      >
+        {totalRecords}
+      </span>
+    </div>
 
-              <span className="text-sm text-slate-500">
-                {totalRecords > 0
-                  ? `Showing ${
-                      (currentPage - 1) *
-                        itemsPerPage +
-                      1
-                    }-${Math.min(
-                      currentPage * itemsPerPage,
-                      totalRecords
-                    )} of ${totalRecords}`
-                  : "Showing 0 of 0"}
-              </span>
-            </div>
+    {/* Divider */}
+    <div
+      style={{
+        width: "1px",
+        height: "24px",
+        background: "#e2e8f0",
+      }}
+    />
 
-            {/* RIGHT */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) =>
-                    Math.max(prev - 1, 1)
-                  )
-                }
-                disabled={currentPage === 1}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Previous
-              </button>
+    {/* Rows Per Page */}
+    <div
+      className="d-flex items-center"
+      style={{
+        gap: "9px",
+        whiteSpace: "nowrap",
+         alignItems:"center"
+        
+      }}
+    >
+      <span
+        style={{
+          fontSize: "13px",
+          fontWeight: 500,
+          color: "#64748b",
+        }}
+      >
+        Rows per page
+      </span>
 
-              <span className="min-w-[100px] text-center text-sm font-semibold text-slate-700">
-                Page {currentPage} of{" "}
-                {totalPages || 1}
-              </span>
+      <select
+        value={itemsPerPage}
+        onChange={(e) => {
+          setItemsPerPage(Number(e.target.value));
+          setCurrentPage(1);
+        }}
+        style={{
+          height: "31px",
+          minWidth: "61px",
+          padding: "2px 10px",
+          border: "1px solid #dbe3ec",
+          borderRadius: "9px",
+          background: "#ffffff",
+          color: "#14344A",
+          fontSize: "13px",
+          fontWeight: 600,
+          outline: "none",
+          cursor: "pointer",
+          boxShadow:
+            "0 1px 3px rgba(15, 23, 42, 0.04)",
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor =
+            "#14344A";
+          e.currentTarget.style.boxShadow =
+            "0 0 0 3px rgba(20, 52, 74, 0.08)";
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor =
+            "#dbe3ec";
+          e.currentTarget.style.boxShadow =
+            "0 1px 3px rgba(15, 23, 42, 0.04)";
+        }}
+      >
+        <option value={10}>10</option>
+        <option value={20}>20</option>
+        <option value={50}>50</option>
+        <option value={100}>100</option>
+      </select>
+    </div>
+  </div>
 
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) =>
-                    Math.min(
-                      prev + 1,
-                      totalPages
-                    )
-                  )
-                }
-                disabled={
-                  totalPages === 0 ||
-                  currentPage >= totalPages
-                }
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+  {/* ================= RIGHT ================= */}
+  <div
+    className="d-flex items-center"
+    style={{
+      gap: "10px",
+    }}
+  >
+    {/* Previous */}
+    <button
+      type="button"
+      onClick={() =>
+        setCurrentPage((prev) =>
+          Math.max(prev - 1, 1)
+        )
+      }
+      disabled={currentPage === 1}
+      style={{
+        height: "38px",
+        minWidth: "100px",
+        padding: "0 14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        borderRadius: "9px",
+        border: "1px solid #e2e8f0",
+        background:
+          currentPage === 1
+            ? "#f8fafc"
+            : "#ffffff",
+        color:
+          currentPage === 1
+            ? "#b5c0cc"
+            : "#64748b",
+        fontSize: "13px",
+        fontWeight: 600,
+        cursor:
+          currentPage === 1
+            ? "not-allowed"
+            : "pointer",
+        transition: "all 0.2s ease",
+      }}
+      onMouseEnter={(e) => {
+        if (currentPage !== 1) {
+          e.currentTarget.style.background =
+            "#f8fafc";
+          e.currentTarget.style.borderColor =
+            "#cbd5e1";
+          e.currentTarget.style.color =
+            "#14344A";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (currentPage !== 1) {
+          e.currentTarget.style.background =
+            "#ffffff";
+          e.currentTarget.style.borderColor =
+            "#e2e8f0";
+          e.currentTarget.style.color =
+            "#64748b";
+        }
+      }}
+    >
+      <span style={{ fontSize: "17px" }}>‹</span>
+      Previous
+    </button>
+
+    {/* Page */}
+    <div
+      style={{
+        minWidth: "55px",
+        height: "38px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "13px",
+        fontWeight: 700,
+        color: "#14344A",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {currentPage} / {totalPages || 1}
+    </div>
+
+    {/* Next */}
+    <button
+      type="button"
+      onClick={() =>
+        setCurrentPage((prev) =>
+          Math.min(
+            prev + 1,
+            totalPages
+          )
+        )
+      }
+      disabled={
+        totalPages === 0 ||
+        currentPage >= totalPages
+      }
+      style={{
+        height: "38px",
+        minWidth: "78px",
+        padding: "0 14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        borderRadius: "9px",
+        border: "1px solid #e2e8f0",
+        background:
+          totalPages === 0 ||
+          currentPage >= totalPages
+            ? "#f8fafc"
+            : "#ffffff",
+        color:
+          totalPages === 0 ||
+          currentPage >= totalPages
+            ? "#b5c0cc"
+            : "#64748b",
+        fontSize: "13px",
+        fontWeight: 600,
+        cursor:
+          totalPages === 0 ||
+          currentPage >= totalPages
+            ? "not-allowed"
+            : "pointer",
+        transition: "all 0.2s ease",
+      }}
+      onMouseEnter={(e) => {
+        if (
+          totalPages > 0 &&
+          currentPage < totalPages
+        ) {
+          e.currentTarget.style.background =
+            "#f8fafc";
+          e.currentTarget.style.borderColor =
+            "#cbd5e1";
+          e.currentTarget.style.color =
+            "#14344A";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (
+          totalPages > 0 &&
+          currentPage < totalPages
+        ) {
+          e.currentTarget.style.background =
+            "#ffffff";
+          e.currentTarget.style.borderColor =
+            "#e2e8f0";
+          e.currentTarget.style.color =
+            "#64748b";
+        }
+      }}
+    >
+      Next
+      <span style={{ fontSize: "17px" }}>›</span>
+    </button>
+  </div>
+</div>
         </div>
       </section>
     </div>
