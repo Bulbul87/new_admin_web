@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -99,12 +98,16 @@ const Pricing: React.FC = () => {
         statesData,
         citiesData,
         categoriesData,
-        pricingData,
+        pricingResponse,
       ] = await Promise.all([
         getStates(),
         getCities(),
         getServiceCatalog(),
-        getPricingRules(),
+
+        // Pricing update UI does NOT use pagination.
+        // Fetch all pricing records so level-based
+        // existing-price lookup continues to work.
+        getPricingRules(1, 100000),
       ]);
 
       // ----------------------------------------------
@@ -144,7 +147,9 @@ const Pricing: React.FC = () => {
       // ----------------------------------------------
 
       setPricingRules(
-        Array.isArray(pricingData) ? pricingData : []
+        Array.isArray(pricingResponse.data)
+          ? pricingResponse.data
+          : []
       );
 
       console.log("====================================");
@@ -152,7 +157,10 @@ const Pricing: React.FC = () => {
       console.log("States =", statesData);
       console.log("Cities =", citiesData);
       console.log("Categories =", activeCategories);
-      console.log("Pricing Rules =", pricingData);
+      console.log(
+        "Pricing Rules =",
+        pricingResponse.data
+      );
       console.log("====================================");
     } catch (err) {
       console.error("Pricing load error:", err);
@@ -662,13 +670,18 @@ const Pricing: React.FC = () => {
       // Reload pricing rules
       // ----------------------------------------------
 
-      const updatedRules = await getPricingRules();
-
-      setPricingRules(
-        Array.isArray(updatedRules)
-          ? updatedRules
-          : []
+      const updatedResponse = await getPricingRules(
+        1,
+        100000
       );
+
+      const updatedRules = Array.isArray(
+        updatedResponse.data
+      )
+        ? updatedResponse.data
+        : [];
+
+      setPricingRules(updatedRules);
 
       // ----------------------------------------------
       // Reload current pricing value
@@ -1552,4 +1565,3 @@ const Pricing: React.FC = () => {
 };
 
 export default Pricing;
-

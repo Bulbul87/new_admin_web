@@ -24,7 +24,7 @@ export const signupAdmin = async (data: any): Promise<AuthResponse> => {
   return await api.post<AuthResponse>('/auth/register', data);
 };
 
-// ✅ Change Password
+//  Change Password
 export const changePassword = async (
   currentPassword: string,
   newPassword: string
@@ -35,7 +35,7 @@ export const changePassword = async (
   });
 };
 
-// ✅ Forgot Password
+//  Forgot Password
 export const forgotPassword = async (
   email: string
 ) => {
@@ -44,7 +44,7 @@ export const forgotPassword = async (
   });
 };
 
-// ✅ Reset Password
+//  Reset Password
 export const resetPassword = async (
   token: string,
   newPassword: string

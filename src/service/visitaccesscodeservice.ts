@@ -262,27 +262,27 @@ export const getAllAccessCodeVisits = async (params?: {
 
 
 console.log(
-  "🔥 RAW FIRST VISIT:",
+  "RAW FIRST VISIT:",
   data?.data?.[0]
 );
 
 console.log(
-  "🔥 RAW BOOKING:",
+  "RAW BOOKING:",
   data?.data?.[0]?.booking
 );
 
 console.log(
-  "🔥 RAW USER:",
+  "RAW USER:",
   data?.data?.[0]?.booking?.user
 );
 
 console.log(
-  "🔥 RAW PROVIDER:",
+  "RAW PROVIDER:",
   data?.data?.[0]?.booking?.provider
 );
 
 console.log(
-  "🔥 RAW SERVICE:",
+  "RAW SERVICE:",
   data?.data?.[0]?.booking?.service
 );
 

@@ -57,7 +57,7 @@ export interface SupportReply {
 export const getAllSupportTickets = async (): Promise<SupportTicket[]> => {
   const res = await api.get<SupportTicket[]>("/admin/tickets");
 
-  console.log("🟢 Support API Response:", res);
+  console.log(" Support API Response:", res);
 
   return Array.isArray(res) ? res : [];
 };
@@ -75,7 +75,7 @@ export const getSupportTicketById = async (
     `/admin/tickets/${id}`
   );
 
-  console.log("🟢 Support Ticket Detail Response:", res);
+  console.log(" Support Ticket Detail Response:", res);
 
   return res;
 };

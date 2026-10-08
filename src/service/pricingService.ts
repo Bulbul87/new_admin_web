@@ -1,6 +1,7 @@
 
 import { api } from "../service/api";
 
+
 // ======================================================
 // STATE
 // ======================================================
@@ -158,10 +159,21 @@ export interface SmartPricingPayload {
 // API RESPONSES
 // ======================================================
 
+// export interface PricingRuleResponse {
+//   success: boolean;
+//   count: number;
+//   data: PricingRule[];
+// }
 export interface PricingRuleResponse {
   success: boolean;
   count: number;
   data: PricingRule[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface SmartPricingResponse {
@@ -376,11 +388,28 @@ export async function getServiceCatalog(): Promise<ServiceCatalogItem[]> {
 // GET ALL PRICING RULES
 // ======================================================
 
-export async function getPricingRules(): Promise<
-  PricingRule[]
-> {
+// export async function getPricingRules(): Promise<
+//   PricingRule[]
+// > {
+//   const response = await api.get<any>(
+//     ENDPOINTS.pricingRules
+//   );
+
+//   console.log(
+//     "Pricing Rules API =",
+//     response
+//   );
+
+//   return extractArray<PricingRule>(response);
+// }
+
+
+export async function getPricingRules(
+  page: number = 1,
+  limit: number = 20
+): Promise<PricingRuleResponse> {
   const response = await api.get<any>(
-    ENDPOINTS.pricingRules
+    `${ENDPOINTS.pricingRules}?page=${page}&limit=${limit}`
   );
 
   console.log(
@@ -388,7 +417,19 @@ export async function getPricingRules(): Promise<
     response
   );
 
-  return extractArray<PricingRule>(response);
+  return {
+    success: response?.success ?? true,
+    count: response?.count ?? 0,
+    data: Array.isArray(response?.data)
+      ? response.data
+      : [],
+    pagination: {
+      page: response?.pagination?.page ?? page,
+      limit: response?.pagination?.limit ?? limit,
+      total: response?.pagination?.total ?? 0,
+      totalPages: response?.pagination?.totalPages ?? 0,
+    },
+  };
 }
 
 // ======================================================

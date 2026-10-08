@@ -1,7 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaLock } from 'react-icons/fa';
 import { api } from '../service/api'; 
+
+
 
 interface AgeSettings {
   registrationMinAge: number;
@@ -16,6 +19,8 @@ const DEFAULT_SETTINGS: AgeSettings = {
 };
 
 const Adminconfigscreen: React.FC = () => {
+
+  const navigate = useNavigate();
   const [settings, setSettings] = useState<AgeSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -153,13 +158,16 @@ const Adminconfigscreen: React.FC = () => {
         boxSizing: 'border-box',
       }}
     >
+     
       <div
         style={{
           maxWidth: '1000px',
           margin: '0 auto',
         }}
       >
-        <div style={{ marginBottom: '28px' }}>
+        < div style={{  display: 'flex', alignItems: 'center', gap: '8px' ,justifyContent: 'space-between'}}>  
+
+        <div style={{ marginBottom: '24px' }}>
           <h2
             style={{
               color: '#14344A',
@@ -174,6 +182,25 @@ const Adminconfigscreen: React.FC = () => {
             Manage registration and service eligibility age settings.
           </p>
         </div>
+
+          <button
+                  onClick={() => navigate("/booking-history")}
+                   style={{
+            background: "linear-gradient(135deg, #14344A, #163A5F)",
+            color: "#fff",
+            border: "none",
+            padding: "11px 20px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+          }}
+                >
+                 
+                  view Booking History
+                </button>
+                </div>
 
         <div
           style={{

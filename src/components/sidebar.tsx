@@ -55,7 +55,7 @@ const Sidebar = () => {
     },
     {
       name: "Admin Config",
-      path: "/service-access-code",
+      path: "/admin-config",
       icon: <Layers3 size={20} />,
     },
     {

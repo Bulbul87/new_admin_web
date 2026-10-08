@@ -8,7 +8,7 @@ interface RequestOptions {
 }
 
 class ApiService {
-  // ✅ Get token from localStorage (WEB)
+  //  Get token from localStorage (WEB)
   private getAuthHeaders(): Record<string, string> {
     const token = localStorage.getItem('adminToken');
 

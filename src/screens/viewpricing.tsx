@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -40,6 +39,15 @@ const PricingRules: React.FC = () => {
   const [pricingRules, setPricingRules] = useState<PricingRule[]>([]);
 
   // ============================================
+  // Pagination
+  // ============================================
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // ============================================
   // Loading
   // ============================================
 
@@ -77,23 +85,40 @@ const PricingRules: React.FC = () => {
         statesData,
         citiesData,
         servicesData,
-        pricingData,
+        pricingResponse,
       ] = await Promise.all([
         getStates(),
         getCities(),
         getServiceCatalog(),
-        getPricingRules(),
+        getPricingRules(currentPage, itemsPerPage),
       ]);
 
       console.log("VIEW PRICING - STATES:", statesData);
       console.log("VIEW PRICING - CITIES:", citiesData);
-      console.log("VIEW PRICING - SERVICE CATALOG:", servicesData);
-      console.log("VIEW PRICING - PRICING RULES:", pricingData);
+      console.log(
+        "VIEW PRICING - SERVICE CATALOG:",
+        servicesData
+      );
+      console.log(
+        "VIEW PRICING - PRICING RULES:",
+        pricingResponse
+      );
 
       setStates(statesData);
       setCities(citiesData);
       setServices(servicesData);
-      setPricingRules(pricingData);
+
+      // Current page pricing records
+      setPricingRules(pricingResponse.data);
+
+      // Backend pagination information
+      setTotalRecords(
+        pricingResponse.pagination?.total ?? 0
+      );
+
+      setTotalPages(
+        pricingResponse.pagination?.totalPages ?? 0
+      );
     } catch (err) {
       console.error("Pricing Rules Load Error:", err);
 
@@ -105,7 +130,15 @@ const PricingRules: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage, itemsPerPage]);
+
+  // ============================================
+  // Initial Load / Page Change
+  // ============================================
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   // ============================================
   // Refresh
@@ -297,14 +330,6 @@ const PricingRules: React.FC = () => {
 
     return getServiceForRule(rule)?.name ?? "-";
   };
-
-  // ============================================
-  // Initial Load
-  // ============================================
-
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
 
   // ============================================
   // Filtered Cities
@@ -680,7 +705,7 @@ const PricingRules: React.FC = () => {
               fontSize: 20,
             }}
           >
-            {pricingRules.length}
+            {totalRecords}
           </h1>
         </div>
 
@@ -1278,7 +1303,10 @@ const PricingRules: React.FC = () => {
                       >
                         {/* SR NO */}
                         <td style={cellStyle}>
-                          {index + 1}
+                          {(currentPage - 1) *
+                            itemsPerPage +
+                            index +
+                            1}
                         </td>
 
                         {/* STATE */}
@@ -1334,6 +1362,91 @@ const PricingRules: React.FC = () => {
               )}
             </tbody>
           </table>
+
+          {/* ===================================================== */}
+          {/* PAGINATION */}
+          {/* ===================================================== */}
+
+          <div
+            className="flex flex-col gap-4 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between"
+            style={{
+              borderTop: "1px solid #e5e7eb",
+            }}
+          >
+            {/* LEFT */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-600">
+                Rows per page
+              </span>
+
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(
+                    Number(e.target.value)
+                  );
+                  setCurrentPage(1);
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+
+              <span className="text-sm text-slate-500">
+                {totalRecords > 0
+                  ? `Showing ${
+                      (currentPage - 1) *
+                        itemsPerPage +
+                      1
+                    }-${Math.min(
+                      currentPage * itemsPerPage,
+                      totalRecords
+                    )} of ${totalRecords}`
+                  : "Showing 0 of 0"}
+              </span>
+            </div>
+
+            {/* RIGHT */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.max(prev - 1, 1)
+                  )
+                }
+                disabled={currentPage === 1}
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Previous
+              </button>
+
+              <span className="min-w-[100px] text-center text-sm font-semibold text-slate-700">
+                Page {currentPage} of{" "}
+                {totalPages || 1}
+              </span>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(
+                      prev + 1,
+                      totalPages
+                    )
+                  )
+                }
+                disabled={
+                  totalPages === 0 ||
+                  currentPage >= totalPages
+                }
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -1369,4 +1482,3 @@ const cellStyle: React.CSSProperties = {
 };
 
 export default PricingRules;
-

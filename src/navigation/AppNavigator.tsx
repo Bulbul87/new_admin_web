@@ -24,11 +24,11 @@ import AccessCodeList from "../screens/visitlist";
 import ProviderOnlineOfflineStatus from "../screens/provideronlineoflinestatus";
 import ViewMessages from "../screens/viewmessages";
 import MessageDetail from "../screens/MessageDetail";
-
+import BookingHistoryScreen from "../screens/adminbookingconfig";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
-  // 🔄 Loader (same as RN)
+  //  Loader (same as RN)
   if (isLoading) {
     return (
       <div style={{ textAlign: "center", marginTop: "100px" }}>
@@ -40,7 +40,7 @@ const AppNavigator = () => {
   return (
     <Routes>
 
-      {/* 🔓 Public */}
+      {/*  Public */}
       {!isAuthenticated ? (
         <>
           <Route path="/" element={<Login />} />
@@ -52,7 +52,7 @@ const AppNavigator = () => {
         </>
       ) : (
         <>
-          {/* 🔐 Protected */}
+          {/*  Protected */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/services" element={<Services />} />
           <Route path="/service-crud" element={<ServiceCrudScreen />} />
@@ -63,7 +63,7 @@ const AppNavigator = () => {
           <Route path="/provider-details/:id" element={< ProviderDetails />} />
           <Route path="/requester-details/:id" element={<RequesterDetails />} />
           <Route path="/support-tickets" element={<SupportTicket />} />
-          <Route path="/service-access-code" element={<Adminconfigscreen />} />
+          <Route path="/admin-config" element={<Adminconfigscreen />} />
           <Route path="/access-codes" element={<AccessCodeList />} />
           <Route path="/access-codes/:id" element={< ViewAccessCode />} />
           <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
@@ -72,6 +72,7 @@ const AppNavigator = () => {
             path="/messages/:conversationId"
             element={<MessageDetail />}
           />
+          <Route path="/booking-history" element={<BookingHistoryScreen />} />
           <Route
             path="/change-password"
             element={<ChangePassword />}

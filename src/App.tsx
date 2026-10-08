@@ -28,6 +28,7 @@ import AccessCodeList from "./screens/visitlist";
 import ProviderOnlineOfflineStatus from "./screens/provideronlineoflinestatus";
 import ViewMessages from "./screens/viewmessages";
 import MessageDetail from "./screens/MessageDetail";
+import BookingHistoryScreen from "./screens/adminbookingconfig";
 
 function App() {
   return (
@@ -60,7 +61,7 @@ function App() {
             <Route path="/provider-details/:id" element={<ProviderDetails />} />
             <Route path="/requester-details/:id" element={<RequesterDetails />}
             />
-            <Route path="/service-access-code" element={<Adminconfigscreen />} />
+            <Route path="/admin-config" element={<Adminconfigscreen />} />
             <Route path="/support-tickets" element={<SupportTicket />} />
             <Route path="/access-codes" element={<AccessCodeList />} />
             <Route path="/access-codes/:id" element={<ViewAccessCode />} />
@@ -70,6 +71,7 @@ function App() {
               path="/messages/:conversationId"
               element={<MessageDetail />}
             />
+                <Route path="/booking-history" element={<BookingHistoryScreen />} />
             <Route
               path="/change-password"
               element={<ChangePassword />}
