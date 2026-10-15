@@ -29,7 +29,8 @@ import ProviderOnlineOfflineStatus from "./screens/provideronlineoflinestatus";
 import ViewMessages from "./screens/viewmessages";
 import MessageDetail from "./screens/MessageDetail";
 import BookingHistoryScreen from "./screens/adminbookingconfig";
-
+import Cities from "./screens/managecities";
+import Questionaries from "./screens/managequestionaries";
 function App() {
   return (
     <AdminAuthProvider>
@@ -72,6 +73,8 @@ function App() {
               element={<MessageDetail />}
             />
                 <Route path="/booking-history" element={<BookingHistoryScreen />} />
+                  <Route path="/manage-cities" element={<Cities />} />
+                    <Route path="/questionaries" element={<Questionaries/>} />
             <Route
               path="/change-password"
               element={<ChangePassword />}

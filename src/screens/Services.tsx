@@ -231,6 +231,8 @@ const Services: React.FC = () => {
     Services
   </h1>
 
+  <div className="d-flex  gap-2">
+    
   <button
     onClick={() => navigate("/service-crud")}
     style={{
@@ -250,6 +252,27 @@ const Services: React.FC = () => {
   >
     Manage Services
   </button>
+   <button
+    onClick={() => navigate("/questionaries")}
+    style={{
+       border: "none",
+              background:
+                "#14344A",
+              color:"white",
+              fontWeight: 700,
+              padding: "10px 24px",
+              borderRadius: 8,
+              boxShadow:
+                "0 6px 20px rgba(0,0,0,0.08)",
+              transition: "0.3s",
+              cursor: "pointer",
+             
+    }}
+  >
+    Manage Questionaries
+  </button>
+  </div>
+
 </div>
 
       {/* ========================================= */}
@@ -402,6 +425,8 @@ const Services: React.FC = () => {
                     <th style={thStyle}>Description</th>
 
                     <th style={thStyle}>Duration</th>
+                     <th style={thStyle}>MinHours</th>
+                      <th style={thStyle}>MaxHours</th>
                   </tr>
                 </thead>
 
@@ -479,6 +504,39 @@ const Services: React.FC = () => {
 
                               <span>
                                 {formatDuration(service.duration)}
+                              </span>
+                            </div>
+                          </td>
+                                 {/* minhours */}
+                             <td style={tdStyle}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                              }}
+                            >
+                              <FaClock color="#14344A" />
+
+                              <span>
+                                {service.minHours || "-"}
+                              </span>
+                            </div>
+                          </td>
+
+                             {/* maxhours */}
+                             <td style={tdStyle}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                              }}
+                            >
+                              <FaClock color="#14344A" />
+
+                              <span>
+                                {service.maxHours ||"-"}
                               </span>
                             </div>
                           </td>

@@ -6,7 +6,7 @@ import { useAdminAuth } from "../context/Authcontext";
 import Login from "../screens/Login";
 import Dashboard from "../screens/Dashboard";
 import Services from "../screens/Services";
-
+import Cities from "../screens/managecities";
 import Users from "../screens/Adminuserlist";
 import ProviderDetails from "../screens/providerdetail";
 import RequesterDetails from "../screens/requesterdetail";
@@ -25,6 +25,7 @@ import ProviderOnlineOfflineStatus from "../screens/provideronlineoflinestatus";
 import ViewMessages from "../screens/viewmessages";
 import MessageDetail from "../screens/MessageDetail";
 import BookingHistoryScreen from "../screens/adminbookingconfig";
+import  Questionaries from "../screens/managequestionaries";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -73,6 +74,9 @@ const AppNavigator = () => {
             element={<MessageDetail />}
           />
           <Route path="/booking-history" element={<BookingHistoryScreen />} />
+          <Route path="/manage-cities" element={<Cities />} />
+             <Route path="/questionaries" element={<Questionaries/>} />
+         
           <Route
             path="/change-password"
             element={<ChangePassword />}

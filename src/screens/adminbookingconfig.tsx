@@ -197,6 +197,8 @@ const BookingHistoryScreen: React.FC = () => {
     setPastStatus(undefined);
   };
 
+
+
   const getResponseBadge = (type: string) => {
     switch (type) {
       case "accepted":
@@ -211,7 +213,7 @@ const BookingHistoryScreen: React.FC = () => {
         return (
           <span className="booking-badge booking-badge--rejected">
             <XCircle size={14} />
-            Provider Rejected
+            Caregiver Rejected
           </span>
         );
 
@@ -227,7 +229,7 @@ const BookingHistoryScreen: React.FC = () => {
         return (
           <span className="booking-badge booking-badge--provider-cancelled">
             <Ban size={14} />
-            Provider Cancelled
+            Caregiver Cancelled
           </span>
         );
 
@@ -453,7 +455,7 @@ const BookingHistoryScreen: React.FC = () => {
               <th>Date</th>
               <th>Status</th>
               <th>Completed</th>
-              <th>Cancelled By</th>
+              <th>Cancelled </th>
               <th>Reason</th>
             </tr>
           </thead>
@@ -511,40 +513,30 @@ const BookingHistoryScreen: React.FC = () => {
                   </span>
                 </td>
 
-                <td>
-                  {item.cancellation?.cancelledBy ? (
-                    <span
-                      className={`booking-status ${
-                        typeof item.cancellation.cancelledBy ===
-                        "object"
-                          ? getName(
-                              item.cancellation.cancelledBy
-                            ) === getName(item.requestor)
-                            ? "booking-status--cancelled"
-                            : "booking-status--provider-cancelled"
-                          : item.cancellation.cancelledBy ===
-                            "user"
-                          ? "booking-status--cancelled"
-                          : "booking-status--provider-cancelled"
-                      }`}
-                    >
-                      {typeof item.cancellation.cancelledBy ===
-                      "object"
-                        ? getName(item.cancellation.cancelledBy)
-                        : item.cancellation.cancelledBy ===
-                          "user"
-                        ? "Requestor"
-                        : item.cancellation.cancelledBy ===
-                          "provider"
-                        ? "Caregiver"
-                        : formatStatus(
-                            item.cancellation.cancelledBy
-                          )}
-                    </span>
-                  ) : (
-                    <span className="booking-muted">—</span>
-                  )}
-                </td>
+             
+               
+<td>
+  {item.cancellation?.
+cancelledAt ? (
+    <span className="booking-status">
+      {new Date(
+        item.cancellation.
+cancelledAt
+      ).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })}
+    </span>
+  ) : (
+    <span className="booking-muted">—</span>
+  )}
+</td>
+
+
 
                 <td>
                   {item.cancellation ? (
@@ -697,13 +689,13 @@ const BookingHistoryScreen: React.FC = () => {
               <option value="">All Responses</option>
               <option value="accepted">Accepted</option>
               <option value="rejected">
-                Provider Rejected
+                Caregiver Rejected
               </option>
               <option value="cancelled_by_requestor">
                 User Cancelled
               </option>
               <option value="cancelled_by_provider">
-                Provider Cancelled
+                Caregiver Cancelled
               </option>
             </select>
           </div>

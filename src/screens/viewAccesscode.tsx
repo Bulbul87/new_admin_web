@@ -62,11 +62,11 @@ const ViewAccessCode: React.FC<ViewAccessCodeProps> = ({
 
         const data = await getAccessCodeVisit(id);
 
-        console.log("🔥 ACCESS CODE VISIT DATA:", data);
-        console.log("🔥 BOOKING:", data?.booking);
-        console.log("🔥 REQUESTER:", data?.booking?.user);
-        console.log("🔥 PROVIDER:", data?.booking?.provider);
-        console.log("🔥 SERVICE:", data?.booking?.service);
+        console.log(" ACCESS CODE VISIT DATA:", data);
+        console.log(" BOOKING:", data?.booking);
+        console.log(" REQUESTER:", data?.booking?.user);
+        console.log(" PROVIDER:", data?.booking?.provider);
+        console.log(" SERVICE:", data?.booking?.service);
 
         setVisit(data);
       } catch (err: any) {
@@ -163,19 +163,19 @@ const getUserName = (
     return user.email || "-";
   };
 
-  const getUserId = (
-    user?: PopulatedUser | string
-  ): string => {
-    if (!user) {
-      return "-";
-    }
+ const getUserId = (
+  user?: PopulatedUser | string
+): string => {
+  if (!user) {
+    return "-";
+  }
 
-    if (typeof user === "string") {
-      return user;
-    }
+  if (typeof user === "string") {
+    return user;
+  }
 
-    return user._id || "-";
-  };
+  return user.requestorInfo?.publicRequesterId || "-";
+};
 
   const getServiceName = (
     service?: PopulatedService | string
@@ -194,19 +194,7 @@ const getUserName = (
     );
   };
 
-  const getServiceId = (
-    service?: PopulatedService | string
-  ): string => {
-    if (!service) {
-      return "-";
-    }
-
-    if (typeof service === "string") {
-      return service;
-    }
-
-    return service._id  ||  service.name|| "-";
-  };
+  
 
   const getStatusStyle = (status?: string) => {
     const value = status?.toLowerCase();
@@ -403,11 +391,7 @@ const getUserName = (
             {visit.accessCode || "-"}
           </div>
 
-          <div style={accessCodeSubtext}>
-            Visit #{visit.visitIndex + 1}
-            {"  "}•{"  "}
-            Booking ID: {visit.booking?._id || "-"}
-          </div>
+          
         </div>
 
         <div style={codeStatusBox}>
@@ -568,7 +552,7 @@ const getUserName = (
 
               <div style={personHeaderContent}>
                 <div style={personRole}>
-                  PROVIDER
+                  CAREGIVER
                 </div>
 
                 <div style={personName}>
@@ -600,7 +584,7 @@ const getUserName = (
                 <div style={personDetailLabelRow}>
                   <Hash size={11} />
                   <span style={personDetailLabel}>
-                    Provider ID
+                    Caregiver ID
                   </span>
                 </div>
 
@@ -658,21 +642,6 @@ const getUserName = (
                 </span>
               </div>
 
-              <div style={personDetailRow}>
-                <div style={personDetailLabelRow}>
-                  <Hash size={11} />
-
-                  <span style={personDetailLabel}>
-                    Service ID
-                  </span>
-                </div>
-
-                <span style={personIdValue}>
-                  {getServiceId(
-                    visit.booking?.service
-                  )}
-                </span>
-              </div>
 
             </div>
           </div>
@@ -680,7 +649,7 @@ const getUserName = (
         </div>
 
         {/* BOOKING ID */}
-        <div style={bookingIdBox}>
+        {/* <div style={bookingIdBox}>
           <div style={bookingIdLabelRow}>
             <Hash size={12} />
 
@@ -692,7 +661,7 @@ const getUserName = (
           <div style={bookingIdText}>
             {visit.booking?._id || "-"}
           </div>
-        </div>
+        </div> */}
       </Section>
 
       {/* ===================================================== */}
@@ -769,13 +738,13 @@ const getUserName = (
       >
         <div style={timeline}>
           <TimelineItem
-            title="Provider En Route"
+            title="Caregiver En Route"
             date={visit.providerEnRouteAt}
             active={!!visit.providerEnRouteAt}
           />
 
           <TimelineItem
-            title="Provider Arrived"
+            title="Caregiver Arrived"
             date={visit.providerArrivedAt}
             active={!!visit.providerArrivedAt}
           />
@@ -853,7 +822,7 @@ const getUserName = (
           />
 
           <InfoBlock
-            label="Provider Platform Cut"
+            label="Caregiver Platform Cut"
             value={formatMoney(
               visit.pricing
                 ?.platformCutFromProviderUsd
@@ -861,7 +830,7 @@ const getUserName = (
           />
 
           <InfoBlock
-            label="Provider Estimated Payout"
+            label="Caregiver Estimated Payout"
             value={formatMoney(
               visit.pricing
                 ?.providerEstimatedPayoutUsd
@@ -1074,12 +1043,7 @@ const getUserName = (
             )}
           />
 
-          <InfoBlock
-            label="Active Visit ID"
-            value={
-              visit.booking?.activeVisit || "-"
-            }
-          />
+         
         </div>
       </Section>
     </div>
@@ -1388,11 +1352,7 @@ const accessCodeText: React.CSSProperties = {
   letterSpacing: "3px",
 };
 
-const accessCodeSubtext: React.CSSProperties = {
-  marginTop: 7,
-  fontSize: 11,
-  opacity: 0.7,
-};
+
 
 const codeStatusBox: React.CSSProperties = {
   minWidth: 170,
@@ -1608,27 +1568,11 @@ const personIdValue: React.CSSProperties = {
   fontFamily: "monospace",
 };
 
-const bookingIdBox: React.CSSProperties = {
-  marginTop: 14,
-  padding: 14,
-  borderRadius: 10,
-  background: "#F8FAFC",
-  border: "1px solid #E6EBF1",
-};
 
-const bookingIdLabelRow: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 5,
-};
 
-const bookingIdText: React.CSSProperties = {
-  marginTop: 5,
-  fontSize: 13,
-  fontWeight: 650,
-  color: "#34495A",
-  wordBreak: "break-all",
-};
+
+
+
 
 const tasksWrapper: React.CSSProperties = {
   display: "flex",

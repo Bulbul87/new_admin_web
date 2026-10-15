@@ -333,6 +333,8 @@ export async function getCities(): Promise<CityOption[]> {
   return extractArray<CityOption>(response);
 }
 
+
+
 // ======================================================
 // GET CITIES BY STATE
 // ======================================================
@@ -352,6 +354,46 @@ export async function getCitiesByState(
 
     return cityStateId === stateId;
   });
+}
+
+
+/* ======================================================
+   ADD CITY
+   POST /services/cities
+====================================================== */
+
+export async function createCity(
+  name: string,
+  stateId: string
+): Promise<CityOption> {
+  const response = await api.post<any>(
+    ENDPOINTS.cities,
+    {
+      name,
+      stateId,
+    }
+  );
+
+  return response.data;
+}
+
+/* ======================================================
+   UPDATE CITY NAME ONLY
+   PUT /services/cities/:id
+====================================================== */
+
+export async function updateCityName(
+  cityId: string,
+  name: string
+): Promise<CityOption> {
+  const response = await api.put<any>(
+    `${ENDPOINTS.cities}/${cityId}`,
+    {
+      name,
+    }
+  );
+
+  return response.data;
 }
 
 // ======================================================

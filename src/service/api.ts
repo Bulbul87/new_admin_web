@@ -1,6 +1,6 @@
 // api.ts (React Web)
 const BASE_URL = 'https://api.senioramerica.us/api';
-
+// const BASE_URL ='http://localhost:5001/api';
 interface RequestOptions {
   method?: string;
   headers?: Record<string, string>;
@@ -61,6 +61,14 @@ class ApiService {
 
   put<T>(endpoint: string, body: any) {
     return this.request<T>(endpoint, { method: 'PUT', body });
+  }
+
+  
+  patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data,
+    });
   }
 
   delete<T>(endpoint: string) {

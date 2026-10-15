@@ -92,8 +92,10 @@ const MessageDetail: React.FC = () => {
   }, [conversation]);
 
   const getParticipantRole = (role?: string) => {
-    if (role === "provider") return "Provider";
-    if (role === "user") return "Requester";
+    if (role?.toLowerCase() === "provider") return "Caregiver";
+    if (role?.toLowerCase() === "user" || role?.toLowerCase() === "requester") {
+      return "Requester";
+    }
     return role || "User";
   };
 
@@ -279,25 +281,7 @@ const MessageDetail: React.FC = () => {
         }}
       >
         <div>
-          <button
-            onClick={() => navigate("/messages")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "7px",
-              border: "none",
-              background: "transparent",
-              color: "#14344A",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: 0,
-              marginBottom: "12px",
-            }}
-          >
-            <ArrowLeft size={17} />
-            Back 
-          </button>
+        
 
           <h1
             style={{
@@ -320,7 +304,16 @@ const MessageDetail: React.FC = () => {
             View complete conversation history
           </p>
         </div>
+        <div className="d-flex gap-2">
 
+  <button
+            onClick={() => navigate("/messages")}
+              className="booking-back-btn "
+           
+          >
+            <ArrowLeft size={17} />
+            Back 
+          </button>
         <button
           onClick={() => loadConversation(page, true)}
           disabled={refreshing}
@@ -329,10 +322,10 @@ const MessageDetail: React.FC = () => {
             alignItems: "center",
             gap: "8px",
             border: "1px solid #d9e1e8",
-            background: "#fff",
-            color: "#14344A",
+            background: "#14344A",
+            color: "#fff",
             borderRadius: "8px",
-            padding: "10px 16px",
+            padding: "9px 16px",
             fontWeight: 600,
             cursor: refreshing ? "not-allowed" : "pointer",
           }}
@@ -347,6 +340,7 @@ const MessageDetail: React.FC = () => {
           />
           Refresh
         </button>
+        </div>
       </div>
 
       {/* ================= PARTICIPANTS ================= */}
@@ -514,6 +508,7 @@ const MessageDetail: React.FC = () => {
         {/* CHAT AREA */}
 
         <div
+          className="message-detail-chat-area"
           style={{
             padding: "28px",
             minHeight: "420px",
@@ -548,47 +543,62 @@ const MessageDetail: React.FC = () => {
               {messages.map((message) => {
                 const sender = message.sender;
                 const senderName = getUserFullName(sender);
+                const isCaregiver = sender?.role?.toLowerCase() === "provider";
 
                 return (
                   <div
                     key={message._id}
                     style={{
                       display: "flex",
-                      justifyContent: "flex-start",
+                      width: "100%",
+                      justifyContent: isCaregiver ? "flex-end" : "flex-start",
+                      alignItems: "flex-start",
                     }}
                   >
                     <div
                       style={{
                         maxWidth: "72%",
                         display: "flex",
+                        flexDirection: isCaregiver ? "row-reverse" : "row",
                         gap: "10px",
                         alignItems: "flex-start",
                       }}
                     >
                       {/* SENDER ICON */}
-
                       <div
                         style={{
                           width: "36px",
                           height: "36px",
                           minWidth: "36px",
                           borderRadius: "50%",
-                          background: "#e8eef3",
+                          background: isCaregiver ? "#d9ecfb" : "#e8eef3",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
+                          marginTop: "2px",
                         }}
                       >
-                        <User size={17} color="#14344A" />
+                        <User
+                          size={17}
+                          color={isCaregiver ? "#1769aa" : "#14344A"}
+                        />
                       </div>
 
-                      {/* MESSAGE */}
-
-                      <div>
+                      {/* MESSAGE CONTENT */}
+                      <div
+                        style={{
+                          minWidth: 0,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: isCaregiver ? "flex-end" : "flex-start",
+                        }}
+                      >
                         <div
                           style={{
                             display: "flex",
+                            flexWrap: "wrap",
                             alignItems: "center",
+                            justifyContent: isCaregiver ? "flex-end" : "flex-start",
                             gap: "8px",
                             marginBottom: "5px",
                           }}
@@ -609,14 +619,8 @@ const MessageDetail: React.FC = () => {
                                 fontSize: "10px",
                                 padding: "3px 7px",
                                 borderRadius: "20px",
-                                background:
-                                  sender.role === "provider"
-                                    ? "#e8f4ff"
-                                    : "#eefbf2",
-                                color:
-                                  sender.role === "provider"
-                                    ? "#1671b9"
-                                    : "#16803c",
+                                background: isCaregiver ? "#e8f4ff" : "#eefbf2",
+                                color: isCaregiver ? "#1671b9" : "#16803c",
                                 fontWeight: 600,
                               }}
                             >
@@ -627,18 +631,23 @@ const MessageDetail: React.FC = () => {
 
                         <div
                           style={{
-                            background: "#fff",
-                            border: "1px solid #e5eaf0",
-                            borderRadius: "4px 14px 14px 14px",
+                            background: isCaregiver ? "#ddf3e7" : "#ffffff",
+                            border: isCaregiver
+                              ? "1px solid #c7e7d5"
+                              : "1px solid #e1e8f0",
+                            borderRadius: isCaregiver
+                              ? "14px 4px 14px 14px"
+                              : "4px 14px 14px 14px",
                             padding: "12px 14px",
-                            boxShadow:
-                              "0 2px 6px rgba(20,52,74,0.04)",
+                            boxShadow: "0 2px 6px rgba(20,52,74,0.04)",
+                            overflowWrap: "anywhere",
+                            minWidth: "70px",
                           }}
                         >
                           <div
                             style={{
                               display: "flex",
-                              alignItems: "center",
+                              alignItems: "flex-start",
                               gap: "7px",
                               color: "#14344A",
                               fontSize: "14px",
@@ -646,18 +655,14 @@ const MessageDetail: React.FC = () => {
                             }}
                           >
                             {message.messageType !== "text" &&
-                              getMessageIcon(
-                                message.messageType
-                              )}
+                              getMessageIcon(message.messageType)}
 
                             <span
                               style={{
-                                fontStyle: message.isDeleted
-                                  ? "italic"
-                                  : "normal",
-                                color: message.isDeleted
-                                  ? "#98A2B3"
-                                  : "#344054",
+                                fontStyle: message.isDeleted ? "italic" : "normal",
+                                color: message.isDeleted ? "#98A2B3" : "#344054",
+                                whiteSpace: "pre-wrap",
+                                overflowWrap: "anywhere",
                               }}
                             >
                               {getMessageContent(message)}
@@ -665,7 +670,6 @@ const MessageDetail: React.FC = () => {
                           </div>
 
                           {/* MEDIA URL */}
-
                           {message.media?.url && (
                             <div
                               style={{
@@ -691,7 +695,7 @@ const MessageDetail: React.FC = () => {
                             <span
                               style={{
                                 fontSize: "10px",
-                                color: "#98A2B3",
+                                color: "#8290a0",
                               }}
                             >
                               {formatTime(message.createdAt)}
@@ -812,6 +816,12 @@ const MessageDetail: React.FC = () => {
             }
             to {
               transform: rotate(360deg);
+            }
+          }
+
+          @media (max-width: 700px) {
+            .message-detail-chat-area {
+              padding: 16px !important;
             }
           }
         `}

@@ -131,25 +131,7 @@ const ViewMessages = () => {
       >
         <div>
 
-             <button
-            onClick={() => navigate("/provider-status")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "7px",
-              border: "none",
-              background: "transparent",
-              color: "#14344A",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: 0,
-              marginBottom: "12px",
-            }}
-          >
-            <ArrowLeft size={17} />
-            Back 
-          </button>
+            
           <h1
             style={{
               color: "#14344A",
@@ -168,9 +150,18 @@ const ViewMessages = () => {
               marginTop: "6px",
             }}
           >
-            View conversations between users and providers
+            View conversations between users and Caregivers
           </p>
         </div>
+        <div className="d-flex gap-2">
+         <button
+            onClick={() => navigate("/provider-status")}
+              className="booking-back-btn "
+           
+          >
+            <ArrowLeft size={17} />
+            Back 
+          </button>
 
         <button
           onClick={handleRefresh}
@@ -181,7 +172,7 @@ const ViewMessages = () => {
             gap: "8px",
             border: "none",
             borderRadius: "8px",
-            padding: "10px 16px",
+            padding: "9px 16px",
             background: "#14344A",
             color: "#fff",
             cursor: refreshing ? "not-allowed" : "pointer",
@@ -197,6 +188,7 @@ const ViewMessages = () => {
 
           {refreshing ? "Refreshing..." : "Refresh"}
         </button>
+        </div>
       </div>
 
       {/* STATS */}
@@ -536,7 +528,11 @@ const ViewMessages = () => {
                           textTransform: "capitalize",
                         }}
                       >
-                        {user.role || "user"}
+                       {user.role?.toLowerCase() === "provider"
+  ? "Caregiver"
+  : user.role?.toLowerCase() === "requester"
+    ? "Requester"
+    : user.role || "user"}
                       </span>
                     </div>
                   ))}

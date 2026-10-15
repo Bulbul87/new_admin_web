@@ -1,5 +1,5 @@
 import { api } from "../service/api";
-
+// import { testapi } from "../service/testapi";
 export interface AccessCodeVisit {
   _id: string;
 
@@ -177,7 +177,9 @@ export interface AccessCodeVisit {
   updatedAt?: string;
 }
 
-export interface PopulatedUser { _id: string; firstName?: string; lastName?: string; email?: string; }
+export interface PopulatedUser { _id: string;  requestorInfo?: {
+    publicRequesterId?: string;
+  }; firstName?: string; lastName?: string; email?: string; }
 
 export interface PopulatedService { _id: string; name?: string; }
 
@@ -242,7 +244,7 @@ export const getAllAccessCodeVisits = async (params?: {
   }
 
   const response = await fetch(
-    `'https://api.senioramerica.us/api/admin/access-codes?${query.toString()}`,
+    `https://api.senioramerica.us/api/admin/access-codes?${query.toString()}`,
     {
       method: "GET",
       headers: {

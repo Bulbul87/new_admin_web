@@ -17,25 +17,7 @@ const ProviderOnlineOfflineStatus = () => {
       }}
     >
 
-             <button
-            onClick={() => navigate("/users")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "7px",
-              border: "none",
-              background: "transparent",
-              color: "#14344A",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: 0,
-              marginBottom: "12px",
-            }}
-          >
-            <ArrowLeft size={17} />
-            Back
-          </button>
+           
       <div
         style={{
           display: "flex",
@@ -53,16 +35,24 @@ const ProviderOnlineOfflineStatus = () => {
             margin: 0,
           }}
         >
-          Provider Online/Offline Status
+          Caregiver Online/Offline Status
         </h1>
 
+        <div className="d-flex gap-2">
+  <button
+            onClick={() => navigate("/users")}
+             className="booking-back-btn "
+          >
+            <ArrowLeft size={17} />
+            Back
+          </button>
         <button
           onClick={() => navigate("/messages")}
           style={{
             background: "linear-gradient(135deg, #14344A, #163A5F)",
             color: "#fff",
             border: "none",
-            padding: "11px 20px",
+            padding: "10px 20px",
             borderRadius: "8px",
             fontSize: "14px",
             fontWeight: 600,
@@ -72,6 +62,7 @@ const ProviderOnlineOfflineStatus = () => {
         >
           View Messages
         </button>
+        </div>
       </div>
     </div>
   );

@@ -93,6 +93,8 @@ export interface ServiceCatalogItem {
   isActive?: boolean;
   price?: number;
   duration?: number;
+  minHours?:number;
+  maxHours?:number;
   progressTimeMinutes?: number;
   operationalSubServiceId?: string;
 }

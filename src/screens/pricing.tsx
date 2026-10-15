@@ -575,7 +575,7 @@ const Pricing: React.FC = () => {
       provider < 0
     ) {
       nextErrors.providerPrice =
-        "Enter a valid provider price.";
+        "Enter a valid Caregiver price.";
     }
 
     setErrors(nextErrors);
@@ -795,11 +795,29 @@ const Pricing: React.FC = () => {
         <div
           style={{
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent:"space-between",
             gap:"4px",
           }}
         >
-           <button
+          
+              <button onClick={() => navigate("/manage-cities")}
+                style={{
+            background: "linear-gradient(135deg, #14344A, #163A5F)",
+            color: "#fff",
+            border: "none",
+            padding: "8px 20px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+          }}
+                >
+  Manage Cities
+</button>
+<div className="d-flex gap-2">
+
+ <button
                 onClick={() => navigate("/view-pricing")}
                 className="booking-back-btn"
               >
@@ -838,6 +856,7 @@ const Pricing: React.FC = () => {
 
             Refresh
           </button>
+          </div>
         </div>
       </div>
 
@@ -1429,7 +1448,7 @@ const Pricing: React.FC = () => {
                     marginBottom: 10,
                   }}
                 >
-                  Provider Price
+                  Caregiver Price
                 </label>
 
                 <div
@@ -1460,7 +1479,7 @@ const Pricing: React.FC = () => {
                         e.target.value
                       )
                     }
-                    placeholder="Provider Price"
+                    placeholder="Caregiver Price"
                     style={{
                       width: "100%",
                       padding:

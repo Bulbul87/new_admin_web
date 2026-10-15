@@ -1273,7 +1273,7 @@ const PricingRules: React.FC = () => {
                   Requester Price
                 </th>
                 <th style={headerStyle}>
-                  Provider Price
+                  Caregiver Price
                 </th>
               </tr>
             </thead>

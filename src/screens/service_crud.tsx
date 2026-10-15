@@ -606,19 +606,8 @@ const ServiceCrudScreen: React.FC = () => {
         <div>
                 <button
             onClick={() => navigate("/services")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "7px",
-              border: "none",
-              background: "transparent",
-              color: "#14344A",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: 0,
-              marginBottom: "12px",
-            }}
+            className="booking-back-btn "
+           
           >
             <ArrowLeft size={17} />
             Back 

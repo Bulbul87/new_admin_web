@@ -229,7 +229,6 @@ const Sidebar = () => {
           src={logo}
           alt="Senior America Logo"
           style={{
-            height: 48,
             objectFit: "contain",
           }}
         />
