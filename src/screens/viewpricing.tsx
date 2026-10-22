@@ -12,9 +12,12 @@ import {
   Search,
 } from "lucide-react";
 
+
+
 import {
   getCities,
-  getPricingRules,
+  filterPricingRules,
+  searchPricingRules,
   getServiceCatalog,
   getStates,
   getParentServices,
@@ -74,8 +77,11 @@ const PricingRules: React.FC = () => {
 
   const [search, setSearch] = useState("");
 
+  
+
+
   // ============================================
-  // Load Data
+  // Load Master Data + Server-Side Pricing Search
   // ============================================
 
   const loadData = useCallback(async () => {
@@ -87,33 +93,39 @@ const PricingRules: React.FC = () => {
         statesData,
         citiesData,
         servicesData,
-        pricingResponse,
       ] = await Promise.all([
         getStates(),
         getCities(),
         getServiceCatalog(),
-        getPricingRules(currentPage, itemsPerPage),
       ]);
-
-      console.log("VIEW PRICING - STATES:", statesData);
-      console.log("VIEW PRICING - CITIES:", citiesData);
-      console.log(
-        "VIEW PRICING - SERVICE CATALOG:",
-        servicesData
-      );
-      console.log(
-        "VIEW PRICING - PRICING RULES:",
-        pricingResponse
-      );
 
       setStates(statesData);
       setCities(citiesData);
       setServices(servicesData);
 
-      // Current page pricing records
-      setPricingRules(pricingResponse.data);
+      const params = {
+        stateId: selectedStateId || undefined,
+        cityId: selectedCityId || undefined,
+        categoryId: selectedParentServiceId || undefined,
+        serviceId: selectedServiceId || undefined,
+        search: search.trim() || undefined,
+        page: currentPage,
+        limit: itemsPerPage,
+      };
 
-      // Backend pagination information
+      // Search and filters are applied by the backend,
+      // so records from every database page can match.
+      const pricingResponse = search.trim()
+        ? await searchPricingRules(params)
+        : await filterPricingRules(params);
+
+      setPricingRules(
+        Array.isArray(pricingResponse.data)
+          ? pricingResponse.data
+          : []
+      );
+
+      // These totals now represent the matching database results.
       setTotalRecords(
         pricingResponse.pagination?.total ?? 0
       );
@@ -129,13 +141,25 @@ const PricingRules: React.FC = () => {
           ? err.message
           : "Unable to load pricing rules."
       );
+
+      setPricingRules([]);
+      setTotalRecords(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    selectedStateId,
+    selectedCityId,
+    selectedParentServiceId,
+    selectedServiceId,
+    search,
+  ]);
 
   // ============================================
-  // Initial Load / Page Change
+  // Initial Load / Page / Search / Filter Change
   // ============================================
 
   useEffect(() => {
@@ -149,6 +173,8 @@ const PricingRules: React.FC = () => {
   const handleRefresh = async () => {
     await loadData();
   };
+
+
 
   // ============================================
   // Category lookup
@@ -412,156 +438,26 @@ const PricingRules: React.FC = () => {
   // Filtered Pricing Rules
   // ============================================
 
-  const filteredPricingRules = useMemo(() => {
-    return pricingRules.filter((rule) => {
-      // ==========================================
-      // State
-      // ==========================================
+// ============================================
+// Server-Filtered Pricing Rules
+// ============================================
 
-      if (selectedStateId) {
-        const ruleStateId = String(
-          rule.stateId?._id || ""
-        );
-
-        if (ruleStateId !== String(selectedStateId)) {
-          return false;
-        }
-      }
-
-      // ==========================================
-      // City
-      // ==========================================
-
-      if (selectedCityId) {
-        const ruleCityId = String(
-          rule.cityId?._id || ""
-        );
-
-        if (ruleCityId !== String(selectedCityId)) {
-          return false;
-        }
-      }
-
-      // ==========================================
-      // Service Category
-      // ==========================================
-
-      if (selectedParentServiceId) {
-        const parent = getCategoryForRule(rule);
-
-        if (!parent) {
-          return false;
-        }
-
-        const parentCategoryId = String(
-          parent.categoryId || ""
-        ).trim();
-
-        const selectedCategoryId = String(
-          selectedParentServiceId
-        ).trim();
-
-        // IMPORTANT:
-        // Compare business categoryId
-        if (
-          parentCategoryId !==
-          selectedCategoryId
-        ) {
-          return false;
-        }
-      }
-
-      // ==========================================
-      // Child Service
-      // ==========================================
-
-      if (selectedServiceId) {
-        const service = getServiceForRule(rule);
-
-        if (!service) {
-          return false;
-        }
-
-        const serviceBusinessId = String(
-          service.servId || ""
-        ).trim();
-
-        const selectedBusinessServiceId =
-          String(selectedServiceId).trim();
-
-        // IMPORTANT:
-        // Compare business servId
-        if (
-          serviceBusinessId !==
-          selectedBusinessServiceId
-        ) {
-          return false;
-        }
-      }
-
-      // ==========================================
-      // Search
-      // ==========================================
-
-      if (search.trim()) {
-        const keyword = search
-          .trim()
-          .toLowerCase();
-
-        const parentName =
-          getCategoryName(rule);
-
-        const childName =
-          getServiceName(rule);
-
-        const stateName =
-          rule.stateId?.name ?? "";
-
-        const cityName =
-          rule.cityId?.name ?? "";
-
-        const found =
-          stateName
-            .toLowerCase()
-            .includes(keyword) ||
-          cityName
-            .toLowerCase()
-            .includes(keyword) ||
-          parentName
-            .toLowerCase()
-            .includes(keyword) ||
-          childName
-            .toLowerCase()
-            .includes(keyword);
-
-        if (!found) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [
-    pricingRules,
-    selectedStateId,
-    selectedCityId,
-    selectedParentServiceId,
-    selectedServiceId,
-    search,
-    services,
-  ]);
+const filteredPricingRules = useMemo(() => {
+  return pricingRules;
+}, [pricingRules]);
 
   // ============================================
   // Clear Filters
   // ============================================
 
-  const clearFilters = () => {
-    setSelectedStateId("");
-    setSelectedCityId("");
-    setSelectedParentServiceId("");
-    setSelectedServiceId("");
-    setSearch("");
-  };
+const clearFilters = () => {
+  setSelectedStateId("");
+  setSelectedCityId("");
+  setSelectedParentServiceId("");
+  setSelectedServiceId("");
+  setSearch("");
+  setCurrentPage(1);
+};
 
   // ============================================
   // Loading UI
@@ -777,7 +673,7 @@ const PricingRules: React.FC = () => {
               fontSize: 20,
             }}
           >
-            {filteredPricingRules.length}
+           {totalRecords}
           </h1>
         </div>
 
@@ -947,6 +843,7 @@ const PricingRules: React.FC = () => {
                 onChange={(e) => {
                   setSelectedStateId(e.target.value);
                   setSelectedCityId("");
+                   setCurrentPage(1);
                 }}
                 style={{
                   width: "100%",
@@ -988,9 +885,10 @@ const PricingRules: React.FC = () => {
               <select
                 value={selectedCityId}
                 disabled={!selectedStateId}
-                onChange={(e) =>
-                  setSelectedCityId(e.target.value)
-                }
+               onChange={(e) => {
+  setSelectedCityId(e.target.value);
+  setCurrentPage(1);
+}}
                 style={{
                   width: "100%",
                   padding: 16,
@@ -1086,6 +984,7 @@ const PricingRules: React.FC = () => {
                   );
 
                   setSelectedServiceId("");
+                  setCurrentPage(1);
                 }}
                 style={{
                   width: "100%",
@@ -1131,6 +1030,7 @@ const PricingRules: React.FC = () => {
                   setSelectedServiceId(
                     e.target.value
                   );
+                   setCurrentPage(1);
                 }}
                 style={{
                   width: "100%",
@@ -1188,9 +1088,10 @@ const PricingRules: React.FC = () => {
             <input
               type="text"
               value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
+              onChange={(e) => {
+  setSearch(e.target.value);
+  setCurrentPage(1);
+}}
               placeholder="Search data by state, city, services"
               style={{
                 border: "none",
@@ -1274,6 +1175,9 @@ const PricingRules: React.FC = () => {
                 </th>
                 <th style={headerStyle}>
                   Caregiver Price
+                </th>
+                 <th style={headerStyle}>
+                 Sales Tax (%)
                 </th>
               </tr>
             </thead>
@@ -1374,6 +1278,17 @@ const PricingRules: React.FC = () => {
                         >
                           <span>
                             ${rule.providerPrice}
+                          </span>
+                        </td>
+                        {/* PROVIDER PRICE */}
+                        <td
+                          style={{
+                            ...cellStyle,
+                            borderRight: "none",
+                          }}
+                        >
+                          <span>
+                            {Number(rule.Tax).toFixed(2)}%
                           </span>
                         </td>
                       </tr>

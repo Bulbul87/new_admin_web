@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -14,18 +15,18 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import {
   serviceApi,
- type ServiceCatalogCategory,
- type ServiceCatalogItem,
+  type ServiceCatalogCategory,
+  type ServiceCatalogItem,
 } from "../service/service_catlog";
 
 import "./service_crud.css";
-import { useNavigate } from "react-router-dom";
 
 // ============================================================
-// TYPES modified from service_catlog.ts
+// TYPES
 // ============================================================
 
 type ModalType =
@@ -35,38 +36,85 @@ type ModalType =
   | "edit-service"
   | null;
 
+type DurationUnit = "minutes" | "hours" | "days";
+
 interface CategoryForm {
+  categoryId: string;
   categoryName: string;
-  description: string;
   icon: string;
   sortOrder: string;
   isActive: boolean;
+  category: string;
+  careTier: string;
+  serviceBookingFee: string;
+  progressTimeMinutes: string;
+  durationValue: string;
+  durationUnit: DurationUnit;
 }
 
 interface ServiceForm {
   serviceName: string;
   servId: string;
   description: string;
+  icon: string;
+  sortOrder: string;
   isActive: boolean;
+  duration: string;
+  progressTimeMinutes: string;
+  minHours: string;
+  maxHours: string;
 }
 
 // ============================================================
-// DEFAULT VALUES
+// DEFAULT FORMS
 // ============================================================
 
 const emptyCategoryForm: CategoryForm = {
+  categoryId: "",
   categoryName: "",
-  description: "",
   icon: "",
-  sortOrder: "",
+  sortOrder: "0",
   isActive: true,
+  category: "",
+  careTier: "",
+  serviceBookingFee: "0",
+  progressTimeMinutes: "",
+  durationValue: "60",
+  durationUnit: "minutes",
 };
 
 const emptyServiceForm: ServiceForm = {
   serviceName: "",
   servId: "",
   description: "",
+  icon: "",
+  sortOrder: "0",
   isActive: true,
+  duration: "60",
+  progressTimeMinutes: "60",
+  minHours: "",
+  maxHours: "",
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+const getErrorMessage = (err: any, fallback: string) =>
+  err?.response?.data?.message || err?.message || fallback;
+
+const toOptionalNumber = (value: string): number | undefined => {
+  if (value.trim() === "") return undefined;
+
+  const number = Number(value);
+  return Number.isFinite(number) ? number : undefined;
+};
+
+const toRequiredNumber = (value: string, fallback = 0): number => {
+  const number = Number(value);
+  return value.trim() !== "" && Number.isFinite(number)
+    ? number
+    : fallback;
 };
 
 // ============================================================
@@ -74,50 +122,33 @@ const emptyServiceForm: ServiceForm = {
 // ============================================================
 
 const ServiceCrudScreen: React.FC = () => {
-
   const navigate = useNavigate();
-  // ----------------------------------------------------------
-  // DATA
-  // ----------------------------------------------------------
 
+  // DATA
   const [categories, setCategories] = useState<ServiceCatalogCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // ----------------------------------------------------------
   // UI STATE
-  // ----------------------------------------------------------
-
   const [search, setSearch] = useState("");
-  const [expandedCategories, setExpandedCategories] = useState<
-    Record<string, boolean>
-  >({});
-
+  const [expandedCategories, setExpandedCategories] =
+    useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<ModalType>(null);
 
   const [selectedCategory, setSelectedCategory] =
     useState<ServiceCatalogCategory | null>(null);
-
   const [selectedService, setSelectedService] =
     useState<ServiceCatalogItem | null>(null);
 
-  // ----------------------------------------------------------
   // FORMS
-  // ----------------------------------------------------------
-
   const [categoryForm, setCategoryForm] =
-    useState<CategoryForm>(emptyCategoryForm);
-
+    useState<CategoryForm>({ ...emptyCategoryForm });
   const [serviceForm, setServiceForm] =
-    useState<ServiceForm>(emptyServiceForm);
+    useState<ServiceForm>({ ...emptyServiceForm });
 
-  // ----------------------------------------------------------
   // ACTION STATE
-  // ----------------------------------------------------------
-
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -136,25 +167,23 @@ const ServiceCrudScreen: React.FC = () => {
       }
 
       const response = await serviceApi.getServiceCatalog();
+      const list = response.categories || [];
 
-      setCategories(response.categories || []);
+      setCategories(list);
 
-      // Expand categories by default
-      const expanded: Record<string, boolean> = {};
+      setExpandedCategories((previous) => {
+        const expanded: Record<string, boolean> = {};
 
-      (response.categories || []).forEach((category) => {
-        expanded[category._id] = true;
+        list.forEach((category) => {
+          expanded[category._id] =
+            previous[category._id] ?? true;
+        });
+
+        return expanded;
       });
-
-      setExpandedCategories(expanded);
     } catch (err: any) {
       console.error("Failed to load service catalog:", err);
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load service catalog."
-      );
+      setError(getErrorMessage(err, "Failed to load service catalog."));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -162,11 +191,11 @@ const ServiceCrudScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadCategories();
+    void loadCategories();
   }, [loadCategories]);
 
   // ==========================================================
-  // FILTER
+  // SEARCH
   // ==========================================================
 
   const filteredCategories = useMemo(() => {
@@ -176,9 +205,11 @@ const ServiceCrudScreen: React.FC = () => {
 
     return categories
       .map((category) => {
-        const categoryMatch =
+        const categoryMatches =
           category.categoryName?.toLowerCase().includes(query) ||
-          category.categoryId?.toLowerCase().includes(query);
+          category.categoryId?.toLowerCase().includes(query) ||
+          category.category?.toLowerCase().includes(query) ||
+          category.careTier?.toLowerCase().includes(query);
 
         const matchingServices = (category.services || []).filter(
           (service) =>
@@ -187,15 +218,10 @@ const ServiceCrudScreen: React.FC = () => {
             service.description?.toLowerCase().includes(query)
         );
 
-        if (categoryMatch) {
-          return category;
-        }
+        if (categoryMatches) return category;
 
         if (matchingServices.length > 0) {
-          return {
-            ...category,
-            services: matchingServices,
-          };
+          return { ...category, services: matchingServices };
         }
 
         return null;
@@ -204,20 +230,23 @@ const ServiceCrudScreen: React.FC = () => {
   }, [categories, search]);
 
   // ==========================================================
-  // STATS
+  // STATISTICS
   // ==========================================================
 
   const totalServices = useMemo(
     () =>
       categories.reduce(
-        (total, category) => total + (category.services?.length || 0),
+        (total, category) =>
+          total + (category.services?.length || 0),
         0
       ),
     [categories]
   );
 
   const activeCategories = useMemo(
-    () => categories.filter((category) => category.isActive !== false).length,
+    () =>
+      categories.filter((category) => category.isActive !== false)
+        .length,
     [categories]
   );
 
@@ -235,12 +264,27 @@ const ServiceCrudScreen: React.FC = () => {
   );
 
   // ==========================================================
+  // CLOSE MODAL
+  // ==========================================================
+
+  const closeModal = () => {
+    if (saving) return;
+
+    setModal(null);
+    setSelectedCategory(null);
+    setSelectedService(null);
+    setCategoryForm({ ...emptyCategoryForm });
+    setServiceForm({ ...emptyServiceForm });
+    setError("");
+  };
+
+  // ==========================================================
   // CATEGORY MODAL
   // ==========================================================
 
   const openCreateCategory = () => {
     setSelectedCategory(null);
-    setCategoryForm(emptyCategoryForm);
+    setCategoryForm({ ...emptyCategoryForm });
     setError("");
     setModal("create-category");
   };
@@ -249,19 +293,46 @@ const ServiceCrudScreen: React.FC = () => {
     setSelectedCategory(category);
 
     setCategoryForm({
+      categoryId: category.categoryId || "",
       categoryName: category.categoryName || "",
-      description: "",
-      icon: "",
-      sortOrder:
-        category.sortOrder !== undefined
-          ? String(category.sortOrder)
-          : "",
+      icon: category.icon || "",
+      sortOrder: String(category.sortOrder ?? 0),
       isActive: category.isActive !== false,
+      category: category.category || "",
+      careTier: category.careTier || "",
+      serviceBookingFee: String(category.serviceBookingFee ?? 0),
+      progressTimeMinutes: String(category.progressTimeMinutes ?? ""),
+      durationValue: String(category.duration?.value ?? 60),
+      durationUnit: category.duration?.unit || "minutes",
     });
 
     setError("");
     setModal("edit-category");
   };
+
+  // ==========================================================
+  // CATEGORY PAYLOAD
+  // ==========================================================
+
+  const getCategoryPayload = () => ({
+    categoryId: categoryForm.categoryId.trim() || undefined,
+    categoryName: categoryForm.categoryName.trim(),
+    icon: categoryForm.icon.trim() || undefined,
+    sortOrder: toRequiredNumber(categoryForm.sortOrder),
+    isActive: categoryForm.isActive,
+    category: categoryForm.category.trim() || undefined,
+    careTier: categoryForm.careTier.trim() || undefined,
+    serviceBookingFee: toRequiredNumber(
+      categoryForm.serviceBookingFee
+    ),
+    progressTimeMinutes: toOptionalNumber(
+      categoryForm.progressTimeMinutes
+    ),
+    duration: {
+      value: toRequiredNumber(categoryForm.durationValue, 60),
+      unit: categoryForm.durationUnit,
+    },
+  });
 
   // ==========================================================
   // CREATE CATEGORY
@@ -273,34 +344,31 @@ const ServiceCrudScreen: React.FC = () => {
       return;
     }
 
+    if (
+      Number(categoryForm.sortOrder) < 0 ||
+      Number(categoryForm.serviceBookingFee) < 0 ||
+      Number(categoryForm.durationValue) <= 0 ||
+      (categoryForm.progressTimeMinutes.trim() !== "" &&
+        Number(categoryForm.progressTimeMinutes) < 0)
+    ) {
+      setError("Please enter valid non-negative values and a duration greater than zero.");
+      return;
+    }
+
     try {
       setSaving(true);
       setError("");
 
-      await serviceApi.createServiceCategory({
-        categoryName: categoryForm.categoryName.trim(),
-        description: categoryForm.description.trim() || undefined,
-        icon: categoryForm.icon.trim() || undefined,
-        sortOrder: categoryForm.sortOrder
-          ? Number(categoryForm.sortOrder)
-          : undefined,
-        isActive: categoryForm.isActive,
-      });
+      await serviceApi.createServiceCategory(getCategoryPayload());
 
-      closeModal();
-
+      setModal(null);
       setSuccess("Category created successfully.");
       await loadCategories();
 
-      setTimeout(() => setSuccess(""), 3000);
+      window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Create category error:", err);
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to create category."
-      );
+      setError(getErrorMessage(err, "Failed to create category."));
     } finally {
       setSaving(false);
     }
@@ -318,34 +386,34 @@ const ServiceCrudScreen: React.FC = () => {
       return;
     }
 
+    if (
+      Number(categoryForm.sortOrder) < 0 ||
+      Number(categoryForm.serviceBookingFee) < 0 ||
+      Number(categoryForm.durationValue) <= 0 ||
+      (categoryForm.progressTimeMinutes.trim() !== "" &&
+        Number(categoryForm.progressTimeMinutes) < 0)
+    ) {
+      setError("Please enter valid non-negative values and a duration greater than zero.");
+      return;
+    }
+
     try {
       setSaving(true);
       setError("");
 
-      await serviceApi.updateServiceCategory(selectedCategory._id, {
-        categoryName: categoryForm.categoryName.trim(),
-        description: categoryForm.description.trim() || undefined,
-        icon: categoryForm.icon.trim() || undefined,
-        sortOrder: categoryForm.sortOrder
-          ? Number(categoryForm.sortOrder)
-          : undefined,
-        isActive: categoryForm.isActive,
-      });
+      await serviceApi.updateServiceCategory(
+        selectedCategory._id,
+        getCategoryPayload()
+      );
 
-      closeModal();
-
+      setModal(null);
       setSuccess("Category updated successfully.");
       await loadCategories();
 
-      setTimeout(() => setSuccess(""), 3000);
+      window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Update category error:", err);
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to update category."
-      );
+      setError(getErrorMessage(err, "Failed to update category."));
     } finally {
       setSaving(false);
     }
@@ -358,13 +426,11 @@ const ServiceCrudScreen: React.FC = () => {
   const handleDeleteCategory = async (
     category: ServiceCatalogCategory
   ) => {
-    const serviceCount = category.services?.length || 0;
+    const count = category.services?.length || 0;
 
     const message =
-      serviceCount > 0
-        ? `This category contains ${serviceCount} service${
-            serviceCount > 1 ? "s" : ""
-          }. Are you sure you want to delete the category?`
+      count > 0
+        ? `This category contains ${count} service(s). Are you sure you want to delete it?`
         : "Are you sure you want to delete this category?";
 
     if (!window.confirm(message)) return;
@@ -378,15 +444,10 @@ const ServiceCrudScreen: React.FC = () => {
       setSuccess("Category deleted successfully.");
       await loadCategories();
 
-      setTimeout(() => setSuccess(""), 3000);
+      window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Delete category error:", err);
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to delete category."
-      );
+      setError(getErrorMessage(err, "Failed to delete category."));
     } finally {
       setDeleting(false);
     }
@@ -399,12 +460,12 @@ const ServiceCrudScreen: React.FC = () => {
   const openCreateService = (category: ServiceCatalogCategory) => {
     setSelectedCategory(category);
     setSelectedService(null);
-    setServiceForm(emptyServiceForm);
+    setServiceForm({ ...emptyServiceForm });
     setError("");
     setModal("create-service");
 
-    setExpandedCategories((prev) => ({
-      ...prev,
+    setExpandedCategories((previous) => ({
+      ...previous,
       [category._id]: true,
     }));
   };
@@ -420,7 +481,15 @@ const ServiceCrudScreen: React.FC = () => {
       serviceName: service.name || "",
       servId: service.servId || "",
       description: service.description || "",
+      icon: service.icon || "",
+      sortOrder: String(service.sortOrder ?? 0),
       isActive: service.isActive !== false,
+      duration: String(service.duration ?? 60),
+      progressTimeMinutes: String(
+        service.progressTimeMinutes ?? 60
+      ),
+      minHours: String(service.minHours ?? ""),
+      maxHours: String(service.maxHours ?? ""),
     });
 
     setError("");
@@ -428,42 +497,84 @@ const ServiceCrudScreen: React.FC = () => {
   };
 
   // ==========================================================
+  // SERVICE PAYLOAD
+  // ==========================================================
+
+  const getServicePayload = () => ({
+    servId: serviceForm.servId.trim() || null,
+    serviceName: serviceForm.serviceName.trim(),
+    description: serviceForm.description.trim() || undefined,
+    icon: serviceForm.icon.trim() || undefined,
+    sortOrder: toRequiredNumber(serviceForm.sortOrder),
+    isActive: serviceForm.isActive,
+    duration: toRequiredNumber(serviceForm.duration, 60),
+    progressTimeMinutes: toRequiredNumber(
+      serviceForm.progressTimeMinutes,
+      60
+    ),
+    minHours: toOptionalNumber(serviceForm.minHours),
+    maxHours: toOptionalNumber(serviceForm.maxHours),
+  });
+
+  // ==========================================================
+  // SERVICE VALIDATION
+  // ==========================================================
+
+  const validateServiceForm = () => {
+    if (!serviceForm.serviceName.trim()) {
+      setError("Service name is required.");
+      return false;
+    }
+
+    if (
+      Number(serviceForm.sortOrder) < 0 ||
+      Number(serviceForm.duration) <= 0 ||
+      Number(serviceForm.progressTimeMinutes) < 0 ||
+      (serviceForm.minHours.trim() !== "" &&
+        Number(serviceForm.minHours) < 0) ||
+      (serviceForm.maxHours.trim() !== "" &&
+        Number(serviceForm.maxHours) < 0)
+    ) {
+      setError("Please enter valid service values.");
+      return false;
+    }
+
+    if (
+      serviceForm.minHours.trim() !== "" &&
+      serviceForm.maxHours.trim() !== "" &&
+      Number(serviceForm.minHours) > Number(serviceForm.maxHours)
+    ) {
+      setError("Minimum hours cannot exceed maximum hours.");
+      return false;
+    }
+
+    return true;
+  };
+
+  // ==========================================================
   // CREATE SERVICE
   // ==========================================================
 
   const handleCreateService = async () => {
-    if (!selectedCategory) return;
-
-    if (!serviceForm.serviceName.trim()) {
-      setError("Service name is required.");
-      return;
-    }
+    if (!selectedCategory || !validateServiceForm()) return;
 
     try {
       setSaving(true);
       setError("");
 
-      await serviceApi.addServiceToCategory(selectedCategory._id, {
-        servId: serviceForm.servId.trim() || null,
-        serviceName: serviceForm.serviceName.trim(),
-        description: serviceForm.description.trim() || undefined,
-        isActive: serviceForm.isActive,
-      });
+      await serviceApi.addServiceToCategory(
+        selectedCategory._id,
+        getServicePayload()
+      );
 
-      closeModal();
-
+      setModal(null);
       setSuccess("Service added successfully.");
       await loadCategories();
 
-      setTimeout(() => setSuccess(""), 3000);
+      window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Create service error:", err);
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to add service."
-      );
+      setError(getErrorMessage(err, "Failed to add service."));
     } finally {
       setSaving(false);
     }
@@ -476,15 +587,12 @@ const ServiceCrudScreen: React.FC = () => {
   const handleUpdateService = async () => {
     if (!selectedCategory || !selectedService) return;
 
-    if (!serviceForm.serviceName.trim()) {
-      setError("Service name is required.");
-      return;
-    }
-
     if (!selectedService._id) {
       setError("Service ID is missing.");
       return;
     }
+
+    if (!validateServiceForm()) return;
 
     try {
       setSaving(true);
@@ -493,28 +601,17 @@ const ServiceCrudScreen: React.FC = () => {
       await serviceApi.updateServiceInCategory(
         selectedCategory._id,
         selectedService._id,
-        {
-          serviceName: serviceForm.serviceName.trim(),
-          servId: serviceForm.servId.trim() || null,
-          description: serviceForm.description.trim() || undefined,
-          isActive: serviceForm.isActive,
-        }
+        getServicePayload()
       );
 
-      closeModal();
-
+      setModal(null);
       setSuccess("Service updated successfully.");
       await loadCategories();
 
-      setTimeout(() => setSuccess(""), 3000);
+      window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Update service error:", err);
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to update service."
-      );
+      setError(getErrorMessage(err, "Failed to update service."));
     } finally {
       setSaving(false);
     }
@@ -533,11 +630,7 @@ const ServiceCrudScreen: React.FC = () => {
       return;
     }
 
-    if (
-      !window.confirm(
-        `Are you sure you want to delete "${service.name}"?`
-      )
-    ) {
+    if (!window.confirm(`Are you sure you want to delete "${service.name}"?`)) {
       return;
     }
 
@@ -553,15 +646,10 @@ const ServiceCrudScreen: React.FC = () => {
       setSuccess("Service deleted successfully.");
       await loadCategories();
 
-      setTimeout(() => setSuccess(""), 3000);
+      window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Delete service error:", err);
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to delete service."
-      );
+      setError(getErrorMessage(err, "Failed to delete service."));
     } finally {
       setDeleting(false);
     }
@@ -572,23 +660,10 @@ const ServiceCrudScreen: React.FC = () => {
   // ==========================================================
 
   const toggleCategory = (categoryId: string) => {
-    setExpandedCategories((prev) => ({
-      ...prev,
-      [categoryId]: !prev[categoryId],
+    setExpandedCategories((previous) => ({
+      ...previous,
+      [categoryId]: !previous[categoryId],
     }));
-  };
-
-  // ==========================================================
-  // CLOSE MODAL
-  // ==========================================================
-
-  const closeModal = () => {
-    setModal(null);
-    setSelectedCategory(null);
-    setSelectedService(null);
-    setCategoryForm(emptyCategoryForm);
-    setServiceForm(emptyServiceForm);
-    setError("");
   };
 
   // ==========================================================
@@ -597,40 +672,35 @@ const ServiceCrudScreen: React.FC = () => {
 
   return (
     <div className="service-crud-page">
-
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
-
+      {/* HEADER */}
       <div className="service-crud-header">
         <div>
-                <button
+          <button
+            type="button"
             onClick={() => navigate("/services")}
-            className="booking-back-btn "
-           
+            className="booking-back-btn"
           >
             <ArrowLeft size={17} />
-            Back 
+            Back
           </button>
-          <div className="service-crud-title-row">
 
+          <div className="service-crud-title-row">
             <div className="service-crud-title-icon">
               <FolderPlus size={22} />
             </div>
 
             <div>
-
-        
-              <h1  style={{
-      color: "#14344A",
-      fontSize: "34px",
-      fontWeight: 700,
-      margin: 0,
-    }} >Service Catalog</h1>
-              <p>
-                Manage service categories and services available to
-                customers.
-              </p>
+              <h1
+                style={{
+                  color: "#14344A",
+                  fontSize: "34px",
+                  fontWeight: 700,
+                  margin: 0,
+                }}
+              >
+                Service Catalog
+              </h1>
+              <p>Manage service categories and services available to customers.</p>
             </div>
           </div>
         </div>
@@ -639,7 +709,7 @@ const ServiceCrudScreen: React.FC = () => {
           <button
             type="button"
             className="service-btn service-btn-secondary"
-            onClick={() => loadCategories(true)}
+            onClick={() => void loadCategories(true)}
             disabled={loading || refreshing}
           >
             {refreshing ? (
@@ -661,20 +731,12 @@ const ServiceCrudScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* ======================================================
-          ALERTS
-      ====================================================== */}
-
+      {/* ALERTS */}
       {error && !modal && (
         <div className="service-alert service-alert-error">
           <AlertCircle size={18} />
           <span>{error}</span>
-
-          <button
-            type="button"
-            onClick={() => setError("")}
-            aria-label="Close error"
-          >
+          <button type="button" onClick={() => setError("")} aria-label="Close error">
             <X size={16} />
           </button>
         </div>
@@ -687,97 +749,60 @@ const ServiceCrudScreen: React.FC = () => {
         </div>
       )}
 
-      {/* ======================================================
-          STATS
-      ====================================================== */}
-
+      {/* STATS */}
       <div className="service-stats-grid">
         <div className="service-stat-card">
           <div className="service-stat-content">
-            <span className="service-stat-label">
-              Total Categories
-            </span>
+            <span className="service-stat-label">Total Categories</span>
             <strong>{categories.length}</strong>
           </div>
-
-          <div className="service-stat-icon">
-            <FolderPlus size={21} />
-          </div>
+          <div className="service-stat-icon"><FolderPlus size={21} /></div>
         </div>
 
         <div className="service-stat-card">
           <div className="service-stat-content">
-            <span className="service-stat-label">
-              Active Categories
-            </span>
+            <span className="service-stat-label">Active Categories</span>
             <strong>{activeCategories}</strong>
           </div>
-
-          <div className="service-stat-icon">
-            <Check size={21} />
-          </div>
+          <div className="service-stat-icon"><Check size={21} /></div>
         </div>
 
         <div className="service-stat-card">
           <div className="service-stat-content">
-            <span className="service-stat-label">
-              Total Services
-            </span>
+            <span className="service-stat-label">Total Services</span>
             <strong>{totalServices}</strong>
           </div>
-
-          <div className="service-stat-icon">
-            <Plus size={21} />
-          </div>
+          <div className="service-stat-icon"><Plus size={21} /></div>
         </div>
 
         <div className="service-stat-card">
           <div className="service-stat-content">
-            <span className="service-stat-label">
-              Active Services
-            </span>
+            <span className="service-stat-label">Active Services</span>
             <strong>{activeServices}</strong>
           </div>
-
-          <div className="service-stat-icon">
-            <Check size={21} />
-          </div>
+          <div className="service-stat-icon"><Check size={21} /></div>
         </div>
       </div>
 
-      {/* ======================================================
-          SEARCH
-      ====================================================== */}
-
+      {/* SEARCH */}
       <div className="service-toolbar">
         <div className="service-search">
           <Search size={18} />
-
           <input
             type="text"
             placeholder="Search categories, services or service ID..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-
           {search && (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              aria-label="Clear search"
-            >
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear search">
               <X size={16} />
             </button>
           )}
         </div>
-
-        
       </div>
 
-      {/* ======================================================
-          CONTENT
-      ====================================================== */}
-
+      {/* CATALOG */}
       {loading ? (
         <div className="service-loading">
           <Loader2 size={30} className="spin" />
@@ -785,22 +810,13 @@ const ServiceCrudScreen: React.FC = () => {
         </div>
       ) : filteredCategories.length === 0 ? (
         <div className="service-empty">
-          <div className="service-empty-icon">
-            <FolderPlus size={28} />
-          </div>
-
-          <h3>
-            {search
-              ? "No matching services found"
-              : "No service categories found"}
-          </h3>
-
+          <div className="service-empty-icon"><FolderPlus size={28} /></div>
+          <h3>{search ? "No matching services found" : "No service categories found"}</h3>
           <p>
             {search
               ? "Try a different search term."
               : "Create your first service category to get started."}
           </p>
-
           {!search && (
             <button
               type="button"
@@ -815,70 +831,48 @@ const ServiceCrudScreen: React.FC = () => {
       ) : (
         <div className="service-category-list">
           {filteredCategories.map((category) => {
-            const expanded =
-              expandedCategories[category._id] ?? true;
-
+            const expanded = expandedCategories[category._id] ?? true;
             const services = category.services || [];
 
             return (
-              <div
-                className="service-category-card"
-                key={category._id}
-              >
+              <div className="service-category-card" key={category._id}>
                 {/* CATEGORY HEADER */}
-
                 <div className="service-category-header">
                   <button
                     type="button"
                     className="service-expand-btn"
                     onClick={() => toggleCategory(category._id)}
-                    aria-label={
-                      expanded
-                        ? "Collapse category"
-                        : "Expand category"
-                    }
+                    aria-label={expanded ? "Collapse category" : "Expand category"}
                   >
-                    {expanded ? (
-                      <ChevronDown size={20} />
-                    ) : (
-                      <ChevronRight size={20} />
-                    )}
+                    {expanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                   </button>
 
                   <div className="service-category-icon">
-                     {category.categoryId || "—"}
+                    {category.categoryId || "—"}
                   </div>
 
                   <div className="service-category-info">
                     <div className="service-category-name-row">
                       <h2>{category.categoryName}</h2>
-
-                      <span
-                        className={`service-status ${
-                          category.isActive === false
-                            ? "inactive"
-                            : "active"
-                        }`}
-                      >
+                      <span className={`service-status ${category.isActive === false ? "inactive" : "active"}`}>
                         <span />
-                        {category.isActive === false
-                          ? "Inactive"
-                          : "Active"}
+                        {category.isActive === false ? "Inactive" : "Active"}
                       </span>
                     </div>
 
                     <div className="service-category-meta">
-                      
-
-                      <span>
-                        {services.length} service
-                        {services.length === 1 ? "" : "s"}
-                      </span>
-
+                      <span>{services.length} service{services.length === 1 ? "" : "s"}</span>
                       {category.careTier && (
+                        <span>Care tier: <strong>{category.careTier}</strong></span>
+                      )}
+                      {category.duration && (
                         <span>
-                          Care tier:{" "}
-                          <strong>{category.careTier}</strong>
+                          Duration: <strong>{category.duration.value} {category.duration.unit}</strong>
+                        </span>
+                      )}
+                      {category.serviceBookingFee !== undefined && (
+                        <span>
+                          Booking fee: <strong>${category.serviceBookingFee}</strong>
                         </span>
                       )}
                     </div>
@@ -889,9 +883,7 @@ const ServiceCrudScreen: React.FC = () => {
                       type="button"
                       className="service-icon-btn"
                       title="Edit category"
-                      onClick={() =>
-                        openEditCategory(category)
-                      }
+                      onClick={() => openEditCategory(category)}
                     >
                       <Edit3 size={17} />
                     </button>
@@ -900,27 +892,16 @@ const ServiceCrudScreen: React.FC = () => {
                       type="button"
                       className="service-icon-btn service-icon-danger"
                       title="Delete category"
-                      onClick={() =>
-                        handleDeleteCategory(category)
-                      }
+                      onClick={() => void handleDeleteCategory(category)}
                       disabled={deleting}
                     >
-                      {deleting ? (
-                        <Loader2
-                          size={17}
-                          className="spin"
-                        />
-                      ) : (
-                        <Trash2 size={17} />
-                      )}
+                      {deleting ? <Loader2 size={17} className="spin" /> : <Trash2 size={17} />}
                     </button>
 
                     <button
                       type="button"
                       className="service-btn service-btn-small service-btn-primary"
-                      onClick={() =>
-                        openCreateService(category)
-                      }
+                      onClick={() => openCreateService(category)}
                     >
                       <Plus size={16} />
                       Add Service
@@ -929,19 +910,12 @@ const ServiceCrudScreen: React.FC = () => {
                 </div>
 
                 {/* SERVICES */}
-
                 {expanded && (
                   <div className="service-category-body">
                     {services.length === 0 ? (
                       <div className="service-no-services">
                         <span>No services in this category.</span>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openCreateService(category)
-                          }
-                        >
+                        <button type="button" onClick={() => openCreateService(category)}>
                           Add first service
                         </button>
                       </div>
@@ -951,12 +925,13 @@ const ServiceCrudScreen: React.FC = () => {
                           <thead>
                             <tr>
                               <th>Service</th>
-                              <th>Service ID</th>
+                              <th style={{textAlign:"center"}}>Service ID</th>
                               <th>Description</th>
+                              <th style={{textAlign:"center"}}>Duration</th>
+                              <th style={{textAlign:"center"}}>MinHours</th>
+                               <th style={{textAlign:"center"}}>MaxHours</th>
                               <th>Status</th>
-                              <th className="service-actions-column">
-                                Actions
-                              </th>
+                              <th className="service-actions-column">Actions</th>
                             </tr>
                           </thead>
 
@@ -965,48 +940,36 @@ const ServiceCrudScreen: React.FC = () => {
                               <tr key={service._id || service.servId}>
                                 <td>
                                   <div className="service-name-cell">
-                                    
-
                                     <div>
-                                      <strong>
-                                        {service.name}
-                                      </strong>
-
-                                      {/* {service.price !==
-                                        undefined && (
-                                        <small>
-                                          ${service.price}
-                                        </small>
-                                      )} */}
+                                      <strong>{service.name}</strong>
                                     </div>
                                   </div>
                                 </td>
 
-                                <td>
-                                  <span className="service-id">
-                                    {service.servId || "—"}
-                                  </span>
+                                <td style={{textAlign:"center"}}>
+                                  <span className="service-id">{service.servId || "—"}</span>
                                 </td>
 
                                 <td>
                                   <div className="service-description">
-                                    {service.description ||
-                                      "No description"}
+                                    {service.description || "No description"}
                                   </div>
                                 </td>
 
+                                <td style={{textAlign:"center"}}>{service.duration ?? "—"} min</td>
+
+                                <td style={{textAlign:"center"}}>
+                                  {service.minHours ?? "—"} 
+                                </td>
+                                 <td style={{textAlign:"center"}}>
+                                {service.maxHours ?? "—"}
+                                </td>
+
+
                                 <td>
-                                  <span
-                                    className={`service-status ${
-                                      service.isActive === false
-                                        ? "inactive"
-                                        : "active"
-                                    }`}
-                                  >
+                                  <span className={`service-status ${service.isActive === false ? "inactive" : "active"}`}>
                                     <span />
-                                    {service.isActive === false
-                                      ? "Inactive"
-                                      : "Active"}
+                                    {service.isActive === false ? "Inactive" : "Active"}
                                   </span>
                                 </td>
 
@@ -1016,12 +979,7 @@ const ServiceCrudScreen: React.FC = () => {
                                       type="button"
                                       className="service-icon-btn"
                                       title="Edit service"
-                                      onClick={() =>
-                                        openEditService(
-                                          category,
-                                          service
-                                        )
-                                      }
+                                      onClick={() => openEditService(category, service)}
                                     >
                                       <Edit3 size={16} />
                                     </button>
@@ -1030,19 +988,11 @@ const ServiceCrudScreen: React.FC = () => {
                                       type="button"
                                       className="service-icon-btn service-icon-danger"
                                       title="Delete service"
-                                      onClick={() =>
-                                        handleDeleteService(
-                                          category,
-                                          service
-                                        )
-                                      }
+                                      onClick={() => void handleDeleteService(category, service)}
                                       disabled={deleting}
                                     >
                                       {deleting ? (
-                                        <Loader2
-                                          size={16}
-                                          className="spin"
-                                        />
+                                        <Loader2 size={16} className="spin" />
                                       ) : (
                                         <Trash2 size={16} />
                                       )}
@@ -1063,44 +1013,27 @@ const ServiceCrudScreen: React.FC = () => {
         </div>
       )}
 
-      {/* ======================================================
-          MODAL
-      ====================================================== */}
-
+      {/* MODAL */}
       {modal && (
         <div
           className="service-modal-overlay"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              closeModal();
-            }
+            if (event.target === event.currentTarget) closeModal();
           }}
         >
           <div className="service-modal">
-            {/* MODAL HEADER */}
-
             <div className="service-modal-header">
               <div>
                 <h2>
-                  {modal === "create-category" &&
-                    "Create Category"}
-
-                  {modal === "edit-category" &&
-                    "Edit Category"}
-
-                  {modal === "create-service" &&
-                    "Add Service"}
-
-                  {modal === "edit-service" &&
-                    "Edit Service"}
+                  {modal === "create-category" && "Create Category"}
+                  {modal === "edit-category" && "Edit Category"}
+                  {modal === "create-service" && "Add Service"}
+                  {modal === "edit-service" && "Edit Service"}
                 </h2>
-
                 <p>
                   {modal.includes("category")
                     ? "Configure the service category details."
-                    : `Manage service under ${
-                        selectedCategory?.categoryName || "category"
-                      }.`}
+                    : `Manage service under ${selectedCategory?.categoryName || "category"}.`}
                 </p>
               </div>
 
@@ -1114,8 +1047,6 @@ const ServiceCrudScreen: React.FC = () => {
               </button>
             </div>
 
-            {/* MODAL ERROR */}
-
             {error && (
               <div className="service-modal-error">
                 <AlertCircle size={17} />
@@ -1123,25 +1054,18 @@ const ServiceCrudScreen: React.FC = () => {
               </div>
             )}
 
-            {/* ==================================================
-                CATEGORY FORM
-            ================================================== */}
-
-            {(modal === "create-category" ||
-              modal === "edit-category") && (
+            {/* CATEGORY FORM */}
+            {(modal === "create-category" || modal === "edit-category") && (
               <div className="service-form">
                 <div className="service-form-field">
-                  <label>
-                    Category Name <span>*</span>
-                  </label>
-
+                  <label>Category Name <span>*</span></label>
                   <input
                     type="text"
                     value={categoryForm.categoryName}
                     placeholder="e.g. Home Care"
                     onChange={(event) =>
-                      setCategoryForm((prev) => ({
-                        ...prev,
+                      setCategoryForm((previous) => ({
+                        ...previous,
                         categoryName: event.target.value,
                       }))
                     }
@@ -1149,55 +1073,151 @@ const ServiceCrudScreen: React.FC = () => {
                   />
                 </div>
 
-                <div className="service-form-field">
-                  <label>Description</label>
+                <div className="service-form-grid">
+                  <div className="service-form-field">
+                    <label>Category ID</label>
+                    <input
+                      type="text"
+                      value={categoryForm.categoryId}
+                      placeholder="e.g. CAT001"
+                      onChange={(event) =>
+                        setCategoryForm((previous) => ({
+                          ...previous,
+                          categoryId: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
 
-                  <textarea
-                    value={categoryForm.description}
-                    placeholder="Enter category description..."
-                    rows={3}
-                    onChange={(event) =>
-                      setCategoryForm((prev) => ({
-                        ...prev,
-                        description: event.target.value,
-                      }))
-                    }
-                  />
+                  <div className="service-form-field">
+                    <label>Category Type</label>
+                    <input
+                      type="text"
+                      value={categoryForm.category}
+                      placeholder="e.g. home-care"
+                      onChange={(event) =>
+                        setCategoryForm((previous) => ({
+                          ...previous,
+                          category: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
                 </div>
 
                 <div className="service-form-grid">
                   <div className="service-form-field">
-                    <label>Icon</label>
+                    <label>Care Tier</label>
+                    <input
+                      type="text"
+                      value={categoryForm.careTier}
+                      placeholder="e.g. Basic"
+                      onChange={(event) =>
+                        setCategoryForm((previous) => ({
+                          ...previous,
+                          careTier: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
 
+                  <div className="service-form-field">
+                    <label>Icon</label>
                     <input
                       type="text"
                       value={categoryForm.icon}
                       placeholder="Icon key"
                       onChange={(event) =>
-                        setCategoryForm((prev) => ({
-                          ...prev,
+                        setCategoryForm((previous) => ({
+                          ...previous,
                           icon: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="service-form-grid">
+                  <div className="service-form-field">
+                    <label>Sort Order</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={categoryForm.sortOrder}
+                      onChange={(event) =>
+                        setCategoryForm((previous) => ({
+                          ...previous,
+                          sortOrder: event.target.value,
                         }))
                       }
                     />
                   </div>
 
                   <div className="service-form-field">
-                    <label>Sort Order</label>
-
+                    <label>Service Booking Fee ($)</label>
                     <input
                       type="number"
                       min="0"
-                      value={categoryForm.sortOrder}
-                      placeholder="0"
+                      step="0.01"
+                      value={categoryForm.serviceBookingFee}
                       onChange={(event) =>
-                        setCategoryForm((prev) => ({
-                          ...prev,
-                          sortOrder: event.target.value,
+                        setCategoryForm((previous) => ({
+                          ...previous,
+                          serviceBookingFee: event.target.value,
                         }))
                       }
                     />
                   </div>
+                </div>
+
+                <div className="service-form-grid">
+                  <div className="service-form-field">
+                    <label>Progress Time (Minutes)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={categoryForm.progressTimeMinutes}
+                      placeholder="e.g. 30"
+                      onChange={(event) =>
+                        setCategoryForm((previous) => ({
+                          ...previous,
+                          progressTimeMinutes: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>Duration Value</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={categoryForm.durationValue}
+                      onChange={(event) =>
+                        setCategoryForm((previous) => ({
+                          ...previous,
+                          durationValue: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="service-form-field">
+                  <label>Duration Unit</label>
+                  <select
+                    value={categoryForm.durationUnit}
+                    onChange={(event) =>
+                      setCategoryForm((previous) => ({
+                        ...previous,
+                        durationUnit: event.target.value as DurationUnit,
+                      }))
+                    }
+                  >
+                    <option value="minutes">Minutes</option>
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                  </select>
                 </div>
 
                 <label className="service-toggle-field">
@@ -1205,51 +1225,38 @@ const ServiceCrudScreen: React.FC = () => {
                     type="checkbox"
                     checked={categoryForm.isActive}
                     onChange={(event) =>
-                      setCategoryForm((prev) => ({
-                        ...prev,
+                      setCategoryForm((previous) => ({
+                        ...previous,
                         isActive: event.target.checked,
                       }))
                     }
                   />
-
                   <span className="service-toggle-ui" />
-
                   <span>
                     <strong>Active category</strong>
-                    <small>
-                      Category will be available in the catalog.
-                    </small>
+                    <small>Category will be available in the catalog.</small>
                   </span>
                 </label>
               </div>
             )}
 
-            {/* ==================================================
-                SERVICE FORM
-            ================================================== */}
-
-            {(modal === "create-service" ||
-              modal === "edit-service") && (
+            {/* SERVICE FORM */}
+            {(modal === "create-service" || modal === "edit-service") && (
               <div className="service-form">
                 <div className="service-parent-info">
                   <span>Category</span>
-                  <strong>
-                    {selectedCategory?.categoryName || "—"}
-                  </strong>
+                  <strong>{selectedCategory?.categoryName || "—"}</strong>
                 </div>
 
                 <div className="service-form-field">
-                  <label>
-                    Service Name <span>*</span>
-                  </label>
-
+                  <label>Service Name <span>*</span></label>
                   <input
                     type="text"
                     value={serviceForm.serviceName}
                     placeholder="e.g. Personal Care"
                     onChange={(event) =>
-                      setServiceForm((prev) => ({
-                        ...prev,
+                      setServiceForm((previous) => ({
+                        ...previous,
                         serviceName: event.target.value,
                       }))
                     }
@@ -1257,36 +1264,130 @@ const ServiceCrudScreen: React.FC = () => {
                   />
                 </div>
 
-                <div className="service-form-field">
-                  <label>Service ID</label>
+                <div className="service-form-grid">
+                  <div className="service-form-field">
+                    <label>Service ID</label>
+                    <input
+                      type="text"
+                      value={serviceForm.servId}
+                      placeholder="e.g. S1A"
+                      onChange={(event) =>
+                        setServiceForm((previous) => ({
+                          ...previous,
+                          servId: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
 
+                  <div className="service-form-field">
+                    <label>Icon</label>
+                    <input
+                      type="text"
+                      value={serviceForm.icon}
+                      placeholder="Icon key"
+                      onChange={(event) =>
+                        setServiceForm((previous) => ({
+                          ...previous,
+                          icon: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="service-form-grid">
+                  <div className="service-form-field">
+                    <label>Sort Order</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={serviceForm.sortOrder}
+                      onChange={(event) =>
+                        setServiceForm((previous) => ({
+                          ...previous,
+                          sortOrder: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>Duration (Minutes)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={serviceForm.duration}
+                      onChange={(event) =>
+                        setServiceForm((previous) => ({
+                          ...previous,
+                          duration: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="service-form-grid">
+                  <div className="service-form-field">
+                    <label>Progress Time (Minutes)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={serviceForm.progressTimeMinutes}
+                      onChange={(event) =>
+                        setServiceForm((previous) => ({
+                          ...previous,
+                          progressTimeMinutes: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>Minimum Hours</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={serviceForm.minHours}
+                      placeholder="e.g. 2"
+                      onChange={(event) =>
+                        setServiceForm((previous) => ({
+                          ...previous,
+                          minHours: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="service-form-field">
+                  <label>Maximum Hours</label>
                   <input
-                    type="text"
-                    value={serviceForm.servId}
-                    placeholder="e.g. S1A"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={serviceForm.maxHours}
+                    placeholder="e.g. 8"
                     onChange={(event) =>
-                      setServiceForm((prev) => ({
-                        ...prev,
-                        servId: event.target.value,
+                      setServiceForm((previous) => ({
+                        ...previous,
+                        maxHours: event.target.value,
                       }))
                     }
                   />
-
-                  <small className="service-field-help">
-                    Optional unique service catalog ID.
-                  </small>
                 </div>
 
                 <div className="service-form-field">
                   <label>Description</label>
-
                   <textarea
                     value={serviceForm.description}
                     placeholder="Enter service description..."
                     rows={4}
                     onChange={(event) =>
-                      setServiceForm((prev) => ({
-                        ...prev,
+                      setServiceForm((previous) => ({
+                        ...previous,
                         description: event.target.value,
                       }))
                     }
@@ -1298,27 +1399,22 @@ const ServiceCrudScreen: React.FC = () => {
                     type="checkbox"
                     checked={serviceForm.isActive}
                     onChange={(event) =>
-                      setServiceForm((prev) => ({
-                        ...prev,
+                      setServiceForm((previous) => ({
+                        ...previous,
                         isActive: event.target.checked,
                       }))
                     }
                   />
-
                   <span className="service-toggle-ui" />
-
                   <span>
                     <strong>Active service</strong>
-                    <small>
-                      Service will be available for booking.
-                    </small>
+                    <small>Service will be available for booking.</small>
                   </span>
                 </label>
               </div>
             )}
 
             {/* MODAL FOOTER */}
-
             <div className="service-modal-footer">
               <button
                 type="button"
@@ -1332,24 +1428,13 @@ const ServiceCrudScreen: React.FC = () => {
               <button
                 type="button"
                 className="service-btn service-btn-primary"
-                onClick={() => {
-                  if (modal === "create-category") {
-                    handleCreateCategory();
-                  }
-
-                  if (modal === "edit-category") {
-                    handleUpdateCategory();
-                  }
-
-                  if (modal === "create-service") {
-                    handleCreateService();
-                  }
-
-                  if (modal === "edit-service") {
-                    handleUpdateService();
-                  }
-                }}
                 disabled={saving}
+                onClick={() => {
+                  if (modal === "create-category") void handleCreateCategory();
+                  if (modal === "edit-category") void handleUpdateCategory();
+                  if (modal === "create-service") void handleCreateService();
+                  if (modal === "edit-service") void handleUpdateService();
+                }}
               >
                 {saving ? (
                   <>
@@ -1359,8 +1444,7 @@ const ServiceCrudScreen: React.FC = () => {
                 ) : (
                   <>
                     <Check size={17} />
-                    {modal === "create-category" ||
-                    modal === "create-service"
+                    {modal === "create-category" || modal === "create-service"
                       ? "Create"
                       : "Save Changes"}
                   </>

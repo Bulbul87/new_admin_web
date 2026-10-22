@@ -6,11 +6,8 @@ export interface ServiceSubService {
   _id?: string;
   name: string;
   description?: string;
-  /** Grid icon key from catalog seed (e.g. "10"). */
   icon?: string;
-  /** service_catalog servId (e.g. S1A). */
   servId?: string;
-  price?: number;
   duration?: number;
   progressTimeMinutes?: number;
   isActive?: boolean;
@@ -21,12 +18,8 @@ export interface Service {
   name: string;
   description: string;
   category: string;
-  basePrice: number;
-  /** Flat once-per-booking fee from catalog (USD), in addition to hourly labor — see backend Service.serviceBookingFee */
   serviceBookingFee?: number;
-  /** Nested duration from Mongo when present */
   duration?: { value: number; unit: string } | number;
-  /** Requestor Home time progress bar (minutes) */
   progressTimeMinutes?: number;
   icon?: string;
   isActive: boolean;
@@ -76,42 +69,43 @@ export interface GetAllServicesParams {
 export interface SearchServicesParams {
   q?: string;
   category?: string;
-  minPrice?: number;
-  maxPrice?: number;
   tags?: string | string[];
   page?: number;
   limit?: number;
 }
 
-export interface ServiceCatalogItem {
-  _id?: string;
-  servId: string;
-  name: string;
-  description: string;
-  icon?: string;
-  sortOrder?: number;
-  isActive?: boolean;
-  price?: number;
-  duration?: number;
-  minHours?:number;
-  maxHours?:number;
-  progressTimeMinutes?: number;
-  operationalSubServiceId?: string;
-}
+
 
 export interface ServiceCatalogCategory {
   _id: string;
-  categoryId: string;
+  categoryId?: string;
   categoryName: string;
+  category?: string;
+  icon?: string;
   sortOrder?: number;
   isActive?: boolean;
-  basePrice?: number;
+  careTier?: string;
   serviceBookingFee?: number;
   progressTimeMinutes?: number;
-  careTier?: string;
-  category?: string;
-  operationalServiceId?: string;
-  services: ServiceCatalogItem[];
+  duration?: {
+    value: number;
+    unit: "minutes" | "hours" | "days";
+  };
+  services?: ServiceCatalogItem[];
+}
+
+export interface ServiceCatalogItem {
+  _id?: string;
+  servId?: string | null;
+  name: string;
+  description?: string;
+  icon?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+  duration?: number;
+  progressTimeMinutes?: number;
+  minHours?: number;
+  maxHours?: number;
 }
 
 export interface ServiceCatalogResponse {
@@ -152,39 +146,60 @@ class ServiceApi {
   }
 
 
-  // ==============================
+// ==============================
 // CATEGORY CRUD
 // ==============================
 
 async createServiceCategory(data: {
+  categoryId?: string;
   categoryName: string;
+  category?: string;
   description?: string;
   icon?: string;
   sortOrder?: number;
   isActive?: boolean;
+  careTier?: string;
+  serviceBookingFee?: number;
+  progressTimeMinutes?: number;
+  duration?: {
+    value: number;
+    unit: 'minutes' | 'hours' | 'days';
+  };
 }) {
-  return api.post<ServiceCatalogCategory>('/service-catalog', data);
-}
-
-async updateServiceCategory(
-  categoryId: string,
-  data: {
-    categoryName?: string;
-    description?: string;
-    icon?: string;
-    sortOrder?: number;
-    isActive?: boolean;
-  }
-) {
-  return api.put<ServiceCatalogCategory>(
-    `/service-catalog/${categoryId}`,
+  return api.post<ServiceCatalogCategory>(
+    '/service-catalog',
     data
   );
 }
 
-async deleteServiceCategory(categoryId: string) {
+async updateServiceCategory(
+  id: string,
+  data: {
+    categoryId?: string;
+    categoryName?: string;
+    category?: string;
+    description?: string;
+    icon?: string;
+    sortOrder?: number;
+    isActive?: boolean;
+    careTier?: string;
+    serviceBookingFee?: number;
+    progressTimeMinutes?: number;
+    duration?: {
+      value: number;
+      unit: 'minutes' | 'hours' | 'days';
+    };
+  }
+) {
+  return api.put<ServiceCatalogCategory>(
+    `/service-catalog/${id}`,
+    data
+  );
+}
+
+async deleteServiceCategory(id: string) {
   return api.delete<{ message: string }>(
-    `/service-catalog/${categoryId}`
+    `/service-catalog/${id}`
   );
 }
 
@@ -199,7 +214,13 @@ async addServiceToCategory(
     servId?: string | null;
     serviceName: string;
     description?: string;
+    icon?: string;
+    sortOrder?: number;
     isActive?: boolean;
+    duration?: number;
+    progressTimeMinutes?: number;
+    minHours?: number;
+    maxHours?: number;
   }
 ) {
   return api.post<ServiceCatalogCategory>(
@@ -215,7 +236,13 @@ async updateServiceInCategory(
     serviceName?: string;
     description?: string;
     servId?: string | null;
+    icon?: string;
+    sortOrder?: number;
     isActive?: boolean;
+    duration?: number;
+    progressTimeMinutes?: number;
+    minHours?: number;
+    maxHours?: number;
   }
 ) {
   return api.put<ServiceCatalogCategory>(
@@ -233,6 +260,8 @@ async deleteServiceFromCategory(
   );
 }
 
+
+
   /**
    * Get service by ID
    */
@@ -248,8 +277,7 @@ async deleteServiceFromCategory(
 
     if (params.q) queryParams.append('q', params.q);
     if (params.category) queryParams.append('category', params.category);
-    if (params.minPrice) queryParams.append('minPrice', String(params.minPrice));
-    if (params.maxPrice) queryParams.append('maxPrice', String(params.maxPrice));
+ 
     if (params.tags) {
       const tagsString = Array.isArray(params.tags) ? params.tags.join(',') : params.tags;
       queryParams.append('tags', tagsString);

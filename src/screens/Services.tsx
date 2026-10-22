@@ -60,45 +60,48 @@ const Services: React.FC = () => {
   // SEARCH FILTER
   // ======================================================
 
-  const filteredCategories = useMemo(() => {
-    if (!search.trim()) {
-      return categories;
-    }
+const filteredCategories = useMemo(() => {
+  if (!search.trim()) {
+    return categories;
+  }
 
-    const keyword = search.toLowerCase().trim();
+  const keyword = search.toLowerCase().trim();
 
-    return categories
-      .map((category) => {
-        // Category name match
-        const categoryMatched = category.categoryName
-          ?.toLowerCase()
-          .includes(keyword);
+  return categories
+    .map((category) => {
+      // Category name match
+      const categoryMatched = category.categoryName
+        ?.toLowerCase()
+        .includes(keyword);
 
-        // Service match
-        const services = (category.services || []).filter(
-          (service: ServiceCatalogItem) => {
-            return (
-              service.name?.toLowerCase().includes(keyword) ||
-              service.description?.toLowerCase().includes(keyword) ||
-              service.servId?.toLowerCase().includes(keyword)
-            );
-          }
-        );
-
-        // If category itself matches,
-        // show all services of that category
-        if (categoryMatched) {
-          return category;
+      // Service match
+      const services = (category.services || []).filter(
+        (service: ServiceCatalogItem) => {
+          return (
+            service.name?.toLowerCase().includes(keyword) ||
+            service.description?.toLowerCase().includes(keyword) ||
+            service.servId?.toLowerCase().includes(keyword)
+          );
         }
+      );
 
-        // Otherwise show only matching services
+      // If category matches, show all its services
+      if (categoryMatched) {
         return {
           ...category,
-          services,
+          services: category.services || [],
         };
-      })
-      .filter((category) => category.services.length > 0);
-  }, [categories, search]);
+      }
+
+      // Otherwise show only matching services
+      return {
+        ...category,
+        services,
+      };
+    })
+    // Safe check because services is now always an array
+    .filter((category) => (category.services || []).length > 0);
+}, [categories, search]);
 
   // ======================================================
   // TOTAL SERVICES

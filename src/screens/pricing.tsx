@@ -15,11 +15,12 @@ import {
 import {
   buildPricingPayload,
   getCities,
-  getPricingRules,
+  filterPricingRules,
   getServiceCatalog,
   getStateIdFromCity,
   getStates,
   updatePricing,
+  type PricingQueryParams,
 } from "../service/pricingService";
 
 import type {
@@ -59,7 +60,7 @@ const Pricing: React.FC = () => {
   const [states, setStates] = useState<StateOption[]>([]);
   const [cities, setCities] = useState<CityOption[]>([]);
   const [categories, setCategories] = useState<ServiceCatalogItem[]>([]);
-  const [pricingRules, setPricingRules] = useState<PricingRule[]>([]);
+  const [, setPricingRules] = useState<PricingRule[]>([]);
 
   // ======================================================
   // LOADING / ERROR
@@ -90,6 +91,7 @@ const Pricing: React.FC = () => {
   const [Tax, setTax] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
+
   // ======================================================
   // LOAD MASTER DATA
   // ======================================================
@@ -103,37 +105,19 @@ const Pricing: React.FC = () => {
         statesData,
         citiesData,
         categoriesData,
-        pricingResponse,
       ] = await Promise.all([
         getStates(),
         getCities(),
         getServiceCatalog(),
-
-        // Pricing update UI does NOT use pagination.
-        // Fetch all pricing records so level-based
-        // existing-price lookup continues to work.
-        getPricingRules(1, 100000),
       ]);
 
-      // ----------------------------------------------
       // States
-      // ----------------------------------------------
-
       setStates(Array.isArray(statesData) ? statesData : []);
 
-      // ----------------------------------------------
       // Cities
-      // ----------------------------------------------
-
       setCities(Array.isArray(citiesData) ? citiesData : []);
 
-      // ----------------------------------------------
       // Service Categories
-      // ----------------------------------------------
-      // Keep the COMPLETE ServiceCatalog object.
-      // Do NOT strip category / careTier / price etc.
-      // ----------------------------------------------
-
       const activeCategories = (
         Array.isArray(categoriesData) ? categoriesData : []
       )
@@ -147,25 +131,14 @@ const Pricing: React.FC = () => {
 
       setCategories(activeCategories);
 
-      // ----------------------------------------------
-      // Pricing Rules
-      // ----------------------------------------------
-
-      setPricingRules(
-        Array.isArray(pricingResponse.data)
-          ? pricingResponse.data
-          : []
-      );
+      // Pricing will load separately according to selected filters
+      setPricingRules([]);
 
       console.log("====================================");
       console.log("PRICING MASTER DATA");
       console.log("States =", statesData);
       console.log("Cities =", citiesData);
       console.log("Categories =", activeCategories);
-      console.log(
-        "Pricing Rules =",
-        pricingResponse.data
-      );
       console.log("====================================");
     } catch (err) {
       console.error("Pricing load error:", err);
@@ -187,6 +160,7 @@ const Pricing: React.FC = () => {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
 
   // ======================================================
   // FILTERED CITIES
@@ -275,162 +249,176 @@ const Pricing: React.FC = () => {
     );
   }, [filteredServices, selectedServiceId]);
 
-  // ======================================================
-  // LOAD EXISTING PRICING
-  // ======================================================
+ 
+// ======================================================
+// LOAD EXISTING PRICING
+// ======================================================
 
-  const loadExistingPricing = useCallback(
-    (rules: PricingRule[] = pricingRules) => {
-      if (!selectedStateId) {
-        setRequesterPrice("");
-        setProviderPrice("");
-        setTax("");
-        return;
+const loadExistingPricing = useCallback(
+  (rules: PricingRule[] = []) => {
+    if (!selectedStateId) {
+      setRequesterPrice("");
+      setProviderPrice("");
+      setTax("");
+      return;
+    }
+
+    let candidates = (rules || []).filter(
+      (item) => item.stateId?._id === selectedStateId
+    );
+
+    if (selectedCityId) {
+      candidates = candidates.filter(
+        (item) => item.cityId?._id === selectedCityId
+      );
+    }
+
+    if (selectedServiceId && resolvedServiceId) {
+      candidates = candidates.filter(
+        (item) => item.serviceId === resolvedServiceId
+      );
+    } else if (selectedCategoryId && resolvedCategoryId) {
+      candidates = candidates.filter(
+        (item) => item.categoryId === resolvedCategoryId
+      );
+    }
+
+    if (candidates.length === 0) {
+      setRequesterPrice("");
+      setProviderPrice("");
+      setTax("");
+      return;
+    }
+
+    let rule: PricingRule | undefined;
+
+    if (candidates.length === 1) {
+      rule = candidates[0];
+    } else {
+      const counts = new Map<
+        string,
+        { rule: PricingRule; count: number }
+      >();
+
+      for (const item of candidates) {
+        const key = `${item.requesterPrice}_${item.providerPrice}_${item.Tax}`;
+        const existing = counts.get(key);
+
+        if (existing) {
+          existing.count += 1;
+        } else {
+          counts.set(key, { rule: item, count: 1 });
+        }
       }
 
-      // ----------------------------------------------
-      // Filter by state
-      // ----------------------------------------------
+      let best:
+        | { rule: PricingRule; count: number }
+        | undefined;
 
-      let candidates = (rules || []).filter((item) => {
-        return item.stateId?._id === selectedStateId;
+      counts.forEach((entry) => {
+        if (!best || entry.count > best.count) {
+          best = entry;
+        }
       });
 
-      // ----------------------------------------------
-      // Filter by city
-      // ----------------------------------------------
+      rule = best?.rule;
+    }
+
+    setRequesterPrice(
+      rule ? String(rule.requesterPrice) : ""
+    );
+    setProviderPrice(
+      rule ? String(rule.providerPrice) : ""
+    );
+    setTax(rule ? String(rule.Tax) : "");
+  },
+  [
+    selectedStateId,
+    selectedCityId,
+    selectedCategoryId,
+    selectedServiceId,
+    resolvedCategoryId,
+    resolvedServiceId,
+  ]
+);
+
+
+// ======================================================
+// FETCH PRICING ACCORDING TO SELECTED FILTERS
+// ======================================================
+
+useEffect(() => {
+  let cancelled = false;
+
+  const fetchSelectedPricing = async () => {
+    if (!selectedStateId) {
+      setPricingRules([]);
+      setRequesterPrice("");
+      setProviderPrice("");
+      setTax("");
+      return;
+    }
+
+    try {
+      setError(null);
+
+      const params: PricingQueryParams = {
+        stateId: selectedStateId,
+        page: 1,
+        limit: 100,
+      };
 
       if (selectedCityId) {
-        candidates = candidates.filter((item) => {
-          return item.cityId?._id === selectedCityId;
-        });
+        params.cityId = selectedCityId;
       }
 
-      // ----------------------------------------------
-      // Filter by SERVICE
-      // ----------------------------------------------
-
-      if (selectedServiceId && resolvedServiceId) {
-        candidates = candidates.filter((item) => {
-          return (
-            item.serviceId === resolvedServiceId
-          );
-        });
+      if (resolvedCategoryId) {
+        params.categoryId = resolvedCategoryId;
       }
 
-      // ----------------------------------------------
-      // Filter by CATEGORY
-      // ----------------------------------------------
-
-      else if (
-        selectedCategoryId &&
-        resolvedCategoryId
-      ) {
-        candidates = candidates.filter((item) => {
-          return (
-            item.categoryId === resolvedCategoryId
-          );
-        });
+      if (resolvedServiceId) {
+        params.serviceId = resolvedServiceId;
       }
 
-      // ----------------------------------------------
-      // No pricing found
-      // ----------------------------------------------
+      const response = await filterPricingRules(params);
+      const rules = Array.isArray(response.data)
+        ? response.data
+        : [];
 
-      if (candidates.length === 0) {
-        setRequesterPrice("");
-        setProviderPrice("");
-        setTax("");
-        return;
-      }
+      if (cancelled) return;
 
-      // ----------------------------------------------
-      // Find most common price
-      // ----------------------------------------------
-      // Important for STATE/CITY/CATEGORY level:
-      // multiple pricing records can exist because the
-      // backend creates pricing for many services/cities.
-      // We select the most common requester/provider pair.
-      // ----------------------------------------------
+      setPricingRules(rules);
+      loadExistingPricing(rules);
+    } catch (err) {
+      if (cancelled) return;
 
-      let rule: PricingRule | undefined;
+      console.error("Selected pricing fetch error:", err);
 
-      if (candidates.length === 1) {
-        rule = candidates[0];
-      } else {
-        const counts = new Map<
-          string,
-          {
-            rule: PricingRule;
-            count: number;
-          }
-        >();
+      setPricingRules([]);
+      setRequesterPrice("");
+      setProviderPrice("");
+      setTax("");
 
-        for (const item of candidates) {
-          const key = `${item.requesterPrice}_${item.providerPrice}_${item.Tax}`;
-
-          const existing = counts.get(key);
-
-          if (existing) {
-            existing.count += 1;
-          } else {
-            counts.set(key, {
-              rule: item,
-              count: 1,
-            });
-          }
-        }
-
-        let best:
-          | {
-              rule: PricingRule;
-              count: number;
-            }
-          | undefined;
-
-        counts.forEach((entry) => {
-          if (!best || entry.count > best.count) {
-            best = entry;
-          }
-        });
-
-        rule = best?.rule;
-      }
-
-      // ----------------------------------------------
-      // Set prices
-      // ----------------------------------------------
-
-      setRequesterPrice(
-        rule ? String(rule.requesterPrice) : ""
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load selected pricing."
       );
+    }
+  };
 
-      setProviderPrice(
-        rule ? String(rule.providerPrice) : ""
-      );
+  void fetchSelectedPricing();
 
-         setTax(
-        rule ? String(rule.Tax) : ""
-      );
-    },
-    [
-      pricingRules,
-      selectedStateId,
-      selectedCityId,
-      selectedCategoryId,
-      selectedServiceId,
-      resolvedCategoryId,
-      resolvedServiceId,
-    ]
-  );
-
-  // ======================================================
-  // AUTO LOAD EXISTING PRICING
-  // ======================================================
-
-  useEffect(() => {
-    loadExistingPricing();
-  }, [loadExistingPricing]);
+  return () => {
+    cancelled = true;
+  };
+}, [
+  selectedStateId,
+  selectedCityId,
+  resolvedCategoryId,
+  resolvedServiceId,
+  loadExistingPricing,
+]);
 
   // ======================================================
   // PRICING LEVEL
@@ -698,24 +686,40 @@ const Pricing: React.FC = () => {
       // Reload pricing rules
       // ----------------------------------------------
 
-      const updatedResponse = await getPricingRules(
-        1,
-        100000
-      );
+   // ----------------------------------------------
+// Reload pricing using current selected filters
+// ----------------------------------------------
 
-      const updatedRules = Array.isArray(
-        updatedResponse.data
-      )
-        ? updatedResponse.data
-        : [];
+const refreshParams: PricingQueryParams = {
+  stateId: selectedStateId,
+  page: 1,
+  limit: 100,
+};
 
-      setPricingRules(updatedRules);
+if (selectedCityId) {
+  refreshParams.cityId = selectedCityId;
+}
 
-      // ----------------------------------------------
-      // Reload current pricing value
-      // ----------------------------------------------
+if (resolvedCategoryId) {
+  refreshParams.categoryId = resolvedCategoryId;
+}
 
-      loadExistingPricing(updatedRules);
+if (resolvedServiceId) {
+  refreshParams.serviceId = resolvedServiceId;
+}
+
+const updatedResponse = await filterPricingRules(
+  refreshParams
+);
+
+const updatedRules = Array.isArray(updatedResponse.data)
+  ? updatedResponse.data
+  : [];
+
+setPricingRules(updatedRules);
+loadExistingPricing(updatedRules);
+
+     
     } catch (err) {
       console.error(
         "Update pricing error:",
@@ -1569,8 +1573,8 @@ const Pricing: React.FC = () => {
                   <input
                     type="number"
                     min="0"
-                    step="0"
-                    value={Tax}
+                    step="0.01"
+                   value={Tax === "" ? "" : Number(Tax).toFixed(2)}
                     onChange={(e) =>
                       setTax(
                         e.target.value

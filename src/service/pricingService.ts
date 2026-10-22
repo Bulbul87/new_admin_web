@@ -211,6 +211,10 @@ const ENDPOINTS = {
   pricingRules: "/pricing-rules",
 
   smartPricingUpdate: "/pricing-rules/update",
+
+  filterPricing: "/pricing-rules/filter",
+
+  searchPricing: "/pricing-rules/search",
 };
 
 // ======================================================
@@ -218,8 +222,7 @@ const ENDPOINTS = {
 // ======================================================
 
 function extractArray<T>(response: unknown): T[] {
-  // api.ts already returns data.data when backend response
-  // contains a data property.
+
 
   if (Array.isArray(response)) {
     return response;
@@ -449,34 +452,115 @@ export async function getServiceCatalog(): Promise<ServiceCatalogItem[]> {
 //   return extractArray<PricingRule>(response);
 // }
 
-
 export async function getPricingRules(
   page: number = 1,
   limit: number = 20
 ): Promise<PricingRuleResponse> {
-  const response = await api.get<any>(
-    `${ENDPOINTS.pricingRules}?page=${page}&limit=${limit}`
+  const response = await fetch(
+    `https://api.senioramerica.us/api/pricing-rules?page=${page}&limit=${limit}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(localStorage.getItem('adminToken')
+          ? {
+              Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+            }
+          : {}),
+      },
+    }
   );
 
-  console.log(
-    "Pricing Rules API =",
-    response
-  );
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || 'Failed to fetch pricing rules');
+  }
 
   return {
-    success: response?.success ?? true,
-    count: response?.count ?? 0,
-    data: Array.isArray(response?.data)
-      ? response.data
-      : [],
+    success: result.success ?? true,
+    count: result.count ?? 0,
+    data: Array.isArray(result.data) ? result.data : [],
     pagination: {
-      page: response?.pagination?.page ?? page,
-      limit: response?.pagination?.limit ?? limit,
-      total: response?.pagination?.total ?? 0,
-      totalPages: response?.pagination?.totalPages ?? 0,
+      page: result.pagination?.page ?? page,
+      limit: result.pagination?.limit ?? limit,
+      total: result.pagination?.total ?? 0,
+      totalPages: result.pagination?.totalPages ?? 0,
     },
   };
 }
+
+
+export interface PricingQueryParams {
+  stateId?: string;
+  cityId?: string;
+  categoryId?: string;
+  serviceId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+async function fetchPricingQuery(
+  endpoint: string,
+  params: PricingQueryParams
+): Promise<PricingRuleResponse> {
+  const query = new URLSearchParams();
+
+  if (params.stateId) query.set("stateId", params.stateId);
+  if (params.cityId) query.set("cityId", params.cityId);
+  if (params.categoryId) query.set("categoryId", params.categoryId);
+  if (params.serviceId) query.set("serviceId", params.serviceId);
+  if (params.search?.trim()) query.set("search", params.search.trim());
+
+  query.set("page", String(params.page ?? 1));
+  query.set("limit", String(params.limit ?? 20));
+
+  const token = localStorage.getItem("adminToken");
+
+  const response = await fetch(
+    `https://api.senioramerica.us/api${endpoint}?${query.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch pricing records");
+  }
+
+  return {
+    success: result.success ?? true,
+    count: result.count ?? 0,
+    data: Array.isArray(result.data) ? result.data : [],
+    pagination: {
+      page: result.pagination?.page ?? params.page ?? 1,
+      limit: result.pagination?.limit ?? params.limit ?? 20,
+      total: result.pagination?.total ?? 0,
+      totalPages: result.pagination?.totalPages ?? 0,
+    },
+  };
+}
+
+// New API: selected dropdown filters
+export function filterPricingRules(
+  params: PricingQueryParams
+): Promise<PricingRuleResponse> {
+  return fetchPricingQuery(ENDPOINTS.filterPricing, params);
+}
+
+// New API: search text + optional dropdown filters
+export function searchPricingRules(
+  params: PricingQueryParams
+): Promise<PricingRuleResponse> {
+  return fetchPricingQuery(ENDPOINTS.searchPricing, params);
+}
+
 
 // ======================================================
 // SMART PRICING UPDATE
