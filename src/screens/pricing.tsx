@@ -6,6 +6,7 @@ import {
   DollarSign,
   Loader2,
   MapPin,
+  Percent,
   RefreshCw,
   Save,
   Wrench,
@@ -37,6 +38,7 @@ interface FormErrors {
   state?: string;
   requesterPrice?: string;
   providerPrice?: string;
+  Tax?:string;
 }
 
 interface StatusMessage {
@@ -85,7 +87,7 @@ const Pricing: React.FC = () => {
 
   const [requesterPrice, setRequesterPrice] = useState("");
   const [providerPrice, setProviderPrice] = useState("");
-
+  const [Tax, setTax] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
   // ======================================================
@@ -282,6 +284,7 @@ const Pricing: React.FC = () => {
       if (!selectedStateId) {
         setRequesterPrice("");
         setProviderPrice("");
+        setTax("");
         return;
       }
 
@@ -337,6 +340,7 @@ const Pricing: React.FC = () => {
       if (candidates.length === 0) {
         setRequesterPrice("");
         setProviderPrice("");
+        setTax("");
         return;
       }
 
@@ -363,7 +367,7 @@ const Pricing: React.FC = () => {
         >();
 
         for (const item of candidates) {
-          const key = `${item.requesterPrice}_${item.providerPrice}`;
+          const key = `${item.requesterPrice}_${item.providerPrice}_${item.Tax}`;
 
           const existing = counts.get(key);
 
@@ -403,6 +407,10 @@ const Pricing: React.FC = () => {
 
       setProviderPrice(
         rule ? String(rule.providerPrice) : ""
+      );
+
+         setTax(
+        rule ? String(rule.Tax) : ""
       );
     },
     [
@@ -465,6 +473,7 @@ const Pricing: React.FC = () => {
     // Clear old prices because location changed
     setRequesterPrice("");
     setProviderPrice("");
+    setTax("");
 
     clearMessages();
   };
@@ -487,6 +496,7 @@ const Pricing: React.FC = () => {
     // Price will be loaded by effect
     setRequesterPrice("");
     setProviderPrice("");
+    setTax("");
 
     clearMessages();
   };
@@ -508,6 +518,7 @@ const Pricing: React.FC = () => {
     // Price will be loaded by effect
     setRequesterPrice("");
     setProviderPrice("");
+    setTax("");
 
     clearMessages();
   };
@@ -526,6 +537,7 @@ const Pricing: React.FC = () => {
     // Price will be loaded by effect
     setRequesterPrice("");
     setProviderPrice("");
+    setTax("");
 
     clearMessages();
   };
@@ -543,6 +555,7 @@ const Pricing: React.FC = () => {
 
     const requester = Number(requesterPrice);
     const provider = Number(providerPrice);
+    const tax = Number(Tax);
 
     // ----------------------------------------------
     // State validation
@@ -577,6 +590,17 @@ const Pricing: React.FC = () => {
       nextErrors.providerPrice =
         "Enter a valid Caregiver price.";
     }
+
+    // Tax price validation
+ if (
+      Tax === "" ||
+      !Number.isFinite(tax) ||
+      tax < 0
+    ) {
+      nextErrors.Tax =
+        "Enter a valid Tax .";
+    }
+
 
     setErrors(nextErrors);
     setStatus(null);
@@ -646,6 +670,7 @@ const Pricing: React.FC = () => {
         requesterPrice: requester,
 
         providerPrice: provider,
+        Tax:tax,
       });
 
       console.log(
@@ -1360,7 +1385,7 @@ const Pricing: React.FC = () => {
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "1fr 1fr",
+                  "1fr 1fr 1fr",
                 gap: 25,
               }}
             >
@@ -1399,7 +1424,7 @@ const Pricing: React.FC = () => {
                   <input
                     type="number"
                     min="0"
-                    step="0.01"
+                    step="0"
                     value={requesterPrice}
                     onChange={(e) =>
                       setRequesterPrice(
@@ -1472,7 +1497,7 @@ const Pricing: React.FC = () => {
                   <input
                     type="number"
                     min="0"
-                    step="0.01"
+                    step="0"
                     value={providerPrice}
                     onChange={(e) =>
                       setProviderPrice(
@@ -1505,6 +1530,78 @@ const Pricing: React.FC = () => {
                   >
                     {
                       errors.providerPrice
+                    }
+                  </span>
+                )}
+              </div>
+
+              {/* TAX PRICE */}
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontWeight: 600,
+                    color: "#14344A",
+                    marginBottom: 10,
+                  }}
+                >
+                  Tax
+                </label>
+
+                <div
+                  style={{
+                    position: "relative",
+                  }}
+                >
+                  <Percent
+  style={{
+    position: "absolute",
+    left: 16,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: 18,
+    height: 18,
+    color: "#14344A",
+  }}
+/>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0"
+                    value={Tax}
+                    onChange={(e) =>
+                      setTax(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Enter home care hourly cost tax "
+                    style={{
+                      width: "100%",
+                      padding:
+                        "16px 16px 16px 48px",
+                      borderRadius: 14,
+                      border:
+                        "1px solid #ddd",
+                      fontSize: 15,
+                      boxSizing:
+                        "border-box",
+                    }}
+                  />
+                </div>
+
+                {errors.Tax && (
+                  <span
+                    style={{
+                      color: "red",
+                      fontSize: 13,
+                      display: "block",
+                      marginTop: 6,
+                    }}
+                  >
+                    {
+                      errors.Tax
                     }
                   </span>
                 )}

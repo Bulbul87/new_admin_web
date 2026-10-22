@@ -118,6 +118,8 @@ export interface PricingRule {
 
   providerPrice: number;
 
+  Tax: number;
+
   status?: string;
 
   createdAt?: string;
@@ -153,6 +155,8 @@ export interface SmartPricingPayload {
   requesterPrice: number;
 
   providerPrice: number;
+
+  Tax: number;
 }
 
 // ======================================================
@@ -504,6 +508,8 @@ interface BuildPayloadParams {
   requesterPrice: number;
 
   providerPrice: number;
+
+   Tax: number;
 }
 
 export function buildPricingPayload(
@@ -516,6 +522,7 @@ export function buildPricingPayload(
     serviceId,
     requesterPrice,
     providerPrice,
+    Tax,
   } = params;
 
   // ====================================================
@@ -531,6 +538,8 @@ export function buildPricingPayload(
       requesterPrice,
 
       providerPrice,
+
+      Tax
     };
   }
 
@@ -549,6 +558,8 @@ export function buildPricingPayload(
       requesterPrice,
 
       providerPrice,
+
+      Tax
     };
   }
 
@@ -569,6 +580,8 @@ export function buildPricingPayload(
       requesterPrice,
 
       providerPrice,
+
+      Tax
     };
   }
 
@@ -590,6 +603,8 @@ export function buildPricingPayload(
     requesterPrice,
 
     providerPrice,
+
+     Tax
   };
 }
 

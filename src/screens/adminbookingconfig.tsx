@@ -65,6 +65,8 @@ const BookingHistoryScreen: React.FC = () => {
       firstName?: string;
       lastName?: string;
       email?: string;
+     
+      
     } | null
   ) => {
     if (!person) return "—";
@@ -273,6 +275,7 @@ const BookingHistoryScreen: React.FC = () => {
 
                       <p className="booking-person-email">
                         {item.requestor?.email || "—"}
+                     
                       </p>
                     </div>
                   </div>

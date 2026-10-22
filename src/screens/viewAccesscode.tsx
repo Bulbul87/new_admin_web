@@ -1174,7 +1174,7 @@ const TimelineItem = ({
       {!last && (
         <div style={timelineLine} />
       )}
-    </div>
+    </div>                                                                                                                                                                                                                                                                                                                                                             
 
     <div
       style={{
