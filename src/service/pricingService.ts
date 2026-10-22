@@ -433,24 +433,7 @@ export async function getServiceCatalog(): Promise<ServiceCatalogItem[]> {
   return [];
 }
 
-// ======================================================
-// GET ALL PRICING RULES
-// ======================================================
 
-// export async function getPricingRules(): Promise<
-//   PricingRule[]
-// > {
-//   const response = await api.get<any>(
-//     ENDPOINTS.pricingRules
-//   );
-
-//   console.log(
-//     "Pricing Rules API =",
-//     response
-//   );
-
-//   return extractArray<PricingRule>(response);
-// }
 
 export async function getPricingRules(
   page: number = 1,

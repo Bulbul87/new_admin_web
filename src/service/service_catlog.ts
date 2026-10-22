@@ -80,17 +80,8 @@ export interface ServiceCatalogCategory {
   _id: string;
   categoryId?: string;
   categoryName: string;
-  category?: string;
   icon?: string;
-  sortOrder?: number;
   isActive?: boolean;
-  careTier?: string;
-  serviceBookingFee?: number;
-  progressTimeMinutes?: number;
-  duration?: {
-    value: number;
-    unit: "minutes" | "hours" | "days";
-  };
   services?: ServiceCatalogItem[];
 }
 
@@ -153,18 +144,9 @@ class ServiceApi {
 async createServiceCategory(data: {
   categoryId?: string;
   categoryName: string;
-  category?: string;
-  description?: string;
   icon?: string;
-  sortOrder?: number;
   isActive?: boolean;
-  careTier?: string;
-  serviceBookingFee?: number;
-  progressTimeMinutes?: number;
-  duration?: {
-    value: number;
-    unit: 'minutes' | 'hours' | 'days';
-  };
+  
 }) {
   return api.post<ServiceCatalogCategory>(
     '/service-catalog',
@@ -177,18 +159,8 @@ async updateServiceCategory(
   data: {
     categoryId?: string;
     categoryName?: string;
-    category?: string;
-    description?: string;
     icon?: string;
-    sortOrder?: number;
     isActive?: boolean;
-    careTier?: string;
-    serviceBookingFee?: number;
-    progressTimeMinutes?: number;
-    duration?: {
-      value: number;
-      unit: 'minutes' | 'hours' | 'days';
-    };
   }
 ) {
   return api.put<ServiceCatalogCategory>(

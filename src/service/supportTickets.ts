@@ -46,14 +46,7 @@ export interface SupportReply {
 // ==============================
 
 // Get all support tickets
-// Backend response:
-// {
-//   success: true,
-//   data: [ ...tickets ]
-// }
-//
-// testapi already returns data?.data || data,
-// therefore `res` is the ticket array directly.
+
 export const getAllSupportTickets = async (): Promise<SupportTicket[]> => {
   const res = await api.get<SupportTicket[]>("/admin/tickets");
 

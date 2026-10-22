@@ -36,20 +36,13 @@ type ModalType =
   | "edit-service"
   | null;
 
-type DurationUnit = "minutes" | "hours" | "days";
+
 
 interface CategoryForm {
   categoryId: string;
   categoryName: string;
   icon: string;
-  sortOrder: string;
   isActive: boolean;
-  category: string;
-  careTier: string;
-  serviceBookingFee: string;
-  progressTimeMinutes: string;
-  durationValue: string;
-  durationUnit: DurationUnit;
 }
 
 interface ServiceForm {
@@ -73,14 +66,8 @@ const emptyCategoryForm: CategoryForm = {
   categoryId: "",
   categoryName: "",
   icon: "",
-  sortOrder: "0",
   isActive: true,
-  category: "",
-  careTier: "",
-  serviceBookingFee: "0",
-  progressTimeMinutes: "",
-  durationValue: "60",
-  durationUnit: "minutes",
+
 };
 
 const emptyServiceForm: ServiceForm = {
@@ -207,10 +194,8 @@ const ServiceCrudScreen: React.FC = () => {
       .map((category) => {
         const categoryMatches =
           category.categoryName?.toLowerCase().includes(query) ||
-          category.categoryId?.toLowerCase().includes(query) ||
-          category.category?.toLowerCase().includes(query) ||
-          category.careTier?.toLowerCase().includes(query);
-
+          category.categoryId?.toLowerCase().includes(query) 
+         
         const matchingServices = (category.services || []).filter(
           (service) =>
             service.name?.toLowerCase().includes(query) ||
@@ -296,14 +281,8 @@ const ServiceCrudScreen: React.FC = () => {
       categoryId: category.categoryId || "",
       categoryName: category.categoryName || "",
       icon: category.icon || "",
-      sortOrder: String(category.sortOrder ?? 0),
       isActive: category.isActive !== false,
-      category: category.category || "",
-      careTier: category.careTier || "",
-      serviceBookingFee: String(category.serviceBookingFee ?? 0),
-      progressTimeMinutes: String(category.progressTimeMinutes ?? ""),
-      durationValue: String(category.duration?.value ?? 60),
-      durationUnit: category.duration?.unit || "minutes",
+  
     });
 
     setError("");
@@ -318,20 +297,9 @@ const ServiceCrudScreen: React.FC = () => {
     categoryId: categoryForm.categoryId.trim() || undefined,
     categoryName: categoryForm.categoryName.trim(),
     icon: categoryForm.icon.trim() || undefined,
-    sortOrder: toRequiredNumber(categoryForm.sortOrder),
     isActive: categoryForm.isActive,
-    category: categoryForm.category.trim() || undefined,
-    careTier: categoryForm.careTier.trim() || undefined,
-    serviceBookingFee: toRequiredNumber(
-      categoryForm.serviceBookingFee
-    ),
-    progressTimeMinutes: toOptionalNumber(
-      categoryForm.progressTimeMinutes
-    ),
-    duration: {
-      value: toRequiredNumber(categoryForm.durationValue, 60),
-      unit: categoryForm.durationUnit,
-    },
+  
+ 
   });
 
   // ==========================================================
@@ -341,17 +309,6 @@ const ServiceCrudScreen: React.FC = () => {
   const handleCreateCategory = async () => {
     if (!categoryForm.categoryName.trim()) {
       setError("Category name is required.");
-      return;
-    }
-
-    if (
-      Number(categoryForm.sortOrder) < 0 ||
-      Number(categoryForm.serviceBookingFee) < 0 ||
-      Number(categoryForm.durationValue) <= 0 ||
-      (categoryForm.progressTimeMinutes.trim() !== "" &&
-        Number(categoryForm.progressTimeMinutes) < 0)
-    ) {
-      setError("Please enter valid non-negative values and a duration greater than zero.");
       return;
     }
 
@@ -383,17 +340,6 @@ const ServiceCrudScreen: React.FC = () => {
 
     if (!categoryForm.categoryName.trim()) {
       setError("Category name is required.");
-      return;
-    }
-
-    if (
-      Number(categoryForm.sortOrder) < 0 ||
-      Number(categoryForm.serviceBookingFee) < 0 ||
-      Number(categoryForm.durationValue) <= 0 ||
-      (categoryForm.progressTimeMinutes.trim() !== "" &&
-        Number(categoryForm.progressTimeMinutes) < 0)
-    ) {
-      setError("Please enter valid non-negative values and a duration greater than zero.");
       return;
     }
 
@@ -854,27 +800,15 @@ const ServiceCrudScreen: React.FC = () => {
                   <div className="service-category-info">
                     <div className="service-category-name-row">
                       <h2>{category.categoryName}</h2>
-                      <span className={`service-status ${category.isActive === false ? "inactive" : "active"}`}>
-                        <span />
-                        {category.isActive === false ? "Inactive" : "Active"}
-                      </span>
+                     
+                        
                     </div>
 
                     <div className="service-category-meta">
                       <span>{services.length} service{services.length === 1 ? "" : "s"}</span>
-                      {category.careTier && (
-                        <span>Care tier: <strong>{category.careTier}</strong></span>
-                      )}
-                      {category.duration && (
-                        <span>
-                          Duration: <strong>{category.duration.value} {category.duration.unit}</strong>
-                        </span>
-                      )}
-                      {category.serviceBookingFee !== undefined && (
-                        <span>
-                          Booking fee: <strong>${category.serviceBookingFee}</strong>
-                        </span>
-                      )}
+                      
+                     
+                     
                     </div>
                   </div>
 
@@ -1089,37 +1023,11 @@ const ServiceCrudScreen: React.FC = () => {
                     />
                   </div>
 
-                  <div className="service-form-field">
-                    <label>Category Type</label>
-                    <input
-                      type="text"
-                      value={categoryForm.category}
-                      placeholder="e.g. home-care"
-                      onChange={(event) =>
-                        setCategoryForm((previous) => ({
-                          ...previous,
-                          category: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+                 
                 </div>
 
                 <div className="service-form-grid">
-                  <div className="service-form-field">
-                    <label>Care Tier</label>
-                    <input
-                      type="text"
-                      value={categoryForm.careTier}
-                      placeholder="e.g. Basic"
-                      onChange={(event) =>
-                        setCategoryForm((previous) => ({
-                          ...previous,
-                          careTier: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+                 
 
                   <div className="service-form-field">
                     <label>Icon</label>
@@ -1137,88 +1045,10 @@ const ServiceCrudScreen: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="service-form-grid">
-                  <div className="service-form-field">
-                    <label>Sort Order</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={categoryForm.sortOrder}
-                      onChange={(event) =>
-                        setCategoryForm((previous) => ({
-                          ...previous,
-                          sortOrder: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+               
 
-                  <div className="service-form-field">
-                    <label>Service Booking Fee ($)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={categoryForm.serviceBookingFee}
-                      onChange={(event) =>
-                        setCategoryForm((previous) => ({
-                          ...previous,
-                          serviceBookingFee: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="service-form-grid">
-                  <div className="service-form-field">
-                    <label>Progress Time (Minutes)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={categoryForm.progressTimeMinutes}
-                      placeholder="e.g. 30"
-                      onChange={(event) =>
-                        setCategoryForm((previous) => ({
-                          ...previous,
-                          progressTimeMinutes: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div className="service-form-field">
-                    <label>Duration Value</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={categoryForm.durationValue}
-                      onChange={(event) =>
-                        setCategoryForm((previous) => ({
-                          ...previous,
-                          durationValue: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="service-form-field">
-                  <label>Duration Unit</label>
-                  <select
-                    value={categoryForm.durationUnit}
-                    onChange={(event) =>
-                      setCategoryForm((previous) => ({
-                        ...previous,
-                        durationUnit: event.target.value as DurationUnit,
-                      }))
-                    }
-                  >
-                    <option value="minutes">Minutes</option>
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
-                  </select>
-                </div>
+               
+             
 
                 <label className="service-toggle-field">
                   <input
