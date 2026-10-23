@@ -41,6 +41,7 @@ interface FormErrors {
   requesterPrice?: string;
   providerPrice?: string;
   Tax?:string;
+  servicefees?:string;
 }
 
 interface StatusMessage {
@@ -90,6 +91,7 @@ const Pricing: React.FC = () => {
   const [requesterPrice, setRequesterPrice] = useState("");
   const [providerPrice, setProviderPrice] = useState("");
   const [Tax, setTax] = useState("");
+  const [servicefees, setServicefees]=useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
 
@@ -261,6 +263,7 @@ const loadExistingPricing = useCallback(
       setRequesterPrice("");
       setProviderPrice("");
       setTax("");
+      setServicefees("");
       return;
     }
 
@@ -288,6 +291,7 @@ const loadExistingPricing = useCallback(
       setRequesterPrice("");
       setProviderPrice("");
       setTax("");
+      setServicefees("");
       return;
     }
 
@@ -302,7 +306,7 @@ const loadExistingPricing = useCallback(
       >();
 
       for (const item of candidates) {
-        const key = `${item.requesterPrice}_${item.providerPrice}_${item.Tax}`;
+        const key = `${item.requesterPrice}_${item.providerPrice}_${item.Tax}_${item.servicefees}`;
         const existing = counts.get(key);
 
         if (existing) {
@@ -332,6 +336,7 @@ const loadExistingPricing = useCallback(
       rule ? String(rule.providerPrice) : ""
     );
     setTax(rule ? String(rule.Tax) : "");
+    setServicefees(rule ? String(rule.servicefees) : "");
   },
   [
     selectedStateId,
@@ -357,6 +362,7 @@ useEffect(() => {
       setRequesterPrice("");
       setProviderPrice("");
       setTax("");
+      setServicefees("");
       return;
     }
 
@@ -399,6 +405,7 @@ useEffect(() => {
       setRequesterPrice("");
       setProviderPrice("");
       setTax("");
+      setServicefees("");
 
       toast.error(
         err instanceof Error
@@ -463,6 +470,7 @@ useEffect(() => {
     setRequesterPrice("");
     setProviderPrice("");
     setTax("");
+    setServicefees("");
 
     clearMessages();
   };
@@ -486,6 +494,7 @@ useEffect(() => {
     setRequesterPrice("");
     setProviderPrice("");
     setTax("");
+    setServicefees("");
 
     clearMessages();
   };
@@ -508,6 +517,7 @@ useEffect(() => {
     setRequesterPrice("");
     setProviderPrice("");
     setTax("");
+    setServicefees("");
 
     clearMessages();
   };
@@ -527,6 +537,7 @@ useEffect(() => {
     setRequesterPrice("");
     setProviderPrice("");
     setTax("");
+    setServicefees("");
 
     clearMessages();
   };
@@ -545,6 +556,7 @@ useEffect(() => {
     const requester = Number(requesterPrice);
     const provider = Number(providerPrice);
     const tax = Number(Tax);
+    const ServiceFees= Number(servicefees);
 
     // ----------------------------------------------
     // State validation
@@ -589,7 +601,15 @@ useEffect(() => {
       nextErrors.Tax =
         "Enter a valid Tax .";
     }
-
+ // service fees  validation
+ if (
+      servicefees === "" ||
+      !Number.isFinite(ServiceFees) ||
+      ServiceFees < 0
+    ) {
+      nextErrors.servicefees =
+        "Enter a valid Service Fees .";
+    }
 
     setErrors(nextErrors);
     setStatus(null);
@@ -660,6 +680,7 @@ useEffect(() => {
 
         providerPrice: provider,
         Tax:tax,
+        servicefees: ServiceFees,
       });
 
       console.log(
@@ -1390,7 +1411,7 @@ loadExistingPricing(updatedRules);
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "1fr 1fr 1fr",
+                  "1fr 1fr 1fr 1fr",
                 gap: 25,
               }}
             >
@@ -1551,7 +1572,7 @@ loadExistingPricing(updatedRules);
                     marginBottom: 10,
                   }}
                 >
-                  Tax
+                 Sales Tax
                 </label>
 
                 <div
@@ -1607,6 +1628,79 @@ loadExistingPricing(updatedRules);
                   >
                     {
                       errors.Tax
+                    }
+                  </span>
+                )}
+              </div>
+
+               {/* service fees */}
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontWeight: 600,
+                    color: "#14344A",
+                    marginBottom: 10,
+                  }}
+                >
+                  Service Fees
+                </label>
+
+                <div
+                  style={{
+                    position: "relative",
+                  }}
+                >
+                  <DollarSign
+                    style={{
+                      position: "absolute",
+                      left: 16,
+                      top: "50%",
+                      transform:
+                        "translateY(-50%)",
+                      width: 18,
+                      height: 18,
+                      color: "#14344A",
+                    }}
+                  />
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0"
+                   value={servicefees }
+                    onChange={(e) =>
+                      setServicefees(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Enter Service Fees "
+                    style={{
+                      width: "100%",
+                      padding:
+                        "16px 16px 16px 48px",
+                      borderRadius: 14,
+                      border:
+                        "1px solid #ddd",
+                      fontSize: 15,
+                      boxSizing:
+                        "border-box",
+                    }}
+                  />
+                </div>
+
+                {errors.servicefees && (
+                  <span
+                    style={{
+                      color: "red",
+                      fontSize: 13,
+                      display: "block",
+                      marginTop: 6,
+                    }}
+                  >
+                    {
+                      errors.servicefees
                     }
                   </span>
                 )}

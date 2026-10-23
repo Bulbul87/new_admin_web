@@ -7,6 +7,7 @@ import {
   approveProvider,
   rejectProvider,
   activateUser,
+  suspendUser,
 } from "../service/admin.service";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -18,6 +19,7 @@ import {
   FaUserCircle,
   FaChevronLeft,
   FaChevronRight,
+  FaTrash,
 } from "react-icons/fa";
 
 const AdminUsers: React.FC = () => {
@@ -31,8 +33,8 @@ const AdminUsers: React.FC = () => {
     location.state?.activeTab === "provider"
       ? "provider"
       : location.state?.activeTab === "deactive"
-      ? "deactive"
-      : "requester"
+        ? "deactive"
+        : "requester"
   );
 
   // DATA
@@ -43,7 +45,7 @@ const AdminUsers: React.FC = () => {
 
   // ACTIVATION LOADING
   const [activatingId, setActivatingId] = useState<string | null>(null);
-
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   // PAGINATION
   const [requesterPage, setRequesterPage] = useState(1);
   const [deactivePage, setDeactivePage] = useState(1);
@@ -89,40 +91,63 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  // FETCH ONLY INACTIVE REQUESTERS
-  // Unverified providers are NOT included in this tab.
+  
+  
+ 
+  // FETCH INACTIVE REQUESTERS + CAREGIVERS
   const loadDeactiveUsers = async (page = deactivePage) => {
     try {
       setLoading(true);
       setActiveTab("deactive");
       setSearch("");
 
-      const response = await getAllUsers(page, ITEMS_PER_PAGE);
+      const [requesterResponse, providerResponse] = await Promise.all([
+        getAllUsers(page, ITEMS_PER_PAGE),
+        getAllProviders(page, ITEMS_PER_PAGE),
+      ]);
 
-      console.log("INACTIVE REQUESTERS RESPONSE:", response);
+      console.log("INACTIVE REQUESTERS RESPONSE:", requesterResponse);
+      console.log("INACTIVE CAREGIVERS RESPONSE:", providerResponse);
 
-      const users = response?.users || [];
-
-      const inactiveRequesters = users
+      const inactiveRequesters = (requesterResponse?.users || [])
         .filter((user: any) => user.isActive === false)
         .map((user: any) => ({
           ...user,
           _isProvider: false,
         }));
 
-      setData(inactiveRequesters);
-      setOriginalData(inactiveRequesters);
+      const inactiveCaregivers = (providerResponse?.users || [])
+        .filter((provider: any) => provider.isActive === false)
+        .map((provider: any) => ({
+          ...provider,
+          _isProvider: true,
+        }));
 
-      setDeactiveTotalPages(response?.pagination?.totalPages || 1);
-      setDeactivePage(response?.pagination?.page || page);
+      const inactiveAccounts = [
+        ...inactiveRequesters,
+        ...inactiveCaregivers,
+      ];
+
+      setData(inactiveAccounts);
+      setOriginalData(inactiveAccounts);
+
+      setDeactiveTotalPages(
+        Math.max(
+          requesterResponse?.pagination?.totalPages || 1,
+          providerResponse?.pagination?.totalPages || 1
+        )
+      );
+
+      setDeactivePage(page);
     } catch (err) {
-      console.log("Deactive Users Error:", err);
+      console.error("Deactive Accounts Error:", err);
       setData([]);
       setOriginalData([]);
     } finally {
       setLoading(false);
     }
   };
+
 
   // FETCH ALL PROVIDERS: VERIFIED + UNVERIFIED
   const loadProviders = async (page = providerPage) => {
@@ -135,18 +160,23 @@ const AdminUsers: React.FC = () => {
 
       console.log("PROVIDERS RESPONSE:", response);
 
-      const providers = response?.users || [];
+    
+const providers = response?.users || [];
 
-      const formattedProviders = providers.map((provider: any) => ({
-        ...provider,
-        _isProvider: true,
-      }));
+// Show only active caregivers in the Caregivers tab
+const formattedProviders = providers
+  .filter((provider: any) => provider.isActive === true)
+  .map((provider: any) => ({
+    ...provider,
+    _isProvider: true,
+  }));
 
-      setData(formattedProviders);
-      setOriginalData(formattedProviders);
+setData(formattedProviders);
+setOriginalData(formattedProviders);
 
-      setProviderTotalPages(response?.pagination?.totalPages || 1);
-      setProviderPage(response?.pagination?.page || page);
+setProviderTotalPages(response?.pagination?.totalPages || 1);
+setProviderPage(response?.pagination?.page || page);
+
     } catch (err) {
       console.log("Provider Error:", err);
       setData([]);
@@ -156,12 +186,15 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  // ACTIVATE INACTIVE REQUESTER
-  const handleActivate = async (id: string) => {
+
+  // ACTIVATE INACTIVE REQUESTER OR CAREGIVER
+  const handleActivate = async (id: string, isProvider = false) => {
     if (activatingId) return;
 
+    const accountType = isProvider ? "caregiver" : "requester";
+
     const confirmed = window.confirm(
-      "Are you sure you want to activate this requester account?"
+      `Are you sure you want to activate this ${accountType} account?`
     );
 
     if (!confirmed) return;
@@ -171,21 +204,63 @@ const AdminUsers: React.FC = () => {
 
       const response = await activateUser(id);
 
-      console.log("ACTIVATE REQUESTER RESPONSE:", response);
+      console.log("ACTIVATE ACCOUNT RESPONSE:", response);
 
-      toast.success("Requester account activated successfully");
+      toast.success(
+        `${isProvider ? "Caregiver" : "Requester"} account activated successfully`
+      );
 
-      // Refresh inactive list so the activated requester disappears.
-      await loadDeactiveUsers(deactivePage);
+      // Refresh the relevant list after activation
+      if (isProvider) {
+        await loadProviders(providerPage);
+      } else {
+        await loadDeactiveUsers(deactivePage);
+      }
     } catch (error: any) {
-      console.error("Activate Requester Error:", error);
+      console.error("Activate Account Error:", error);
 
       toast.error(
+        error?.response?.data?.message ||
         error?.message ||
-          "Failed to activate requester. Please try again."
+        `Failed to activate ${accountType}. Please try again.`
       );
     } finally {
       setActivatingId(null);
+    }
+  };
+
+
+
+  // DELETE / SOFT-DELETE REQUESTER OR CAREGIVER
+  const handleDeleteUser = async (id: string) => {
+    if (deletingId) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this account? This action can affect the user's access."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+
+      await suspendUser(id, "Deleted by admin");
+
+      // Remove deleted account from the current UI immediately
+      setData((prev) => prev.filter((item) => item._id !== id));
+      setOriginalData((prev) => prev.filter((item) => item._id !== id));
+
+      toast.success("Account deleted successfully");
+    } catch (error: any) {
+      console.error("Delete Account Error:", error);
+
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to delete account. Please try again."
+      );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -226,41 +301,40 @@ const AdminUsers: React.FC = () => {
     } else {
       loadRequesters(1);
     }
-    // Initial load only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
 
-// SEARCH
-useEffect(() => {
-  if (!search.trim()) {
-    setData(originalData);
-    return;
-  }
+  // SEARCH
+  useEffect(() => {
+    if (!search.trim()) {
+      setData(originalData);
+      return;
+    }
 
-  const query = search.toLowerCase().trim();
+    const query = search.toLowerCase().trim();
 
-  const filteredData = originalData.filter((item) => {
-    const fullName =
-      item.name ||
-      `${item.firstName || ""} ${item.lastName || ""}`;
+    const filteredData = originalData.filter((item) => {
+      const fullName =
+        item.name ||
+        `${item.firstName || ""} ${item.lastName || ""}`;
 
-    const publicId =
-      item.requestorInfo?.publicRequesterId ||
-      item.providerInfo?.publicProviderId ||
-      item.publicRequesterId ||
-      item.publicProviderId ||
-      "";
+      const publicId =
+        item.requestorInfo?.publicRequesterId ||
+        item.providerInfo?.publicProviderId ||
+        item.publicRequesterId ||
+        item.publicProviderId ||
+        "";
 
-    return (
-      fullName.toLowerCase().includes(query) ||
-      (item.email || "").toLowerCase().includes(query) ||
-      publicId.toLowerCase().includes(query)
-    );
-  });
+      return (
+        fullName.toLowerCase().includes(query) ||
+        (item.email || "").toLowerCase().includes(query) ||
+        publicId.toLowerCase().includes(query)
+      );
+    });
 
-  setData(filteredData);
-}, [search, originalData]);
+    setData(filteredData);
+  }, [search, originalData]);
 
 
   // PAGINATION BUTTON STYLE
@@ -587,9 +661,8 @@ useEffect(() => {
             placeholder={
               activeTab === "deactive"
                 ? "Search inactive requester by Id name or email"
-                : `Search ${
-                    activeTab === "provider" ? "provider" : "requester"
-                  } by Id name or email`
+                : `Search ${activeTab === "provider" ? "provider" : "requester"
+                } by Id name or email`
             }
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -621,8 +694,8 @@ useEffect(() => {
           {activeTab === "deactive"
             ? "No Inactive Requesters Found"
             : activeTab === "requester"
-            ? "No Active Requesters Found"
-            : "No Providers Found"}
+              ? "No Active Requesters Found"
+              : "No Providers Found"}
         </p>
       ) : (
         <div
@@ -725,14 +798,14 @@ useEffect(() => {
                           >
                             {item.firstName || item.name || "-"}{" "}
                             {item.lastName || ""}
-                            <p  style={{
-                            color: "#a4a8af",
-                            fontSize: 12,
-                            wordBreak: "break-word",
-                          }}>{item.requestorInfo?.publicRequesterId || item.providerInfo?.publicProviderId } </p>
+                            <p style={{
+                              color: "#a4a8af",
+                              fontSize: 12,
+                              wordBreak: "break-word",
+                            }}>{item.requestorInfo?.publicRequesterId || item.providerInfo?.publicProviderId} </p>
                           </div>
 
-                         
+
                         </div>
                       </div>
                     </td>
@@ -823,42 +896,42 @@ useEffect(() => {
                       <div
                         style={{
                           display: "flex",
-                        
                           alignItems: "center",
                           gap: 10,
                           flexWrap: "nowrap",
                         }}
                       >
-                        {/* ACTIVATE INACTIVE REQUESTER */}
-                        {activeTab === "deactive" && !item._isProvider && (
-                          <button
-                            onClick={() => handleActivate(item._id)}
-                            disabled={activatingId !== null}
-                            style={{
-                              padding: "9px 16px",
-                              border: "none",
-                              borderRadius: 10,
-                              cursor:
-                                activatingId !== null
-                                  ? "not-allowed"
-                                  : "pointer",
-                              background:
-                                activatingId === item._id
-                                  ? "#D1D5DB"
-                                  : "#198754",
-                              color: "#fff",
-                              fontWeight: 600,
-                              fontSize: 14,
-                              opacity: activatingId !== null ? 0.75 : 1,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {activatingId === item._id
-                              ? "Activating..."
-                              : "Activate"}
-                          </button>
-                        )}
 
+                        {/* ACTIVATE INACTIVE REQUESTER / CAREGIVER */}
+                        {(
+                          activeTab === "deactive" ||
+                          (activeTab === "provider" && item._isProvider && !item.isActive)
+                        ) && (
+                            <button
+                              onClick={() => handleActivate(item._id, !!item._isProvider)}
+                              disabled={activatingId !== null}
+                              style={{
+                                padding: "9px 16px",
+                                border: "none",
+                                borderRadius: 10,
+                                cursor:
+                                  activatingId !== null ? "not-allowed" : "pointer",
+                                background:
+                                  activatingId === item._id ? "#D1D5DB" : "#198754",
+                                color: "#fff",
+                                fontWeight: 600,
+                                fontSize: 14,
+                                opacity: activatingId !== null ? 0.75 : 1,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {activatingId === item._id ? "Activating..." : "Activate"}
+                            </button>
+                          )}
+
+
+
+                        {/* APPROVE AND REJECT CAREGIVER */}
                         {activeTab === "provider" && item._isProvider && (
                           <>
                             <button
@@ -875,7 +948,7 @@ useEffect(() => {
                                 background:
                                   item.providerInfo?.isVerified === true
                                     ? "#D1D5DB"
-                                    : "#28a745",
+                                    : "#6eda87",
                                 color:
                                   item.providerInfo?.isVerified === true
                                     ? "#6B7280"
@@ -883,13 +956,12 @@ useEffect(() => {
                                 fontWeight: 600,
                                 fontSize: 14,
                                 opacity:
-                                  item.providerInfo?.isVerified === true
-                                    ? 0.8
-                                    : 1,
+                                  item.providerInfo?.isVerified === true ? 0.8 : 1,
                                 boxShadow:
                                   item.providerInfo?.isVerified === true
                                     ? "none"
                                     : "0 4px 10px rgba(40,167,69,.18)",
+                                whiteSpace: "nowrap",
                               }}
                             >
                               Approve
@@ -906,15 +978,47 @@ useEffect(() => {
                                 color: "#fff",
                                 fontWeight: 600,
                                 fontSize: 14,
-                                boxShadow:
-                                  "0 4px 10px rgba(220,53,69,.18)",
+                                boxShadow: "0 4px 10px rgba(220,53,69,.18)",
+                                whiteSpace: "nowrap",
                               }}
                             >
                               Reject
                             </button>
                           </>
                         )}
+                        {/* DELETE REQUESTER / CAREGIVER */}
+                        {activeTab !== "deactive" && (
+                          <button
+                            type="button"
+                            title="Delete account"
+                            aria-label="Delete account"
+                            onClick={() => handleDeleteUser(item._id)}
+                            disabled={deletingId !== null}
+                            style={{
+                              width: 40,
+                              height: 40,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              border: "1px solid rgba(220,53,69,0.2)",
+                              borderRadius: 10,
+                              cursor: deletingId !== null ? "not-allowed" : "pointer",
+                              background:
+                                deletingId === item._id ? "#D1D5DB" : "#FFF1F2",
+                              color: "#DC3545",
+                              opacity: deletingId !== null ? 0.7 : 1,
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            {deletingId === item._id ? (
+                              <span style={{ fontSize: 11 }}>...</span>
+                            ) : (
+                              <FaTrash size={15} />
+                            )}
+                          </button>
+                        )}
 
+                        {/* SEE PROFILE */}
                         <button
                           onClick={() => {
                             if (item._isProvider) {
@@ -934,9 +1038,9 @@ useEffect(() => {
                             cursor: "pointer",
                             fontWeight: 700,
                             color: "#14344A",
-                            background:
-                              "linear-gradient(to right,#FFFF6D,#8FDAFA)",
+                            background: "linear-gradient(to right,#FFFF6D,#8FDAFA)",
                             boxShadow: "0 4px 12px rgba(0,0,0,.08)",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           See Profile

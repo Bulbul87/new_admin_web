@@ -1180,6 +1180,9 @@ const clearFilters = () => {
                  <th style={headerStyle}>
                  Sales Tax (%)
                 </th>
+                 <th style={headerStyle}>
+                 Service Fees
+                </th>
               </tr>
             </thead>
 
@@ -1266,7 +1269,7 @@ const clearFilters = () => {
                         {/* REQUESTER PRICE */}
                         <td style={cellStyle}>
                           <span>
-                            ${rule.requesterPrice}
+                            $ {rule.requesterPrice}
                           </span>
                         </td>
 
@@ -1278,10 +1281,10 @@ const clearFilters = () => {
                           }}
                         >
                           <span>
-                            ${rule.providerPrice}
+                            $ {rule.providerPrice}
                           </span>
                         </td>
-                        {/* PROVIDER PRICE */}
+                        {/*Sales tax */} 
                         <td
                           style={{
                             ...cellStyle,
@@ -1289,7 +1292,18 @@ const clearFilters = () => {
                           }}
                         >
                           <span>
-                            {Number(rule.Tax).toFixed(2)}%
+                            {Number(rule.Tax).toFixed(2)} %
+                          </span>
+                        </td>
+                         {/*Service Fees*/} 
+                        <td
+                          style={{
+                            ...cellStyle,
+                            borderRight: "none",
+                          }}
+                        >
+                          <span>
+                           $ {rule.servicefees}
                           </span>
                         </td>
                       </tr>

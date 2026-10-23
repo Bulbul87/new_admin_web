@@ -120,6 +120,8 @@ export interface PricingRule {
 
   Tax: number;
 
+  servicefees: number;
+
   status?: string;
 
   createdAt?: string;
@@ -157,17 +159,14 @@ export interface SmartPricingPayload {
   providerPrice: number;
 
   Tax: number;
+
+  servicefees: number;
 }
 
 // ======================================================
 // API RESPONSES
 // ======================================================
 
-// export interface PricingRuleResponse {
-//   success: boolean;
-//   count: number;
-//   data: PricingRule[];
-// }
 export interface PricingRuleResponse {
   success: boolean;
   count: number;
@@ -576,7 +575,9 @@ interface BuildPayloadParams {
 
   providerPrice: number;
 
-   Tax: number;
+  Tax: number;
+
+  servicefees: number;
 }
 
 export function buildPricingPayload(
@@ -590,6 +591,7 @@ export function buildPricingPayload(
     requesterPrice,
     providerPrice,
     Tax,
+    servicefees,
   } = params;
 
   // ====================================================
@@ -606,7 +608,9 @@ export function buildPricingPayload(
 
       providerPrice,
 
-      Tax
+      Tax,
+
+      servicefees
     };
   }
 
@@ -626,7 +630,9 @@ export function buildPricingPayload(
 
       providerPrice,
 
-      Tax
+      Tax,
+
+      servicefees
     };
   }
 
@@ -648,7 +654,9 @@ export function buildPricingPayload(
 
       providerPrice,
 
-      Tax
+      Tax,
+
+      servicefees
     };
   }
 
@@ -671,7 +679,9 @@ export function buildPricingPayload(
 
     providerPrice,
 
-     Tax
+     Tax,
+      
+     servicefees
   };
 }
 

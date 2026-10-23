@@ -2,6 +2,7 @@
 const BASE_URL = 'https://api.senioramerica.us/api';
 
 
+
 interface RequestOptions {
   method?: string;
   headers?: Record<string, string>;
