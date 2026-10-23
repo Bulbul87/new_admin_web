@@ -1,3 +1,5 @@
+import { toast } from "react-toastify";
+
 import React, { useState } from "react";
 
 import { changePassword } from "../service/auth.service";
@@ -69,7 +71,7 @@ const ChangePassword: React.FC = () => {
           newPassword
         );
 
-      alert(
+      toast.success(
         res.message ||
           "Password changed successfully"
       );
@@ -80,7 +82,7 @@ const ChangePassword: React.FC = () => {
 
     } catch (error: any) {
 
-      alert(
+       toast.error(
         error?.response?.data?.message ||
           "Something went wrong"
       );

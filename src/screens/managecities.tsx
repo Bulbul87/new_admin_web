@@ -28,6 +28,7 @@ import type {
   StateOption,
   CityOption,
 } from "../service/pricingService";
+import { toast } from "react-toastify";
 
 const PAGE_SIZE = 10;
 
@@ -131,7 +132,7 @@ const Cities: React.FC = () => {
       });
     } catch (err: any) {
       console.error("Failed to load city management data:", err);
-      setError(
+      toast.error(
         err?.response?.data?.message ||
           err?.message ||
           "Unable to load states and cities. Please try again."
@@ -240,10 +241,10 @@ const Cities: React.FC = () => {
       if (editingCity) {
         // Only the city name is updated. The stateId is never changed.
         await updateCityName(editingCity._id, trimmedName);
-        setSuccess("City updated successfully.");
+        toast.success("City updated successfully.");
       } else {
         await createCity(trimmedName, selectedStateId);
-        setSuccess("City added successfully.");
+        toast.success("City added successfully.");
       }
 
       setModalOpen(false);
@@ -253,7 +254,7 @@ const Cities: React.FC = () => {
       await loadData();
     } catch (err: any) {
       console.error("Failed to save city:", err);
-      setError(
+      toast.error(
         err?.response?.data?.message ||
           err?.message ||
           "Unable to save city. Please try again."

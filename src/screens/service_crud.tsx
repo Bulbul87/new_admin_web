@@ -1,4 +1,4 @@
-
+import { toast } from 'react-toastify';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -170,7 +170,7 @@ const ServiceCrudScreen: React.FC = () => {
       });
     } catch (err: any) {
       console.error("Failed to load service catalog:", err);
-      setError(getErrorMessage(err, "Failed to load service catalog."));
+      toast.error(getErrorMessage(err, "Failed to load service catalog."));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -319,13 +319,13 @@ const ServiceCrudScreen: React.FC = () => {
       await serviceApi.createServiceCategory(getCategoryPayload());
 
       setModal(null);
-      setSuccess("Category created successfully.");
+     toast.success("Category created successfully.");
       await loadCategories();
 
       window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Create category error:", err);
-      setError(getErrorMessage(err, "Failed to create category."));
+      toast.error(getErrorMessage(err, "Failed to create category."));
     } finally {
       setSaving(false);
     }
@@ -353,13 +353,13 @@ const ServiceCrudScreen: React.FC = () => {
       );
 
       setModal(null);
-      setSuccess("Category updated successfully.");
+        toast.success("Category updated successfully.");
       await loadCategories();
 
       window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Update category error:", err);
-      setError(getErrorMessage(err, "Failed to update category."));
+      toast.error(getErrorMessage(err, "Failed to update category."));
     } finally {
       setSaving(false);
     }
@@ -387,13 +387,13 @@ const ServiceCrudScreen: React.FC = () => {
 
       await serviceApi.deleteServiceCategory(category._id);
 
-      setSuccess("Category deleted successfully.");
+        toast.success("Category deleted successfully.");
       await loadCategories();
 
       window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Delete category error:", err);
-      setError(getErrorMessage(err, "Failed to delete category."));
+      toast.error(getErrorMessage(err, "Failed to delete category."));
     } finally {
       setDeleting(false);
     }
@@ -514,13 +514,13 @@ const ServiceCrudScreen: React.FC = () => {
       );
 
       setModal(null);
-      setSuccess("Service added successfully.");
+        toast.success("Service added successfully.");
       await loadCategories();
 
       window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Create service error:", err);
-      setError(getErrorMessage(err, "Failed to add service."));
+      toast.error(getErrorMessage(err, "Failed to add service."));
     } finally {
       setSaving(false);
     }
@@ -551,13 +551,13 @@ const ServiceCrudScreen: React.FC = () => {
       );
 
       setModal(null);
-      setSuccess("Service updated successfully.");
+        toast.success("Service updated successfully.");
       await loadCategories();
 
       window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Update service error:", err);
-      setError(getErrorMessage(err, "Failed to update service."));
+      toast.error(getErrorMessage(err, "Failed to update service."));
     } finally {
       setSaving(false);
     }
@@ -589,13 +589,13 @@ const ServiceCrudScreen: React.FC = () => {
         service._id
       );
 
-      setSuccess("Service deleted successfully.");
+        toast.success("Service deleted successfully.");
       await loadCategories();
 
       window.setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("Delete service error:", err);
-      setError(getErrorMessage(err, "Failed to delete service."));
+      toast.error(getErrorMessage(err, "Failed to delete service."));
     } finally {
       setDeleting(false);
     }

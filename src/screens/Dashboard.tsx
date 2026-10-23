@@ -539,20 +539,14 @@ const Dashboard: React.FC = () => {
           <div
             style={{
               width: 60,
-
               height: 60,
-
               borderRadius: 18,
-
               background:
                 "linear-gradient(to right, #14344A, #34B7EA)",
 
               display: "flex",
-
               alignItems: "center",
-
               justifyContent: "center",
-
               marginBottom: 18,
             }}
           >

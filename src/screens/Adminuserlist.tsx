@@ -1,4 +1,4 @@
-
+import { toast } from "react-toastify";
 import React, { useEffect, useState } from "react";
 
 import {
@@ -173,14 +173,14 @@ const AdminUsers: React.FC = () => {
 
       console.log("ACTIVATE REQUESTER RESPONSE:", response);
 
-      alert("Requester account activated successfully");
+      toast.success("Requester account activated successfully");
 
       // Refresh inactive list so the activated requester disappears.
       await loadDeactiveUsers(deactivePage);
     } catch (error: any) {
       console.error("Activate Requester Error:", error);
 
-      alert(
+      toast.error(
         error?.message ||
           "Failed to activate requester. Please try again."
       );
@@ -193,11 +193,11 @@ const AdminUsers: React.FC = () => {
   const handleApprove = async (id: string) => {
     try {
       await approveProvider(id);
-      alert("Caregiver approved successfully");
+      toast.success("Caregiver approved successfully");
       loadProviders(providerPage);
     } catch (error) {
       console.error("Approve Error:", error);
-      alert("Failed to approve Caregiver");
+      toast.error("Failed to approve Caregiver");
     }
   };
 
@@ -209,11 +209,11 @@ const AdminUsers: React.FC = () => {
 
     try {
       await rejectProvider(id, reason);
-      alert("Caregiver rejected successfully");
+      toast.success("Caregiver rejected successfully");
       loadProviders(providerPage);
     } catch (error) {
       console.error("Reject Error:", error);
-      alert("Failed to reject Caregiver");
+      toast.error("Failed to reject Caregiver");
     }
   };
 

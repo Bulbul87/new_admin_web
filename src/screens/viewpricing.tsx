@@ -31,6 +31,7 @@ import type {
   ServiceCatalogItem,
   StateOption,
 } from "../service/pricingService";
+import { toast } from "react-toastify";
 
 const PricingRules: React.FC = () => {
   const navigate =useNavigate();
@@ -136,7 +137,7 @@ const PricingRules: React.FC = () => {
     } catch (err) {
       console.error("Pricing Rules Load Error:", err);
 
-      setError(
+      toast.error(
         err instanceof Error
           ? err.message
           : "Unable to load pricing rules."

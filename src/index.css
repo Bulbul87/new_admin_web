@@ -1,0 +1,26 @@
+/* Custom Success Toast */
+.Toastify__toast--success {
+  background:  #FFFFFF  !important;
+  color: #14344A !important;
+}
+
+/* Toast Progress Bar - Admin Theme Gradient */
+.Toastify__progress-bar--success {
+  background: linear-gradient(
+    90deg,
+    #FFFF6D 0%,
+    #8FDAFA 100%
+  ) !important;
+}
+
+/* Optional: Rounded progress bar */
+.Toastify__progress-bar {
+  height: 4px;
+  border-radius: 10px;
+}
+
+/* Success icon color */
+.Toastify__toast--success .Toastify__toast-icon svg {
+  fill: #30a512 !important;
+}
+

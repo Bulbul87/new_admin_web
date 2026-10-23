@@ -1,3 +1,6 @@
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AdminAuthProvider } from "./context/Authcontext";
@@ -31,10 +34,14 @@ import MessageDetail from "./screens/MessageDetail";
 import BookingHistoryScreen from "./screens/adminbookingconfig";
 import Cities from "./screens/managecities";
 import Questionaries from "./screens/managequestionaries";
+import "./index.css";
+
+
 function App() {
   return (
     <AdminAuthProvider>
       <BrowserRouter>
+      <ToastContainer position="top-right" autoClose={3000}  theme="colored"/>
         <Routes>
 
           {/* PUBLIC */}

@@ -38,6 +38,7 @@ import {
   type AccessCodeVisit,
 
 } from "../service/visitaccesscodeservice";
+import { toast } from "react-toastify";
 
 const PAGE_SIZE = 20;
 
@@ -155,7 +156,7 @@ console.log(" PAGINATION DEBUG:", {
 
     console.error("Access code list error:", err);
 
-    setError(
+    toast.error(
 
       err?.message || "Failed to load access code visits."
 

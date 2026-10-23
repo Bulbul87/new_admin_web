@@ -9,6 +9,7 @@ import {
 import "./support.css";
 import { Ticket } from "lucide-react";
 import { MdOutlineAirplaneTicket, MdOutlineCheckCircle, MdOutlinePendingActions } from "react-icons/md";
+import { toast } from "react-toastify";
 
 const SupportTicket: React.FC = () => {
   const [tickets, setTickets] = useState<SupportTicketType[]>([]);
@@ -57,7 +58,7 @@ const SupportTicket: React.FC = () => {
       setTickets(ticketList);
     } catch (err: any) {
       console.error("Failed to load support tickets:", err);
-      setError(
+      toast.error(
         err?.response?.data?.message ||
           err?.message ||
           "Failed to load support tickets."
@@ -95,7 +96,7 @@ const SupportTicket: React.FC = () => {
     } catch (err: any) {
       console.error("Failed to load ticket:", err);
 
-      setError(
+      toast.error(
         err?.response?.data?.message ||
           err?.message ||
           "Failed to load ticket details."
@@ -139,7 +140,7 @@ const SupportTicket: React.FC = () => {
     } catch (err: any) {
       console.error("Failed to send reply:", err);
 
-      setError(
+      toast.error(
         err?.response?.data?.message ||
           err?.message ||
           "Failed to send reply."

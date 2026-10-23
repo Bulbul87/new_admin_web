@@ -9,6 +9,7 @@ import {
 import { useAdminAuth } from "../context/Authcontext";
 import { useNavigate } from "react-router-dom";
 import img from "../assets/image.png";
+import { toast } from "react-toastify";
 
 const Login: React.FC = () => {
   const {
@@ -47,7 +48,7 @@ const Login: React.FC = () => {
       navigate("/dashboard");
 
     } catch (error: any) {
-      alert(error.message || "Login Failed");
+      toast.error(error.message || "Login Failed");
     } finally {
       setIsLoading(false);
     }

@@ -29,6 +29,7 @@ import {
   type PopulatedUser,
   type PopulatedService,
 } from "../service/visitaccesscodeservice";
+import { toast } from "react-toastify";
 
 interface ViewAccessCodeProps {
   visitId?: string;
@@ -72,7 +73,7 @@ const ViewAccessCode: React.FC<ViewAccessCodeProps> = ({
       } catch (err: any) {
         console.error("Access code fetch error:", err);
 
-        setError(
+        toast.error(
           err?.message || "Failed to load access code details."
         );
       } finally {

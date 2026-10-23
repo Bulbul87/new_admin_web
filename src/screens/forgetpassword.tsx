@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { forgotPassword } from "../service/auth.service";
 import { FaEnvelope } from "react-icons/fa";
+import { toast } from "react-toastify/unstyled";
 
 const ForgotPassword: React.FC = () => {
 
@@ -20,7 +21,7 @@ const ForgotPassword: React.FC = () => {
 
       const res: any = await forgotPassword(email);
 
-      alert(
+      toast.success(
         res?.message ||
         "Password reset link sent successfully"
       );
@@ -31,7 +32,7 @@ const ForgotPassword: React.FC = () => {
 
     } catch (error: any) {
 
-      alert(
+      toast.error(
         error?.response?.data?.message ||
         "Something went wrong"
       );

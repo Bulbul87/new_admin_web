@@ -1,4 +1,4 @@
-
+import { toast } from "react-toastify";
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaLock } from 'react-icons/fa';
@@ -43,7 +43,7 @@ const Adminconfigscreen: React.FC = () => {
       });
     } catch (err) {
       console.error('Failed to fetch age settings:', err);
-      setError(
+    toast.error(
         err instanceof Error ? err.message : 'Unable to load age settings.'
       );
     } finally {
@@ -90,10 +90,10 @@ const Adminconfigscreen: React.FC = () => {
         selfCareMinAge: Number(response.selfCareMinAge),
       });
 
-      setMessage('Age settings saved successfully.');
+  toast.success("Age settings saved successfully.");
     } catch (err) {
       console.error('Failed to save age settings:', err);
-      setError(
+     toast.error(
         err instanceof Error ? err.message : 'Unable to save age settings.'
       );
     } finally {
@@ -116,10 +116,10 @@ const Adminconfigscreen: React.FC = () => {
         selfCareMinAge: Number(response.selfCareMinAge),
       });
 
-      setMessage('Age settings reset successfully.');
+       toast.success('Age settings reset successfully.');
     } catch (err) {
       console.error('Failed to reset age settings:', err);
-      setError(
+     toast.error(
         err instanceof Error ? err.message : 'Unable to reset age settings.'
       );
     } finally {

@@ -512,7 +512,7 @@
   border-bottom: 1px solid #e9edf1;
   color: #747e8d;
   text-align: left;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.035em;
@@ -860,7 +860,7 @@
 }
 
 .service-toggle-field input:checked + .service-toggle-ui {
-  background: #3563e9;
+  background: #097b42;
 }
 
 .service-toggle-field

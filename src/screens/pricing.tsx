@@ -30,6 +30,7 @@ import type {
   ServiceItem,
   StateOption,
 } from "../service/pricingService";
+import { toast } from "react-toastify";
 
 // ======================================================
 // TYPES
@@ -143,7 +144,7 @@ const Pricing: React.FC = () => {
     } catch (err) {
       console.error("Pricing load error:", err);
 
-      setError(
+      toast.error(
         err instanceof Error
           ? err.message
           : "Unable to load pricing."
@@ -399,7 +400,7 @@ useEffect(() => {
       setProviderPrice("");
       setTax("");
 
-      setError(
+      toast.error(
         err instanceof Error
           ? err.message
           : "Unable to load selected pricing."
