@@ -1596,7 +1596,7 @@ loadExistingPricing(updatedRules);
                     type="number"
                     min="0"
                     step="0.01"
-                   value={Tax === "" ? "" : Number(Tax).toFixed(2)}
+                   value={Tax}
                     onChange={(e) =>
                       setTax(
                         e.target.value
@@ -1652,23 +1652,22 @@ loadExistingPricing(updatedRules);
                     position: "relative",
                   }}
                 >
-                  <DollarSign
-                    style={{
-                      position: "absolute",
-                      left: 16,
-                      top: "50%",
-                      transform:
-                        "translateY(-50%)",
-                      width: 18,
-                      height: 18,
-                      color: "#14344A",
-                    }}
-                  />
+                    <Percent
+  style={{
+    position: "absolute",
+    left: 16,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: 18,
+    height: 18,
+    color: "#14344A",
+  }}
+/>
 
                   <input
                     type="number"
                     min="0"
-                    step="0"
+                    step="0.01"
                    value={servicefees }
                     onChange={(e) =>
                       setServicefees(

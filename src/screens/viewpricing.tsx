@@ -1303,7 +1303,7 @@ const clearFilters = () => {
                           }}
                         >
                           <span>
-                           $ {rule.servicefees}
+                            {rule.servicefees} %
                           </span>
                         </td>
                       </tr>
