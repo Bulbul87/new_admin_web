@@ -20,6 +20,8 @@ import {
   getUserFullName,
 } from "../service/messageService";
 
+import { maskAbusiveWords } from "../utils/maskwords";
+
 const MessageDetail: React.FC = () => {
   const navigate = useNavigate();
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -665,7 +667,10 @@ const MessageDetail: React.FC = () => {
                                 overflowWrap: "anywhere",
                               }}
                             >
-                              {getMessageContent(message)}
+                              {/* {getMessageContent(message)} */}
+                            {maskAbusiveWords(
+  String(getMessageContent(message) ?? "")
+)}
                             </span>
                           </div>
 
