@@ -6,6 +6,7 @@ import {
   getUserFullName,
   type Conversation,
 } from "../service/messageService";
+import { maskAbusiveWords } from "../utils/maskwords";
 
 const ViewMessages = () => {
   const navigate = useNavigate();
@@ -531,54 +532,56 @@ const ViewMessages = () => {
                   ))}
                 </div>
 
-                {/* LAST MESSAGE */}
-                <div>
-                  {!lastMessage ? (
-                    <span
-                      style={{
-                        color: "#94a3b8",
-                        fontSize: "13px",
-                      }}
-                    >
-                      No messages
-                    </span>
-                  ) : (
-                    <>
-                      <div
-                        style={{
-                          fontSize: "13px",
-                          color: "#334155",
-                          fontWeight: 500,
-                          maxWidth: "300px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {lastMessage.messageType === "text"
-                          ? lastMessage.content || "-"
-                          : `[${lastMessage.messageType}]`}
-                      </div>
+              
+{/* LAST MESSAGE */}
+<div>
+  {!lastMessage ? (
+    <span
+      style={{
+        color: "#94a3b8",
+        fontSize: "13px",
+      }}
+    >
+      No messages
+    </span>
+  ) : (
+    <>
+      <div
+        style={{
+          fontSize: "13px",
+          color: "#334155",
+          fontWeight: 500,
+          maxWidth: "300px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {lastMessage.messageType === "text"
+          ? maskAbusiveWords(lastMessage.content || "-")
+          : `[${lastMessage.messageType}]`}
+      </div>
 
-                      {unreadCount > 0 && (
-                        <span
-                          style={{
-                            display: "inline-block",
-                            marginTop: "5px",
-                            padding: "3px 8px",
-                            borderRadius: "20px",
-                            background: "#ef4444",
-                            color: "#fff",
-                            fontSize: "10px",
-                            fontWeight: 700,
-                          }}
-                        >
-                          {unreadCount} unread
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
+      {unreadCount > 0 && (
+        <span
+          style={{
+            display: "inline-block",
+            marginTop: "5px",
+            padding: "3px 8px",
+            borderRadius: "20px",
+            background: "#ef4444",
+            color: "#fff",
+            fontSize: "10px",
+            fontWeight: 700,
+          }}
+        >
+          {unreadCount} unread
+        </span>
+      )}
+    </>
+  )}
+</div>
+
 
                 {/* LAST ACTIVITY */}
                 <div

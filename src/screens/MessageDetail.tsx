@@ -667,10 +667,7 @@ const MessageDetail: React.FC = () => {
                                 overflowWrap: "anywhere",
                               }}
                             >
-                              {/* {getMessageContent(message)} */}
-                            {maskAbusiveWords(
-  String(getMessageContent(message) ?? "")
-)}
+                           {maskAbusiveWords(getMessageContent(message))}
                             </span>
                           </div>
 
