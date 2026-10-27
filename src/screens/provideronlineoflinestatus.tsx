@@ -11,7 +11,9 @@ import {
 const ProviderOnlineOfflineStatus: React.FC = () => {
   const navigate = useNavigate();
 
-  const [sessions, setSessions] = useState<ProviderAcceptingSession[]>([]);
+const [sessions, setSessions] = useState<ProviderAcceptingSession[]>([]);
+const [totalRecords, setTotalRecords] = useState(0);
+const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,42 +25,53 @@ const ProviderOnlineOfflineStatus: React.FC = () => {
   const [page, setPage] = useState(1);
   const limit = 20;
 
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+ 
 
-  const fetchSessions = useCallback(async () => {
-    setLoading(true);
-    setError("");
+ const fetchSessions = useCallback(async () => {
+  setLoading(true);
+  setError("");
 
-    try {
-     const response = await getProviderAcceptingSessions(
-  page,
-  limit,
-  search,
-  state,
-  source
-);
+  try {
+    const response = await getProviderAcceptingSessions(
+      page,
+      limit,
+      search,
+      state,
+      source
+    );
 
-setSessions(Array.isArray(response) ? response : response.data || []);
-setTotalRecords(response.pagination?.totalRecords || 0);
-setTotalPages(response.pagination?.totalPages || 1);
-    } catch (err: any) {
-      setSessions([]);
-      setTotalRecords(0);
-      setTotalPages(0);
+    console.log("Sessions response:", response);
 
-      setError(
-        err?.response?.data?.message ||
-          "Unable to fetch caregiver session records."
-      );
-    } finally {
-      setLoading(false);
+    // Handle either a full response object or an array
+    if (Array.isArray(response)) {
+      setSessions(response);
+      setTotalRecords(response.length);
+      setTotalPages(1);
+    } else {
+      setSessions(response.data || []);
+      setTotalRecords(response.pagination?.totalRecords ?? 0);
+      setTotalPages(response.pagination?.totalPages ?? 1);
     }
-  }, [page, search, state, source]);
+  } catch (err: any) {
+    console.error("Fetch sessions error:", err);
 
-  useEffect(() => {
-    fetchSessions();
-  }, [fetchSessions]);
+    setSessions([]);
+    setTotalRecords(0);
+    setTotalPages(1);
+
+    setError(
+      err?.response?.data?.message ||
+        err?.message ||
+        "Unable to fetch caregiver session records."
+    );
+  } finally {
+    setLoading(false);
+  }
+}, [page, limit, search, state, source]);
+
+useEffect(() => {
+  fetchSessions();
+}, [fetchSessions]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -454,14 +467,12 @@ setTotalPages(response.pagination?.totalPages || 1);
               <tr>
                 {[
                   "Caregiver",
-                  "Provider ID",
                   "State",
                   "Started At",
                   "Ended At",
                   "Duration",
                   "Source",
-                  "Created At",
-                  "Updated At",
+                  
                 ].map((heading) => (
                   <th key={heading} style={thStyle}>
                     {heading}
@@ -506,11 +517,7 @@ setTotalPages(response.pagination?.totalPages || 1);
                       ? session.provider
                       : null;
 
-                  const providerId =
-                    provider?._id ||
-                    (typeof session.provider === "string"
-                      ? session.provider
-                      : "—");
+                  
 
                   return (
                     <tr key={session._id}>
@@ -536,7 +543,7 @@ setTotalPages(response.pagination?.totalPages || 1);
                         )}
                       </td>
 
-                      <td style={tdStyle}>{providerId}</td>
+                     
 
                       <td style={tdStyle}>
                         <span
@@ -576,13 +583,7 @@ setTotalPages(response.pagination?.totalPages || 1);
 
                       <td style={tdStyle}>{session.source}</td>
 
-                      <td style={tdStyle}>
-                        {formatDate(session.createdAt)}
-                      </td>
-
-                      <td style={tdStyle}>
-                        {formatDate(session.updatedAt)}
-                      </td>
+                    
                     </tr>
                   );
                 })
