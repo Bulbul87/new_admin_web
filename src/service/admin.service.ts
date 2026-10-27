@@ -210,7 +210,7 @@ export const getProviderAcceptingSessions = async (
   });
 
   const response = await api.get<ProviderAcceptingSessionsResponse>(
-    `/admin/provider-accepting-sessions?${params.toString()}`
+    `/admin/provider-acceptingsessions?${params.toString()}`
   );
 
   return response;
