@@ -161,3 +161,57 @@ export const decryptByKey = async (key: string) => {
     `/crypto/decrypt?key=${encodeURIComponent(key)}`
   );
 };
+
+export interface ProviderAcceptingSession {
+  _id: string;
+  provider:
+    | {
+        _id: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+      }
+    | string
+    | null;
+  state: "online" | "offline";
+  startedAt: string;
+  endedAt: string | null;
+  durationSeconds?: number;
+  source: "toggle" | "logout" | "admin_suspend" | "backfill";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProviderAcceptingSessionsResponse {
+  success: boolean;
+  message: string;
+  data: ProviderAcceptingSession[];
+  pagination: {
+    currentPage: number;
+    limit: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
+
+export const getProviderAcceptingSessions = async (
+  page = 1,
+  limit = 20,
+  search = "",
+  state = "",
+  source = ""
+): Promise<ProviderAcceptingSessionsResponse> => {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    search,
+    state,
+    source,
+  });
+
+  const response = await api.get<ProviderAcceptingSessionsResponse>(
+    `/admin/provider-accepting-sessions?${params.toString()}`
+  );
+
+  return response;
+};

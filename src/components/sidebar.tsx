@@ -16,6 +16,7 @@ import {
   Ticket,
   MapPin,
   MessageCircle,
+  History
 } from "lucide-react";
 
 
@@ -71,6 +72,13 @@ const Sidebar = () => {
       icon: <MapPin size={20} />
 
     },
+    {
+      name: "Bookings",
+      path: "/booking-history",
+      icon: <History size={20} />
+
+    },
+
     {
       name: "Change Password",
       path: "/change-password",

@@ -1,6 +1,5 @@
 import { toast } from "react-toastify";
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaLock } from 'react-icons/fa';
 import { api } from '../service/api'; 
 
@@ -20,7 +19,7 @@ const DEFAULT_SETTINGS: AgeSettings = {
 
 const Adminconfigscreen: React.FC = () => {
 
-  const navigate = useNavigate();
+  
   const [settings, setSettings] = useState<AgeSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -183,23 +182,7 @@ const Adminconfigscreen: React.FC = () => {
           </p>
         </div>
 
-          <button
-                  onClick={() => navigate("/booking-history")}
-                   style={{
-            background: "linear-gradient(135deg, #14344A, #163A5F)",
-            color: "#fff",
-            border: "none",
-            padding: "11px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
-          }}
-                >
-                 
-                  view Booking History
-                </button>
+         
                 </div>
 
         <div

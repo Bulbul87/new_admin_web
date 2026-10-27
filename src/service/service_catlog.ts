@@ -1,3 +1,4 @@
+
 import { api } from './api';
 
 export type ServiceCareTier = 'simple' | 'advanced';
@@ -74,7 +75,9 @@ export interface SearchServicesParams {
   limit?: number;
 }
 
-
+// ==============================
+// SERVICE CATALOG TYPES
+// ==============================
 
 export interface ServiceCatalogCategory {
   _id: string;
@@ -93,6 +96,7 @@ export interface ServiceCatalogItem {
   icon?: string;
   sortOrder?: number;
   isActive?: boolean;
+  price?: number;
   duration?: number;
   progressTimeMinutes?: number;
   minHours?: number;
@@ -105,19 +109,86 @@ export interface ServiceCatalogResponse {
   totalServices: number;
 }
 
+// ==============================
+// CATEGORY REQUEST TYPES
+// ==============================
+
+export interface CreateServiceCategoryData {
+  categoryId: string;
+  categoryName: string;
+  icon?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateServiceCategoryData {
+  categoryName?: string;
+  icon?: string;
+  isActive?: boolean;
+}
+
+// ==============================
+// SERVICE REQUEST TYPES
+// ==============================
+
+export interface CreateCatalogServiceData {
+  servId: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+  duration?: number;
+  minHours?: number;
+  maxHours?: number;
+  progressTimeMinutes?: number;
+}
+
+export interface UpdateCatalogServiceData {
+  servId?: string;
+  name?: string;
+  description?: string;
+  icon?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+  duration?: number;
+  minHours?: number;
+  maxHours?: number;
+  progressTimeMinutes?: number;
+}
+
 class ServiceApi {
-  /**
-   * Get all services with filters and pagination
-   */
-  async getAllServices(params?: GetAllServicesParams): Promise<ServiceListResponse> {
+  // ==============================
+  // GET ALL SERVICES
+  // ==============================
+
+  async getAllServices(
+    params?: GetAllServicesParams
+  ): Promise<ServiceListResponse> {
     const queryParams = new URLSearchParams();
 
-    if (params?.category) queryParams.append('category', params.category);
-    if (params?.isActive !== undefined) queryParams.append('isActive', String(params.isActive));
-    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
-    if (params?.order) queryParams.append('order', params.order);
-    if (params?.page) queryParams.append('page', String(params.page));
-    if (params?.limit) queryParams.append('limit', String(params.limit));
+    if (params?.category) {
+      queryParams.append('category', params.category);
+    }
+
+    if (params?.isActive !== undefined) {
+      queryParams.append('isActive', String(params.isActive));
+    }
+
+    if (params?.sortBy) {
+      queryParams.append('sortBy', params.sortBy);
+    }
+
+    if (params?.order) {
+      queryParams.append('order', params.order);
+    }
+
+    if (params?.page) {
+      queryParams.append('page', String(params.page));
+    }
+
+    if (params?.limit) {
+      queryParams.append('limit', String(params.limit));
+    }
 
     const queryString = queryParams.toString();
     const endpoint = `/services${queryString ? `?${queryString}` : ''}`;
@@ -125,137 +196,141 @@ class ServiceApi {
     return api.get<ServiceListResponse>(endpoint);
   }
 
-  /** Senior Care catalog — categories, service names, descriptions, icons. */
-  async getServiceCatalog(params?: { isActive?: boolean }): Promise<ServiceCatalogResponse> {
+  // ==============================
+  // GET SERVICE CATALOG
+  // ==============================
+
+  async getServiceCatalog(
+    params?: { isActive?: boolean }
+  ): Promise<ServiceCatalogResponse> {
     const queryParams = new URLSearchParams();
+
     if (params?.isActive !== undefined) {
       queryParams.append('isActive', String(params.isActive));
     }
+
     const queryString = queryParams.toString();
     const endpoint = `/service-catalog${queryString ? `?${queryString}` : ''}`;
+
     return api.get<ServiceCatalogResponse>(endpoint);
   }
 
+  // ==============================
+  // CATEGORY CRUD
+  // ==============================
 
-// ==============================
-// CATEGORY CRUD
-// ==============================
-
-async createServiceCategory(data: {
-  categoryId?: string;
-  categoryName: string;
-  icon?: string;
-  isActive?: boolean;
-  
-}) {
-  return api.post<ServiceCatalogCategory>(
-    '/service-catalog',
-    data
-  );
-}
-
-async updateServiceCategory(
-  id: string,
-  data: {
-    categoryId?: string;
-    categoryName?: string;
-    icon?: string;
-    isActive?: boolean;
+  // Add Category
+  async createServiceCategory(
+    data: CreateServiceCategoryData
+  ): Promise<ServiceCatalogCategory> {
+    return api.post<ServiceCatalogCategory>(
+      '/service-catalog/categories',
+      data
+    );
   }
-) {
-  return api.put<ServiceCatalogCategory>(
-    `/service-catalog/${id}`,
-    data
-  );
-}
 
-async deleteServiceCategory(id: string) {
-  return api.delete<{ message: string }>(
-    `/service-catalog/${id}`
-  );
-}
-
-
-// ==============================
-// SERVICE CRUD
-// ==============================
-
-async addServiceToCategory(
-  categoryId: string,
-  data: {
-    servId?: string | null;
-    serviceName: string;
-    description?: string;
-    icon?: string;
-    sortOrder?: number;
-    isActive?: boolean;
-    duration?: number;
-    progressTimeMinutes?: number;
-    minHours?: number;
-    maxHours?: number;
+  // Update Category
+  // categoryId example: S1
+  async updateServiceCategory(
+    categoryId: string,
+    data: UpdateServiceCategoryData
+  ): Promise<ServiceCatalogCategory> {
+    return api.put<ServiceCatalogCategory>(
+      `/service-catalog/categories/${encodeURIComponent(categoryId)}`,
+      data
+    );
   }
-) {
-  return api.post<ServiceCatalogCategory>(
-    `/service-catalog/${categoryId}/services`,
-    data
-  );
-}
 
-async updateServiceInCategory(
-  categoryId: string,
-  serviceId: string,
-  data: {
-    serviceName?: string;
-    description?: string;
-    servId?: string | null;
-    icon?: string;
-    sortOrder?: number;
-    isActive?: boolean;
-    duration?: number;
-    progressTimeMinutes?: number;
-    minHours?: number;
-    maxHours?: number;
+  // Delete Category
+  // Category must have no services according to the backend controller
+  async deleteServiceCategory(
+    categoryId: string
+  ): Promise<{ message: string }> {
+    return api.delete<{ message: string }>(
+      `/service-catalog/categories/${encodeURIComponent(categoryId)}`
+    );
   }
-) {
-  return api.put<ServiceCatalogCategory>(
-    `/service-catalog/${categoryId}/services/${serviceId}`,
-    data
-  );
-}
 
-async deleteServiceFromCategory(
-  categoryId: string,
-  serviceId: string
-) {
-  return api.delete<ServiceCatalogCategory>(
-    `/service-catalog/${categoryId}/services/${serviceId}`
-  );
-}
+  // ==============================
+  // SERVICE CRUD
+  // ==============================
 
+  // Add Service to a Category
+  async addServiceToCategory(
+    categoryId: string,
+    data: CreateCatalogServiceData
+  ): Promise<ServiceCatalogCategory> {
+    return api.post<ServiceCatalogCategory>(
+      `/service-catalog/categories/${encodeURIComponent(categoryId)}/services`,
+      data
+    );
+  }
 
+  // Update Service
+  // serviceId must be the embedded service MongoDB _id
+  async updateServiceInCategory(
+    categoryId: string,
+    serviceId: string,
+    data: UpdateCatalogServiceData
+  ): Promise<ServiceCatalogCategory> {
+    return api.put<ServiceCatalogCategory>(
+      `/service-catalog/categories/${encodeURIComponent(categoryId)}/services/${encodeURIComponent(serviceId)}`,
+      data
+    );
+  }
 
-  /**
-   * Get service by ID
-   */
-  async getServiceById(id: string): Promise<{ service: Service }> {
+  // Delete Service
+  async deleteServiceFromCategory(
+    categoryId: string,
+    serviceId: string
+  ): Promise<{ message: string }> {
+    return api.delete<{ message: string }>(
+      `/service-catalog/categories/${encodeURIComponent(categoryId)}/services/${encodeURIComponent(serviceId)}`
+    );
+  }
+
+  // ==============================
+  // GET SERVICE BY ID
+  // ==============================
+
+  async getServiceById(
+    id: string
+  ): Promise<{ service: Service }> {
     return api.get<{ service: Service }>(`/services/${id}`);
   }
 
-  /**
-   * Search services
-   */
-  async searchServices(params: SearchServicesParams): Promise<ServiceSearchResponse> {
+  // ==============================
+  // SEARCH SERVICES
+  // ==============================
+
+  async searchServices(
+    params: SearchServicesParams
+  ): Promise<ServiceSearchResponse> {
     const queryParams = new URLSearchParams();
 
-    if (params.q) queryParams.append('q', params.q);
-    if (params.category) queryParams.append('category', params.category);
- 
+    if (params.q) {
+      queryParams.append('q', params.q);
+    }
+
+    if (params.category) {
+      queryParams.append('category', params.category);
+    }
+
     if (params.tags) {
-      const tagsString = Array.isArray(params.tags) ? params.tags.join(',') : params.tags;
+      const tagsString = Array.isArray(params.tags)
+        ? params.tags.join(',')
+        : params.tags;
+
       queryParams.append('tags', tagsString);
     }
-    if (params.page) queryParams.append('page', String(params.page));
-    if (params.limit) queryParams.append('limit', String(params.limit));
+
+    if (params.page) {
+      queryParams.append('page', String(params.page));
+    }
+
+    if (params.limit) {
+      queryParams.append('limit', String(params.limit));
+    }
 
     const queryString = queryParams.toString();
     const endpoint = `/services/search${queryString ? `?${queryString}` : ''}`;
@@ -263,36 +338,43 @@ async deleteServiceFromCategory(
     return api.get<ServiceSearchResponse>(endpoint);
   }
 
-  /**
-   * Get all service categories
-   */
+  // ==============================
+  // GET SERVICE CATEGORIES
+  // ==============================
+
   async getCategories(): Promise<{ categories: ServiceCategory[] }> {
-    return api.get<{ categories: ServiceCategory[] }>('/services/categories');
+    return api.get<{ categories: ServiceCategory[] }>(
+      '/services/categories'
+    );
   }
 
-  /**
-   * Get popular services
-   */
-  async getPopularServices(limit: number = 10): Promise<{ services: Service[] }> {
-    return api.get<{ services: Service[] }>(`/services/popular?limit=${limit}`);
+  // ==============================
+  // GET POPULAR SERVICES
+  // ==============================
+
+  async getPopularServices(
+    limit: number = 10
+  ): Promise<{ services: Service[] }> {
+    return api.get<{ services: Service[] }>(
+      `/services/popular?limit=${limit}`
+    );
   }
 
-  /**
-   * Get services by category
-   */
+  // ==============================
+  // GET SERVICES BY CATEGORY
+  // ==============================
+
   async getServicesByCategory(
     category: string,
     page: number = 1,
     limit: number = 20
   ): Promise<ServiceListResponse & { category: string }> {
     return api.get<ServiceListResponse & { category: string }>(
-      `/services/category/${category}?page=${page}&limit=${limit}`
+      `/services/category/${encodeURIComponent(category)}?page=${page}&limit=${limit}`
     );
   }
-
-
-
 }
 
 export const serviceApi = new ServiceApi();
+
 
