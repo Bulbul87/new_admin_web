@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Eye, MessageSquare, RefreshCw, Search, User } from "lucide-react";
+import {  Eye, MessageSquare, RefreshCw, Search, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   getAdminConversations,
@@ -154,14 +154,7 @@ const ViewMessages = () => {
           </p>
         </div>
         <div className="d-flex gap-2">
-         <button
-            onClick={() => navigate("/provider-status")}
-              className="booking-back-btn "
-           
-          >
-            <ArrowLeft size={17} />
-            Back 
-          </button>
+         
 
         <button
           onClick={handleRefresh}

@@ -189,10 +189,9 @@ const SupportTicket: React.FC = () => {
 
   const getDescription = (ticket: any) => {
     return (
-      ticket?.description ||
-      ticket?.message ||
-      ticket?.initialMessage ||
-      ""
+  
+      ticket?.comment||
+       ""
     );
   };
 
@@ -630,11 +629,9 @@ const SupportTicket: React.FC = () => {
                       )}
                     </h2>
 
-                    <p>
-                      Ticket #
-                      {selectedTicket.ticketId ||
-                        selectedTicket._id}
-                    </p>
+                   <p>
+  CaseId:-{selectedTicket.caseId || selectedTicket._id}
+</p>
                   </div>
                 </div>
 
@@ -664,14 +661,7 @@ const SupportTicket: React.FC = () => {
               {/* USER INFO */}
 
               <div className="customer-info">
-                <div>
-                  <span>Customer</span>
-                  <strong>
-                    {getUserName(
-                      selectedTicket
-                    )}
-                  </strong>
-                </div>
+                
 
                 <div>
                   <span>Email</span>
@@ -679,6 +669,15 @@ const SupportTicket: React.FC = () => {
                     {getUserEmail(
                       selectedTicket
                     )}
+                  </strong>
+                </div>
+                  <div>
+                  <span>
+                       Category</span>
+                  <strong>
+                    {
+                      selectedTicket.category
+                    }
                   </strong>
                 </div>
 
@@ -748,11 +747,10 @@ const SupportTicket: React.FC = () => {
                         index: number
                       ) => {
                         const isAdmin =
-                          reply?.sender ===
-                            "admin" ||
-                          reply?.isAdmin === true ||
-                          reply?.senderType ===
-                            "admin";
+                          reply?.senderRole ===
+                            "admin" 
+                          
+                         
 
                         return (
                           <div

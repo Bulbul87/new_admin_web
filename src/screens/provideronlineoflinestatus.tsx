@@ -48,22 +48,7 @@ const ProviderOnlineOfflineStatus = () => {
             <ArrowLeft size={17} />
             Back
           </button>
-        <button
-          onClick={() => navigate("/messages")}
-          style={{
-            background: "linear-gradient(135deg, #14344A, #163A5F)",
-            color: "#fff",
-            border: "none",
-            padding: "10px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
-          }}
-        >
-          View Messages
-        </button>
+      
         </div>
       </div>
 

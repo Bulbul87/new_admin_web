@@ -139,6 +139,10 @@ const BookingHistoryScreen: React.FC = () => {
           limit,
         });
 
+
+  console.log("Scheduled API response:", result);
+  console.log("Scheduled records:", result.data);
+
         setScheduled(result.data || []);
 
         setPagination(
@@ -260,8 +264,8 @@ const BookingHistoryScreen: React.FC = () => {
           </thead>
 
           <tbody>
-            {responses.map((item) => (
-              <tr key={item.id}>
+            {responses.map((item,index) => (
+              <tr key={`${item.id}-${index}`}>
                 <td>
                   <div className="booking-person">
                     <div className="booking-avatar">

@@ -15,6 +15,7 @@ import {
   DollarSign,
   Ticket,
   MapPin,
+  MessageCircle,
 } from "lucide-react";
 
 
@@ -53,6 +54,11 @@ const Sidebar = () => {
       name: "Admin Config",
       path: "/admin-config",
       icon: <Layers3 size={20} />,
+    },
+     {
+      name: "View Chats",
+      path: "/messages",
+      icon: <MessageCircle size={24} />,
     },
     {
       name: "Support Tickets",
