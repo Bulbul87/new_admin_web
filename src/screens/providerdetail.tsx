@@ -16,7 +16,7 @@ import {
   FaCertificate,
   FaUserCircle,
 } from "react-icons/fa";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft,} from "lucide-react";
 import rating1 from "../assets/rating1.png";
 import rating2 from "../assets/rating2.png";
 import rating3 from "../assets/rating3.png";
@@ -1118,11 +1118,9 @@ useEffect(() => {
          
             <Field
               label="Specializations"
+
               value={
-                Array.isArray(info.specializations) &&
-                info.specializations.length
-                  ? info.specializations.join(", ")
-                  : "None"
+             info.specializations || ""
               }
               wide
             />
