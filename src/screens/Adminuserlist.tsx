@@ -2,6 +2,7 @@ import { toast } from "react-toastify";
 import React, { useEffect, useState } from "react";
 
 import {
+  getProfileImage,
   getAllUsers,
   getAllProviders,
   approveProvider,
@@ -16,11 +17,65 @@ import {
   FaEnvelope,
   FaPhone,
   FaSearch,
-  FaUserCircle,
   FaChevronLeft,
   FaChevronRight,
   FaTrash,
+  FaUserCircle ,
 } from "react-icons/fa";
+
+
+
+interface UserAvatarProps {
+  profileImage?: string | null;
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ profileImage }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const hasImage =
+    !!profileImage &&
+    profileImage.trim() !== "" &&
+    profileImage !== "undefined";
+
+  if (!hasImage || imageError) {
+    return (
+      <FaUserCircle
+        className="text-gray-400"
+        style={{
+          width: "40px",
+          height: "40px",
+          minWidth: "40px",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  return (
+    <img
+      src={getProfileImage(profileImage)}
+      alt="User Profile"
+      width={40}
+      height={40}
+      crossOrigin="anonymous"
+      className="w-10 h-10 rounded-full object-cover"
+      style={{
+        display: "block",
+        minWidth: "65px",
+        minHeight: "65px",
+        borderRadius:"50%",
+        flexShrink: 0,
+      }}
+      onLoad={() => {
+        console.log("Profile image loaded:", profileImage);
+      }}
+      onError={(e) => {
+        console.error("Profile image failed:", e.currentTarget.src);
+        setImageError(true);
+      }}
+    />
+  );
+};
 
 const AdminUsers: React.FC = () => {
   const location = useLocation();
@@ -57,6 +112,8 @@ const AdminUsers: React.FC = () => {
 
   const ITEMS_PER_PAGE = 20;
 
+
+  
   // FETCH ACTIVE REQUESTERS
   const loadRequesters = async (page = requesterPage) => {
     try {
@@ -315,6 +372,7 @@ setProviderPage(response?.pagination?.page || page);
     const query = search.toLowerCase().trim();
 
     const filteredData = originalData.filter((item) => {
+     
       const fullName =
         item.name ||
         `${item.firstName || ""} ${item.lastName || ""}`;
@@ -753,6 +811,8 @@ setProviderPage(response?.pagination?.page || page);
 
               <tbody>
                 {data.map((item, index) => (
+
+             
                   <tr
                     key={item._id}
                     style={{
@@ -784,7 +844,9 @@ setProviderPage(response?.pagination?.page || page);
                             boxShadow: "0 6px 15px rgba(0,0,0,.08)",
                           }}
                         >
-                          <FaUserCircle size={20} color="#14344A" />
+                           
+                   <UserAvatar profileImage={item.profileImage} />
+           
                         </div>
 
                         <div>

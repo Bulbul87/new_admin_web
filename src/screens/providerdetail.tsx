@@ -7,7 +7,6 @@ import {
   FaPhone,
   FaCheckCircle,
   FaInfoCircle,
-  FaUser,
   FaCalendarAlt,
   FaMapMarkerAlt,
   FaIdCard,
@@ -15,12 +14,13 @@ import {
   FaCreditCard,
   FaBell,
   FaCertificate,
+  FaUserCircle,
 } from "react-icons/fa";
 import { ArrowLeft } from "lucide-react";
 import rating1 from "../assets/rating1.png";
 import rating2 from "../assets/rating2.png";
 import rating3 from "../assets/rating3.png";
-import { getAllProviders } from "../service/admin.service";
+import { getAllProviders,getProfileImage } from "../service/admin.service";
 
 import { decryptData } from "../utils/crypto";
 
@@ -58,6 +58,59 @@ const valueStyle: React.CSSProperties = {
   overflowWrap: "anywhere",
   whiteSpace: "pre-wrap",
   lineHeight: 1.6,
+};
+
+
+interface UserAvatarProps {
+  profileImage?: string | null;
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ profileImage }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const hasImage =
+    !!profileImage &&
+    profileImage.trim() !== "" &&
+    profileImage !== "undefined";
+
+  if (!hasImage || imageError) {
+    return (
+      <FaUserCircle
+        className="text-gray-400"
+        style={{
+          width: "40px",
+          height: "40px",
+          minWidth: "40px",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  return (
+    <img
+      src={getProfileImage(profileImage)}
+      alt="User Profile"
+      width={40}
+      height={40}
+      crossOrigin="anonymous"
+      className="w-10 h-10 rounded-full object-cover"
+      style={{
+        display: "block",
+        minWidth: "108px",
+        minHeight: "108px",
+        borderRadius:"50%",
+        flexShrink: 0,
+      }}
+      onLoad={() => {
+        console.log("Profile image loaded:", profileImage);
+      }}
+      onError={(e) => {
+        console.error("Profile image failed:", e.currentTarget.src);
+        setImageError(true);
+      }}
+    />
+  );
 };
 
 const formatDate = (value: any, includeTime = false): string => {
@@ -378,8 +431,7 @@ const ProviderDetails: React.FC = () => {
   const [loadingSsn, setLoadingSsn] = useState(false);
   const [showSsn, setShowSsn] = useState(false);
 
-  // Track a failed profile image so the initials fallback can be shown.
-  const [profileImageFailed, setProfileImageFailed] = useState(false);
+
 
   useEffect(() => {
     let active = true;
@@ -403,7 +455,7 @@ const ProviderDetails: React.FC = () => {
 
         if (active) {
           setProvider(match || null);
-          setProfileImageFailed(false);
+       
           setSsnValue("");
           setShowSsn(false);
         }
@@ -610,13 +662,7 @@ useEffect(() => {
       .filter(Boolean)
       .join(" ") || "Caregiver";
 
-  const initials =
-    [provider.firstName, provider.lastName]
-      .filter(Boolean)
-      .map((name: string) => name.charAt(0).toUpperCase())
-      .join("") || "C";
-
-  const profileImageUrl = getImageUrl(provider.profileImage);
+  
 
   const stats = [
     {
@@ -693,130 +739,127 @@ useEffect(() => {
           flexWrap: "wrap",
         }}
       >
-        {/* Show the real image; show initials if missing or unavailable. */}
-        <div
-          style={{
-            width: 104,
-            height: 104,
-            flexShrink: 0,
-            borderRadius: "50%",
-            border: "4px solid #FFFFFF",
-            boxShadow: "0 5px 16px rgba(0,0,0,0.12)",
-            overflow: "hidden",
-            background: "#FFFFFF",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {profileImageUrl && !profileImageFailed ? (
-            <img
-              key={profileImageUrl}
-              src={profileImageUrl}
-              alt="Caregiver profile"
-              onError={() => setProfileImageFailed(true)}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-          ) : (
-            <div
-              aria-label={`${fullName} profile placeholder`}
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: colors.navy,
-                color: "#FFFFFF",
-                fontSize: 30,
-                fontWeight: 800,
-              }}
-            >
-              {initials}
-            </div>
-          )}
-        </div>
+   
+{/* Caregiver Profile Header */}
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 20,
+    flexWrap: "wrap",
+  }}
+>
+  {/* Profile Image */}
+  <div
+    style={{
+      width: 104,
+      height: 104,
+      minWidth: 104,
+      flexShrink: 0,
+      borderRadius: "50%",
+      border: "4px solid #FFFFFF",
+      boxShadow: "0 5px 16px rgba(0,0,0,0.12)",
+      overflow: "hidden",
+      background: "#FFFFFF",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <UserAvatar
+  profileImage={
+    provider.profileImage ||
+    provider.providerInfo?.profileImage ||
+    provider.providerInfo?.profilePhoto ||
+    provider.profilePhoto ||
+    ""
+  }
+/>
+  </div>
 
-        <div style={{ flex: "1 1 260px", minWidth: 0 }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "6px 11px",
-              borderRadius: 20,
-              background: "rgba(255,255,255,0.72)",
-              color: colors.navy,
-              fontSize: 12,
-              fontWeight: 800,
-              marginBottom: 9,
-            }}
-          >
-            <FaUser size={11} /> CAREGIVER PROFILE
-          </div>
+  {/* Caregiver Details */}
+  <div style={{ flex: "1 1 260px", minWidth: 0 }}>
+    {/* Profile Badge */}
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 7,
+        padding: "6px 11px",
+        borderRadius: 20,
+        background: "rgba(255,255,255,0.72)",
+        color: colors.navy,
+        fontSize: 12,
+        fontWeight: 800,
+        marginBottom: 9,
+      }}
+    >
+      CAREGIVER PROFILE
+    </div>
 
-          <h1
-            style={{
-              fontSize: 28,
-              lineHeight: 1.25,
-              fontWeight: 800,
-              margin: "0 0 8px",
-              color: colors.navy,
-              overflowWrap: "anywhere",
-            }}
-          >
-            {fullName}
-          </h1>
+    {/* Caregiver Name */}
+    <h1
+      style={{
+        fontSize: 28,
+        lineHeight: 1.25,
+        fontWeight: 800,
+        margin: "0 0 8px",
+        color: colors.navy,
+        overflowWrap: "anywhere",
+      }}
+    >
+      {fullName}
+    </h1>
 
-          <div
-            style={{
-              display: "flex",
-              gap: 14,
-              flexWrap: "wrap",
-              alignItems: "center",
-              color: colors.navy,
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <FaEnvelope /> {provider.email || "No email"}
-            </span>
+    {/* Contact & Rating */}
+    <div
+      style={{
+        display: "flex",
+        gap: 14,
+        flexWrap: "wrap",
+        alignItems: "center",
+        color: colors.navy,
+        fontSize: 13,
+        fontWeight: 600,
+      }}
+    >
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <FaEnvelope />
+        {provider.email || "No email"}
+      </span>
 
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <FaPhone /> {provider.phone || "No phone"}
-            </span>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <FaPhone />
+        {provider.phone || "No phone"}
+      </span>
 
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <FaStar color="#9A6700" />{" "}
-              {info.rating ?? provider.rating ?? 0} Rating (
-              {info.totalReviews ?? 0} reviews)
-            </span>
-          </div>
-        </div>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <FaStar color="#9A6700" />
+        {info.rating ?? provider.rating ?? 0} Rating (
+        {info.totalReviews ?? 0} reviews)
+      </span>
+    </div>
+  </div>
+</div>
+
 
         <div
           style={{

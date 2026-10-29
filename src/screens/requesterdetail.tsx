@@ -1,10 +1,65 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaEnvelope, FaPhone, FaCheckCircle } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaCheckCircle, FaUserCircle } from "react-icons/fa";
 import { ArrowLeft, CalendarDays } from "lucide-react";
-import { getAllUsers } from "../service/admin.service";
+import { getAllUsers ,getProfileImage} from "../service/admin.service";
 import "./requester.css";
+
+
+interface UserAvatarProps {
+  profileImage?: string | null;
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ profileImage }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const hasImage =
+    !!profileImage &&
+    profileImage.trim() !== "" &&
+    profileImage !== "undefined";
+
+  if (!hasImage || imageError) {
+    return (
+      <FaUserCircle
+        className="text-gray-400"
+        style={{
+          width: "40px",
+          height: "40px",
+          minWidth: "40px",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  return (
+    <img
+      src={getProfileImage(profileImage)}
+      alt="User Profile"
+      width={40}
+      height={40}
+      crossOrigin="anonymous"
+      className="w-10 h-10 rounded-full object-cover"
+      style={{
+        display: "block",
+        minWidth: "108px",
+        minHeight: "108px",
+        borderRadius:"50%",
+        flexShrink: 0,
+      }}
+      onLoad={() => {
+        console.log("Profile image loaded:", profileImage);
+      }}
+      onError={(e) => {
+        console.error("Profile image failed:", e.currentTarget.src);
+        setImageError(true);
+      }}
+    />
+  );
+};
+
+
 const RequesterDetails: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -187,13 +242,13 @@ const RequesterDetails: React.FC = () => {
       </button>
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 350px) minmax(0, 1fr)", gap: 25, marginBottom: 30  ,marginTop:"4px"}}>
-        <div style={{ background: "linear-gradient(to right, #FFFF6D, #8FDAFA)", borderRadius: 30, padding: "35px 25px", textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
-          <img
-            src={requester.profileImage || `https://i.pravatar.cc/200?u=${requester._id}`}
-            alt="Requester profile"
-            onError={(event) => { event.currentTarget.src = `https://i.pravatar.cc/200?u=${requester._id}`; }}
-            style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "5px solid #fff", boxShadow: "0 6px 20px rgba(0,0,0,0.15)", marginBottom: 20 }}
-          />
+        <div style={{ background: "linear-gradient(to right, #FFFF6D, #8FDAFA)", borderRadius: 30, padding: "35px 25px", textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" , alignItems:"center",justifyItems:"center"}}>
+           <UserAvatar 
+  profileImage={
+    requester.profileImage ||
+    ""
+  }
+/>
           <h2 style={{ color: "#14344A", fontWeight: 700, fontSize: 24, marginBottom: 10 }}>{fullName || "Requester"}</h2>
           <p style={{ margin: 0, color: "#14344A", overflowWrap: "anywhere" }}>{requester.requestorInfo.publicRequesterId || ""}</p>
         </div>

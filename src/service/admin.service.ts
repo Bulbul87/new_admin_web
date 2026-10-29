@@ -51,6 +51,20 @@ export interface PaginatedUsersResponse {
 // ADMIN APIs
 // ==============================
 
+   export  const getProfileImage = (profileImage?: string) => {
+  if (!profileImage || profileImage === "undefined") {
+    return "/default-profile.png";
+  }
+
+  if (profileImage.startsWith("http")) {
+    return profileImage;
+  }
+
+  return `https://api.senioramerica.us${
+    profileImage.startsWith("/") ? "" : "/"
+  }${profileImage}`;
+};
+
 // Get all requesters (users)
 export const getAllUsers = async (
   page = 1,
