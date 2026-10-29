@@ -1,159 +1,96 @@
 import { api } from "../service/api";
 
-export interface AccessCodeVisit {
+export interface PopulatedUser {
   _id: string;
-
-  booking: {
-    _id: string;
-  user?: PopulatedUser | string; 
-  provider?: PopulatedUser | string; 
-  service?: PopulatedService | string;
-
-    scheduledDate: string;
-
-    scheduledTime?: {
-      start?: string;
-      end?: string;
-    };
-
-    duration?: number;
-
-    daySchedules?: Array<{
-      date: string;
-      fromTime: string;
-      toTime: string;
-      duration: number;
-      tasks: string[];
-      startUtc?: string;
-      endUtc?: string;
-      _id: string;
-    }>;
-
-    schedulingTimeZone?: string;
-    repeatDaily?: boolean;
-    isMultiDaySeries?: boolean;
-
-    location?: {
-      address?: {
-        street?: string;
-        city?: string;
-        state?: string;
-        zipCode?: string;
-        country?: string;
-      };
-      coordinates?: number[];
-    };
-
-    status?: string;
-
-    pricing?: {
-      servicePrice?: number;
-      additionalCharges?: number;
-      discount?: number;
-      tax?: number;
-      total?: number;
-      platformCutBasisUsd?: number;
-      platformCutFromRequestorUsd?: number;
-      platformCutFromProviderUsd?: number;
-      providerEstimatedPayoutUsd?: number;
-    };
-
-    payment?: {
-      method?: string;
-      status?: string;
-      transactionId?: string;
-      paidAt?: string;
-      heldAt?: string;
-      authorizationExpiresAt?: string;
-    };
-
-    paymentHoldRequired?: boolean;
-
-    specialInstructions?: string;
-
-    tasks?: string[];
-
-    completionRejection?: {
-      reasons?: string[];
-      comment?: string;
-      rejectedAt?: string;
-    };
-
-    addTimeRequest?: {
-      status?: string;
-      additionalMinutes?: number;
-      proposedEndTime?: string;
-      reasonCode?: string;
-      reason?: string;
-      priceDelta?: number;
-      requestedAt?: string;
-      resolvedAt?: string;
-      rejectionComment?: string;
-    };
-
-    providerAcceptedAt?: string;
-    providerEnRouteAt?: string;
-    providerArrivedAt?: string;
-    providerStartedAt?: string;
-    completionRequestedAt?: string;
-    completedAt?: string;
-
-    completionAutoApproved?: boolean;
-
-    accessCode?: string;
-    accessCodeUsed?: boolean;
-
-    activeVisit?: string;
-
-    createdAt?: string;
-    updatedAt?: string;
+  requestorInfo?: {
+    publicRequesterId?: string;
   };
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  profileImage?: string;
+  address?: unknown;
+  dateOfBirth?: string;
+  gender?: string;
+  providerInfo?: unknown;
+}
 
-  visitIndex: number;
+export interface PopulatedService {
+  _id: string;
+  name?: string;
+  title?: string;
+  description?: string;
+}
 
-  scheduledDate: string;
+export interface AccessCodeSchedule {
+  date: string;
   fromTime: string;
   toTime: string;
   duration: number;
-
   tasks: string[];
-
   startUtc?: string;
   endUtc?: string;
+  _id: string;
+}
 
-  status: string;
+export interface AccessCodePricing {
+  servicePrice?: number;
+  additionalCharges?: number;
+  discount?: number;
+  tax?: number;
+  total?: number;
+  platformCutBasisUsd?: number;
+  platformCutFromRequestorUsd?: number;
+  platformCutFromProviderUsd?: number;
+  providerEstimatedPayoutUsd?: number;
+}
 
-  pricing?: {
-    servicePrice?: number;
-    additionalCharges?: number;
-    discount?: number;
-    tax?: number;
-    total?: number;
-    platformCutBasisUsd?: number;
-    platformCutFromRequestorUsd?: number;
-    platformCutFromProviderUsd?: number;
-    providerEstimatedPayoutUsd?: number;
+export interface AccessCodePayment {
+  method?: string;
+  status?: string;
+  transactionId?: string;
+  paidAt?: string;
+  heldAt?: string;
+  authorizationExpiresAt?: string;
+}
+
+export interface AccessCodeBooking {
+  _id: string;
+  user?: PopulatedUser | string;
+  provider?: PopulatedUser | string;
+  service?: PopulatedService | string;
+
+  scheduledDate?: string;
+  scheduledTime?: {
+    start?: string;
+    end?: string;
   };
 
-  payment?: {
-    method?: string;
-    status?: string;
-    transactionId?: string;
-    paidAt?: string;
-    heldAt?: string;
-    authorizationExpiresAt?: string;
+  duration?: number;
+  daySchedules?: AccessCodeSchedule[];
+
+  schedulingTimeZone?: string;
+  repeatDaily?: boolean;
+  isMultiDaySeries?: boolean;
+
+  location?: {
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      zipCode?: string;
+      country?: string;
+    };
+    coordinates?: number[];
   };
 
+  status?: string;
+  pricing?: AccessCodePricing;
+  payment?: AccessCodePayment;
   paymentHoldRequired?: boolean;
-
-  accessCode?: string;
-  accessCodeUsed?: boolean;
-
-  providerEnRouteAt?: string;
-  providerArrivedAt?: string;
-  providerStartedAt?: string;
-  completionRequestedAt?: string;
-  completedAt?: string;
+  specialInstructions?: string;
+  tasks?: string[];
 
   completionRejection?: {
     reasons?: string[];
@@ -173,124 +110,159 @@ export interface AccessCodeVisit {
     rejectionComment?: string;
   };
 
+  providerAcceptedAt?: string;
+  providerEnRouteAt?: string;
+  providerArrivedAt?: string;
+  providerStartedAt?: string;
+  completionRequestedAt?: string;
+  completedAt?: string;
+  completionAutoApproved?: boolean;
+
+  accessCode?: string;
+  accessCodeUsed?: boolean;
+  activeVisit?: string;
+
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface PopulatedUser { _id: string;  requestorInfo?: {
-    publicRequesterId?: string;
-  }; firstName?: string; lastName?: string; email?: string; }
+export type AccessCodeRecordType = "booking" | "visit";
+export type AccessCodeStatus = "USED" | "ACTIVE" | "PENDING";
 
-export interface PopulatedService { _id: string; name?: string; }
+export interface AccessCodeVisit {
+  _id: string;
 
+  booking?: AccessCodeBooking | string;
+  user?: PopulatedUser | string;
+  provider?: PopulatedUser | string;
+  service?: PopulatedService | string;
 
-// =====================================================
-// GET SINGLE ACCESS CODE VISIT
-// =====================================================
+  recordType: AccessCodeRecordType;
+  bookingId?: string;
+  requesterPublicId?: string;
 
-export const getAccessCodeVisit = async (
-  id: string
-): Promise<AccessCodeVisit> => {
-  const response = await api.get<AccessCodeVisit>(
-    `/admin/access-codes/${id}`
-  );
+  scheduledDate?: string;
+  scheduledTime?: {
+    start?: string;
+    end?: string;
+  };
 
-  return response;
-};
+  visitDate?: string;
+  visitStartTime?: string;
+  visitEndTime?: string;
 
+  visitIndex?: number;
+  fromTime?: string;
+  toTime?: string;
+  duration?: number;
 
-// =====================================================
-// GET ALL ACCESS CODE VISITS
-// =====================================================
+  tasks?: string[];
+  daySchedules?: AccessCodeSchedule[];
+
+  status?: string;
+  bookingStatus?: string;
+  codeStatus: AccessCodeStatus;
+
+  accessCode?: string;
+  accessCodeUsed?: boolean;
+
+  pricing?: AccessCodePricing;
+  payment?: AccessCodePayment;
+  paymentHoldRequired?: boolean;
+
+  location?: AccessCodeBooking["location"];
+  specialInstructions?: string;
+  schedulingTimeZone?: string;
+  isMultiDaySeries?: boolean;
+
+  providerAcceptedAt?: string;
+  providerEnRouteAt?: string;
+  providerArrivedAt?: string;
+  providerStartedAt?: string;
+  completionRequestedAt?: string;
+  completedAt?: string;
+  completionAutoApproved?: boolean;
+
+  completionRejection?: AccessCodeBooking["completionRejection"];
+  addTimeRequest?: AccessCodeBooking["addTimeRequest"];
+
+  createdAt?: string;
+  updatedAt?: string;
+
+  [key: string]: unknown;
+}
 
 export interface AccessCodeListResponse {
-  success?: boolean;
-  data?: AccessCodeVisit[];
+  success: boolean;
+  data: AccessCodeVisit[];
   pagination?: {
     page: number;
     limit: number;
     total: number;
-  totalPages: number;
+    totalPages: number;
   };
   message?: string;
 }
 
+export interface AccessCodeDetailsResponse {
+  success: boolean;
+  data: AccessCodeVisit;
+  message?: string;
+}
 
+const ACCESS_CODES_ENDPOINT = "/admin/access-codes";
+
+export const getAccessCodeVisit = async (
+  id: string,
+  type: AccessCodeRecordType = "booking"
+): Promise<AccessCodeVisit> => {
+  const response = await api.get<AccessCodeDetailsResponse>(
+    `${ACCESS_CODES_ENDPOINT}/${id}?type=${type}`
+  );
+
+  if (!response?.success || !response?.data) {
+    const message =
+      typeof response?.message === "string"
+        ? response.message
+        : "Failed to fetch access code details";
+
+    throw new Error(message);
+  }
+
+  return response.data;
+};
 
 export const getAllAccessCodeVisits = async (params?: {
   page?: number;
   limit?: number;
   search?: string;
-  status?: string;
+  status?: AccessCodeStatus | string;
 }): Promise<AccessCodeListResponse> => {
-  const token = localStorage.getItem("adminToken");
-
   const query = new URLSearchParams();
 
-  if (params?.page) {
-    query.append("page", String(params.page));
+  query.set("page", String(params?.page ?? 1));
+  query.set("limit", String(params?.limit ?? 20));
+
+  if (params?.search?.trim()) {
+    query.set("search", params.search.trim());
   }
 
-  if (params?.limit) {
-    query.append("limit", String(params.limit));
+  if (params?.status && params.status !== "all") {
+    query.set("status", params.status.toUpperCase());
   }
 
-  if (params?.search) {
-    query.append("search", params.search);
-  }
-
-  if (params?.status) {
-    query.append("status", params.status);
-  }
-
-  const response = await fetch(
-    `https://api.senioramerica.us/api/admin/access-codes?${query.toString()}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {}),
-      },
-    }
+  const response = await api.get<AccessCodeListResponse>(
+    `${ACCESS_CODES_ENDPOINT}?${query.toString()}`
   );
 
-  const data = await response.json();
+  if (!response?.success || !Array.isArray(response.data)) {
+    const message =
+      typeof response?.message === "string"
+        ? response.message
+        : "Failed to fetch access codes";
 
-  console.log("🚀 RAW ACCESS CODE RESPONSE:", data);
-
-
-console.log(
-  "RAW FIRST VISIT:",
-  data?.data?.[0]
-);
-
-console.log(
-  "RAW BOOKING:",
-  data?.data?.[0]?.booking
-);
-
-console.log(
-  "RAW USER:",
-  data?.data?.[0]?.booking?.user
-);
-
-console.log(
-  "RAW PROVIDER:",
-  data?.data?.[0]?.booking?.provider
-);
-
-console.log(
-  "RAW SERVICE:",
-  data?.data?.[0]?.booking?.service
-);
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Failed to fetch access code visits");
+    throw new Error(message);
   }
 
-  return data;
+  return response;
 };
