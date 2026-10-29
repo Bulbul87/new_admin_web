@@ -293,15 +293,12 @@ const ServiceCrudScreen: React.FC = () => {
   // CATEGORY PAYLOAD
   // ==========================================================
 
-  const getCategoryPayload = () => ({
-    categoryId: categoryForm.categoryId.trim() || undefined,
-    categoryName: categoryForm.categoryName.trim(),
-    icon: categoryForm.icon.trim() || undefined,
-    isActive: categoryForm.isActive,
-  
- 
-  });
-
+ const getCategoryPayload = () => ({
+  categoryId: categoryForm.categoryId.trim(),
+  categoryName: categoryForm.categoryName.trim(),
+  icon: categoryForm.icon.trim() || undefined,
+  isActive: categoryForm.isActive,
+});
   // ==========================================================
   // CREATE CATEGORY
   // ==========================================================
@@ -311,6 +308,10 @@ const ServiceCrudScreen: React.FC = () => {
       setError("Category name is required.");
       return;
     }
+    if (!categoryForm.categoryId.trim()) {
+  setError("Category ID is required.");
+  return;
+}
 
     try {
       setSaving(true);
@@ -446,21 +447,21 @@ const ServiceCrudScreen: React.FC = () => {
   // SERVICE PAYLOAD
   // ==========================================================
 
-  const getServicePayload = () => ({
-    servId: serviceForm.servId.trim() || null,
-    serviceName: serviceForm.serviceName.trim(),
-    description: serviceForm.description.trim() || undefined,
-    icon: serviceForm.icon.trim() || undefined,
-    sortOrder: toRequiredNumber(serviceForm.sortOrder),
-    isActive: serviceForm.isActive,
-    duration: toRequiredNumber(serviceForm.duration, 60),
-    progressTimeMinutes: toRequiredNumber(
-      serviceForm.progressTimeMinutes,
-      60
-    ),
-    minHours: toOptionalNumber(serviceForm.minHours),
-    maxHours: toOptionalNumber(serviceForm.maxHours),
-  });
+ const getServicePayload = () => ({
+  servId: serviceForm.servId.trim(),
+  name: serviceForm.serviceName.trim(),
+  description: serviceForm.description.trim() || undefined,
+  icon: serviceForm.icon.trim() || undefined,
+  sortOrder: toRequiredNumber(serviceForm.sortOrder),
+  isActive: serviceForm.isActive,
+  duration: toRequiredNumber(serviceForm.duration, 60),
+  progressTimeMinutes: toRequiredNumber(
+    serviceForm.progressTimeMinutes,
+    60
+  ),
+  minHours: toOptionalNumber(serviceForm.minHours),
+  maxHours: toOptionalNumber(serviceForm.maxHours),
+});
 
   // ==========================================================
   // SERVICE VALIDATION
@@ -471,6 +472,10 @@ const ServiceCrudScreen: React.FC = () => {
       setError("Service name is required.");
       return false;
     }
+    if (!serviceForm.servId.trim()) {
+  setError("Service ID is required.");
+  return false;
+}
 
     if (
       Number(serviceForm.sortOrder) < 0 ||
@@ -510,7 +515,7 @@ const ServiceCrudScreen: React.FC = () => {
 
       await serviceApi.addServiceToCategory(
         selectedCategory._id,
-        getServicePayload()
+         getServicePayload()
       );
 
       setModal(null);

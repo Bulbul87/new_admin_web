@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import {
   CalendarDays,
   CheckCircle2,
@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Ban,
-  ArrowLeft,
+
 } from "lucide-react";
 
 import {
@@ -32,7 +32,7 @@ import "./bookinghistory.css";
 type Tab = "responses" | "scheduled" | "past";
 
 const BookingHistoryScreen: React.FC = () => {
-  const navigate = useNavigate();
+ 
 
   const [activeTab, setActiveTab] = useState<Tab>("responses");
 
@@ -604,13 +604,7 @@ cancelledAt
             </div>
 
             <div className="booking-header-actions">
-              <button
-                onClick={() => navigate("/admin-config")}
-                className="booking-back-btn"
-              >
-                <ArrowLeft size={17} />
-                Back
-              </button>
+             
 
               <button
                 onClick={loadData}
