@@ -18,6 +18,7 @@ async function fetchAllSessionRecords(search: string): Promise<Session[]> {
 }
 const providerIdOf = (session: Session) => { const p: any = session.provider; return p && typeof p === "object" ? String(p._id || p.id || "") : typeof p === "string" ? p : ""; };
 const providerNameOf = (provider: any) => !provider ? "Unknown Caregiver" : typeof provider === "string" ? provider : `${provider.firstName || ""} ${provider.lastName || ""}`.trim() || provider.email || provider._id || "Unknown Caregiver";
+
 const timestamp = (value?: string | null) => value ? new Date(value).getTime() || 0 : 0;
 
 const ProviderAcceptingSessionDetail: React.FC = () => {
