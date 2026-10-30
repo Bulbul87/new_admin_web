@@ -429,7 +429,7 @@ const ProviderDetails: React.FC = () => {
   const [provider, setProvider] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [ssnValue, setSsnValue] = useState("");
-  const [loadingSsn, setLoadingSsn] = useState(false);
+  const [loadingSsn] = useState(false);
   const [showSsn, setShowSsn] = useState(false);
 const [showReviews, setShowReviews] = useState(false);
 const [reviews, setReviews] = useState<any[]>([]);
@@ -639,50 +639,28 @@ const closeProviderReviews = () => {
   setReviewsError("");
 };
 
-  const handleSsnReveal = async () => {
-    setShowSsn(true);
+ 
+const handleSsnReveal = () => {
+  setShowSsn(true);
 
-    if (ssnValue || loadingSsn) return;
+  if (ssnValue || loadingSsn) return;
 
-    try {
-      setLoadingSsn(true);
+  const identity = provider?.providerInfo?.identityData;
 
-      const identity = provider?.providerInfo?.identityData;
-      const encryptedValue = identity?.ssn || identity?.ssnLast4;
+  // API se already decrypted SSN mil raha hai
+  const ssn = String(
+    identity?.ssn || identity?.ssnLast4 || ""
+  ).replace(/\D/g, "");
 
-      if (!encryptedValue) {
-        setSsnValue("Not Available");
-        return;
-      }
+  if (ssn.length === 9) {
+    setSsnValue(ssn);
+  } else if (ssn.length === 4) {
+    setSsnValue(ssn);
+  } else {
+    setSsnValue("Not Available");
+  }
+};
 
-      try {
-        const decrypted = await decryptData(encryptedValue);
-
-        // Avoid showing a full SSN if decryption returns the full number.
-        const digitsOnly = String(decrypted || "").replace(/\D/g, "");
-
-        if (digitsOnly.length === 9) {
-          setSsnValue(`${digitsOnly.slice(-4)}`);
-        } else if (digitsOnly.length === 4) {
-          setSsnValue(` ${digitsOnly}`);
-        } else {
-          setSsnValue("Unable to display");
-        }
-      } catch (error) {
-        console.error("SSN decrypt error:", error);
-
-        const lastFour = String(identity?.ssnLast4 || "").replace(/\D/g, "");
-
-        setSsnValue(
-          lastFour.length === 4
-            ? `${lastFour}`
-            : "Unable to display"
-        );
-      }
-    } finally {
-      setLoadingSsn(false);
-    }
-  };
 
   if (loading) {
     return (
