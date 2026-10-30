@@ -229,3 +229,86 @@ export const getProviderAcceptingSessions = async (
 
   return response;
 };
+
+
+
+
+export interface AdminReview {
+  _id: string;
+
+  reviewer: {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+    profileImage?: string;
+  } | null;
+
+  rating: number | null;
+  comment: string;
+
+  categories?: {
+    professionalism?: number;
+    punctuality?: number;
+    quality?: number;
+    communication?: number;
+  };
+
+  isVerified?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+
+  response?: {
+    comment?: string;
+    respondedAt?: string;
+  } | null;
+
+  booking?: {
+    _id: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+  } | null;
+}
+
+export interface AdminReviewsResponse {
+  success: boolean;
+  message: string;
+
+  profile: {
+    _id: string;
+    name: string;
+    role: string;
+  };
+
+  summary: {
+    totalReviews: number;
+    totalRatings: number;
+    totalComments: number;
+    averageRating: number | null;
+  };
+
+  pagination: {
+    currentPage: number;
+    limit: number;
+    totalPages: number;
+    totalRecords: number;
+  };
+
+  data: AdminReview[];
+}
+
+export const getAdminUserReviews = async (
+  userId: string,
+  profileType: "provider" | "requester",
+  page: number = 1,
+  limit: number = 10
+): Promise<AdminReviewsResponse> => {
+  const endpoint =
+    `/admin/users/${encodeURIComponent(userId)}/reviews` +
+    `?profileType=${profileType}` +
+    `&page=${page}` +
+    `&limit=${limit}`;
+
+  return api.get<AdminReviewsResponse>(endpoint);
+};

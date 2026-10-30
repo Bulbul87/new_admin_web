@@ -15,12 +15,13 @@ import {
   FaBell,
   FaCertificate,
   FaUserCircle,
+  FaTimes,
 } from "react-icons/fa";
 import { ArrowLeft,} from "lucide-react";
 import rating1 from "../assets/rating1.png";
 import rating2 from "../assets/rating2.png";
 import rating3 from "../assets/rating3.png";
-import { getAllProviders,getProfileImage } from "../service/admin.service";
+import { getAllProviders, getProfileImage, getAdminUserReviews } from "../service/admin.service";
 
 import { decryptData } from "../utils/crypto";
 
@@ -430,7 +431,13 @@ const ProviderDetails: React.FC = () => {
   const [ssnValue, setSsnValue] = useState("");
   const [loadingSsn, setLoadingSsn] = useState(false);
   const [showSsn, setShowSsn] = useState(false);
-
+const [showReviews, setShowReviews] = useState(false);
+const [reviews, setReviews] = useState<any[]>([]);
+const [reviewsLoading, setReviewsLoading] = useState(false);
+const [reviewsError, setReviewsError] = useState("");
+const [reviewPage, setReviewPage] = useState(1);
+const [reviewTotalPages, setReviewTotalPages] = useState(1);
+const [reviewSummary, setReviewSummary] = useState<any>(null);
 
 
   useEffect(() => {
@@ -568,6 +575,69 @@ useEffect(() => {
   provider?.providerInfo?.directDeposit?.accountHolderLastName,
   provider?.providerInfo?.directDeposit?.bankAddress,
 ]);
+
+const fetchProviderReviews = async (page: number = 1) => {
+  if (!id) return;
+
+  try {
+    setReviewsLoading(true);
+    setReviewsError("");
+
+    const response: any = await getAdminUserReviews(
+      id,
+      "provider",
+      page,
+      10
+    );
+
+    // API service response unwrap kar sakti hai.
+    // Array aur full response dono structures handle karein.
+    const reviewList = Array.isArray(response)
+      ? response
+      : Array.isArray(response?.data)
+        ? response.data
+        : [];
+
+    setReviews(reviewList);
+
+    if (!Array.isArray(response)) {
+      setReviewSummary(response?.summary ?? null);
+
+      const pagination = response?.pagination;
+
+      setReviewPage(pagination?.currentPage ?? page);
+      setReviewTotalPages(
+        Math.max(1, pagination?.totalPages ?? 1)
+      );
+    } else {
+      setReviewPage(page);
+
+      // Provider profile mein totalReviews available hai.
+      setReviewTotalPages(
+        Math.max(1, Math.ceil((Number(info?.totalReviews) || 0) / 10))
+      );
+    }
+  } catch (error: any) {
+    console.error("Failed to fetch provider reviews:", error);
+    setReviewsError(
+      error?.message || "Failed to load reviews. Please try again."
+    );
+    setReviews([]);
+  } finally {
+    setReviewsLoading(false);
+  }
+};
+
+const openProviderReviews = () => {
+  setShowReviews(true);
+  setReviewPage(1);
+  void fetchProviderReviews(1);
+};
+
+const closeProviderReviews = () => {
+  setShowReviews(false);
+  setReviewsError("");
+};
 
   const handleSsnReveal = async () => {
     setShowSsn(true);
@@ -736,6 +806,7 @@ useEffect(() => {
           display: "flex",
           alignItems: "center",
           gap: 24,
+          justifyContent:"space-between",
           flexWrap: "wrap",
         }}
       >
@@ -845,17 +916,34 @@ useEffect(() => {
         {provider.phone || "No phone"}
       </span>
 
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-        }}
-      >
-        <FaStar color="#9A6700" />
-        {info.rating ?? provider.rating ?? 0} Rating (
-        {info.totalReviews ?? 0} reviews)
-      </span>
+     <span
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+  }}
+>
+  <FaStar color="#9A6700" />
+  {info.rating ?? provider.rating ?? 0} Rating (
+  <button
+    type="button"
+    onClick={openProviderReviews}
+    style={{
+      border: "none",
+      background: "transparent",
+      color: colors.navy,
+      textDecoration: "underline",
+      cursor: "pointer",
+      padding: 0,
+      font: "inherit",
+      fontWeight: 700,
+    }}
+    aria-label={`View ${info.totalReviews ?? 0} caregiver reviews`}
+  >
+    {info.totalReviews ?? 0} reviews
+  </button>
+  )
+</span>
     </div>
   </div>
 </div>
@@ -1116,14 +1204,106 @@ useEffect(() => {
               value={display(info.declaredNoProfessionalLicenses)}
             />
          
-            <Field
-              label="Specializations"
+         
 
-              value={
-             info.specializations || ""
+
+<Field
+  label="Specializations"
+  value={
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+        gap: "20px 16px",
+        width: "100%",
+        alignItems: "start",
+      }}
+    >
+      {(() => {
+        const specializationList: string[] = Array.isArray(
+          info.specializations
+        )
+          ? info.specializations.map(String)
+          : (info.specializations || "").split(
+              /(?=[A-Za-z &]+:)/
+            );
+
+        const groups = specializationList
+          .map((item: string) => item.trim())
+          .filter(Boolean)
+          .reduce<Record<string, string[]>>(
+            (acc, item) => {
+              const separatorIndex = item.indexOf(":");
+
+              const category =
+                separatorIndex !== -1
+                  ? item.slice(0, separatorIndex).trim()
+                  : "Other";
+
+              const service =
+                separatorIndex !== -1
+                  ? item.slice(separatorIndex + 1).trim()
+                  : item;
+
+              if (!acc[category]) {
+                acc[category] = [];
               }
-              wide
-            />
+
+              acc[category].push(service);
+              return acc;
+            },
+            {}
+          );
+
+        return Object.entries(groups).map(
+          ([category, services]: [string, string[]]) => (
+            <div
+              key={category}
+              style={{
+                minWidth: 0,
+                overflowWrap: "anywhere",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 700,
+                  color: "#14344A",
+                  marginBottom: "8px",
+                  fontSize: "14px",
+                }}
+              >
+                {category}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "7px",
+                  paddingLeft: "10px",
+                  color: "#475569",
+                  fontSize: "13px",
+                }}
+              >
+                {services.map(
+                  (service: string, index: number) => (
+                    <div key={`${category}-${index}`}>
+                      • {service}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )
+        );
+      })()}
+    </div>
+  }
+  wide
+/>
+
+
+
           </FieldGrid>
         </Section>
 
@@ -1614,6 +1794,401 @@ useEffect(() => {
         Passwords, device tokens, full bank account numbers and routing
         numbers are intentionally not displayed.
       </div>
+
+     {/* model */}
+
+     {showReviews && (
+  <div
+    onClick={closeProviderReviews}
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 9999,
+      background: "rgba(15, 23, 42, 0.58)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+    }}
+  >
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="provider-reviews-title"
+      onClick={(event) => event.stopPropagation()}
+      style={{
+        background: "#FFFFFF",
+        borderRadius: 20,
+        width: "100%",
+        maxWidth: 760,
+        maxHeight: "85vh",
+        overflow: "hidden",
+        boxShadow: "0 24px 70px rgba(0,0,0,0.25)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          padding: "20px 24px",
+          borderBottom: `1px solid ${colors.border}`,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <div>
+          <h2
+            id="provider-reviews-title"
+            style={{
+              margin: 0,
+              fontSize: 20,
+              fontWeight: 800,
+              color: colors.navy,
+            }}
+          >
+            Caregiver Reviews
+          </h2>
+
+          <p
+            style={{
+              margin: "6px 0 0",
+              fontSize: 13,
+              color: colors.muted,
+            }}
+          >
+            {reviewSummary?.totalReviews ??
+              info.totalReviews ??
+              0}{" "}
+            total reviews
+            {reviewSummary?.averageRating != null
+              ? ` · Average ${reviewSummary.averageRating}/5`
+              : ""}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={closeProviderReviews}
+          aria-label="Close reviews"
+          style={{
+            border: "none",
+            background: "#F1F5F9",
+            borderRadius: 10,
+            width: 38,
+            height: 38,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: colors.navy,
+            flexShrink: 0,
+          }}
+        >
+          <FaTimes />
+        </button>
+      </div>
+
+      <div
+        style={{
+          padding: 24,
+          overflowY: "auto",
+          display: "grid",
+          gap: 16,
+        }}
+      >
+        {reviewsLoading ? (
+          <div
+            style={{
+              padding: 35,
+              textAlign: "center",
+              color: colors.muted,
+            }}
+          >
+            Loading reviews...
+          </div>
+        ) : reviewsError ? (
+          <div
+            style={{
+              padding: 20,
+              textAlign: "center",
+              color: "#B42318",
+            }}
+          >
+            <p>{reviewsError}</p>
+
+            <button
+              type="button"
+              onClick={() => void fetchProviderReviews(reviewPage)}
+              style={{
+                border: "none",
+                background: colors.navy,
+                color: "#FFFFFF",
+                padding: "9px 16px",
+                borderRadius: 9,
+                cursor: "pointer",
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        ) : reviews.length === 0 ? (
+          <div
+            style={{
+              padding: 35,
+              textAlign: "center",
+              color: colors.muted,
+            }}
+          >
+            <FaStar
+              size={28}
+              color="#CBD5E1"
+              style={{ marginBottom: 12 }}
+            />
+            <div style={{ fontWeight: 700, color: colors.navy }}>
+              No reviews available
+            </div>
+            <div style={{ fontSize: 13, marginTop: 6 }}>
+              This caregiver has no visible reviews yet.
+            </div>
+          </div>
+        ) : (
+          reviews.map((review: any) => (
+            <div
+              key={review._id}
+              style={{
+                border: `1px solid ${colors.border}`,
+                borderRadius: 15,
+                padding: 18,
+                background: "#FFFFFF",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: colors.navy,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {review.reviewer?.name || "Unknown reviewer"}
+                  </div>
+
+                  <div
+                    style={{
+                      color: colors.muted,
+                      fontSize: 12,
+                      marginTop: 4,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {review.reviewer?.email || "No email available"}
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 3,
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FaStar
+                        key={star}
+                        size={14}
+                        color={
+                          star <= (Number(review.rating) || 0)
+                            ? "#F4B400"
+                            : "#D0D5DD"
+                        }
+                      />
+                    ))}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: colors.muted,
+                      marginTop: 5,
+                    }}
+                  >
+                    {formatDate(review.createdAt)}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 14,
+                  color: "#344054",
+                  fontSize: 14,
+                  lineHeight: 1.7,
+                  whiteSpace: "pre-wrap",
+                  overflowWrap: "anywhere",
+                }}
+              >
+                {review.comment?.trim() ||
+                  "No written comment provided."}
+              </div>
+
+              {review.booking && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    paddingTop: 12,
+                    borderTop: `1px solid ${colors.border}`,
+                    fontSize: 12,
+                    color: colors.muted,
+                    display: "flex",
+                    gap: 14,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span>
+                    Booking:{" "}
+                    {String(review.booking._id).slice(-8)}
+                  </span>
+
+                  {review.booking.status && (
+                    <span>
+                      Status: {review.booking.status}
+                    </span>
+                  )}
+
+                  {review.booking.startDate && (
+                    <span>
+                      Start: {formatDate(review.booking.startDate)}
+                    </span>
+                  )}
+
+                  {review.booking.endDate && (
+                    <span>
+                      End: {formatDate(review.booking.endDate)}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {review.response?.comment && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: 12,
+                    borderRadius: 10,
+                    background: "#F8FAFC",
+                    borderLeft: "3px solid #163A5F",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      color: colors.navy,
+                      marginBottom: 5,
+                    }}
+                  >
+                    Caregiver Response
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#475467",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {review.response.comment}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {!reviewsLoading &&
+        !reviewsError &&
+        reviewTotalPages > 1 && (
+          <div
+            style={{
+              padding: "15px 24px",
+              borderTop: `1px solid ${colors.border}`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <button
+              type="button"
+              disabled={reviewPage <= 1}
+              onClick={() => void fetchProviderReviews(reviewPage - 1)}
+              style={{
+                padding: "9px 14px",
+                borderRadius: 9,
+                border: `1px solid ${colors.border}`,
+                background: reviewPage <= 1 ? "#F2F4F7" : "#FFFFFF",
+                color: colors.navy,
+                cursor: reviewPage <= 1 ? "not-allowed" : "pointer",
+                opacity: reviewPage <= 1 ? 0.6 : 1,
+              }}
+            >
+              Previous
+            </button>
+
+            <span
+              style={{
+                fontSize: 13,
+                color: colors.muted,
+              }}
+            >
+              Page {reviewPage} of {reviewTotalPages}
+            </span>
+
+            <button
+              type="button"
+              disabled={reviewPage >= reviewTotalPages}
+              onClick={() => void fetchProviderReviews(reviewPage + 1)}
+              style={{
+                padding: "9px 14px",
+                borderRadius: 9,
+                border: `1px solid ${colors.border}`,
+                background:
+                  reviewPage >= reviewTotalPages
+                    ? "#F2F4F7"
+                    : colors.navy,
+                color:
+                  reviewPage >= reviewTotalPages
+                    ? colors.navy
+                    : "#FFFFFF",
+                cursor:
+                  reviewPage >= reviewTotalPages
+                    ? "not-allowed"
+                    : "pointer",
+                opacity: reviewPage >= reviewTotalPages ? 0.6 : 1,
+              }}
+            >
+              Next
+            </button>
+          </div>
+        )}
+    </div>
+  </div>
+)}
     </div>
   );
 };

@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaEnvelope, FaPhone, FaCheckCircle, FaUserCircle } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaCheckCircle, FaUserCircle, FaStar, FaTimes } from "react-icons/fa";
 import { ArrowLeft, CalendarDays } from "lucide-react";
-import { getAllUsers ,getProfileImage} from "../service/admin.service";
+import { getAllUsers, getProfileImage, getAdminUserReviews } from "../service/admin.service";
 import "./requester.css";
 
 
@@ -65,6 +65,65 @@ const RequesterDetails: React.FC = () => {
   const { id } = useParams();
   const [requester, setRequester] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const [showReviews, setShowReviews] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState("");
+  const [reviewPage, setReviewPage] = useState(1);
+  const [hasNextReviewPage, setHasNextReviewPage] = useState(false);
+  const [reviewSummary, setReviewSummary] = useState<any>(null);
+
+  const fetchRequesterReviews = async (page = 1) => {
+    if (!id) return;
+    try {
+      setReviewsLoading(true);
+      setReviewsError("");
+      const response: any = await getAdminUserReviews(id, "requester", page, 10);
+      const reviewList = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response?.reviews)
+            ? response.reviews
+            : [];
+      setReviews(reviewList);
+      setReviewSummary(response?.summary || response?.profile?.summary || null);
+      setReviewPage(page);
+      const totalPages = Number(response?.pagination?.totalPages);
+      setHasNextReviewPage(
+        Number.isFinite(totalPages) && totalPages > 0
+          ? page < totalPages
+          : reviewList.length === 10
+      );
+    } catch (error: any) {
+      console.error("Failed to fetch requester reviews:", error);
+      setReviewsError(error?.message || "Unable to load reviews. Please try again.");
+      setReviews([]);
+      setHasNextReviewPage(false);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const openRequesterReviews = () => {
+    setShowReviews(true);
+    setReviewPage(1);
+    fetchRequesterReviews(1);
+  };
+
+  const closeRequesterReviews = () => {
+    setShowReviews(false);
+    setReviewsError("");
+  };
+
+  const formatReviewDate = (value: any) => {
+    if (!value) return "Date unavailable";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? "Date unavailable"
+      : date.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  };
 
   useEffect(() => {
     const fetchRequesterDetails = async () => {
@@ -250,7 +309,22 @@ const RequesterDetails: React.FC = () => {
   }
 />
           <h2 style={{ color: "#14344A", fontWeight: 700, fontSize: 24, marginBottom: 10 }}>{fullName || "Requester"}</h2>
-          <p style={{ margin: 0, color: "#14344A", overflowWrap: "anywhere" }}>{requester.requestorInfo.publicRequesterId || ""}</p>
+          <p style={{ margin: 0, color: "#14344A", overflowWrap: "anywhere" }}>{requester.requestorInfo?.publicRequesterId || ""}</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, marginTop: 14, flexWrap: "wrap" }}>
+            <FaStar color="#9A6700" />
+            <span style={{ color: "#14344A", fontWeight: 700 }}>
+              {reviewSummary?.averageRating ?? requester.rating ?? 0}
+            </span>
+            <span style={{ color: "#14344A" }}>Rating</span>
+            <button
+              type="button"
+              onClick={openRequesterReviews}
+              aria-label="View requester reviews"
+              style={{ border: "none", background: "transparent", color: "#14344A", fontWeight: 700, textDecoration: "underline", cursor: "pointer", padding: 0 }}
+            >
+              {reviewSummary?.totalReviews ?? requester.totalReviews ?? requester.reviewCount ?? 0} reviews
+            </button>
+          </div>
         </div>
 
 <div
@@ -455,6 +529,109 @@ const RequesterDetails: React.FC = () => {
      
 
    
+
+      {showReviews && (
+        <div
+          role="presentation"
+          onClick={closeRequesterReviews}
+          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(15,23,42,0.58)", display: "flex", alignItems: "center", justifyContent: "center", padding: 18 }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="requester-reviews-title"
+            onClick={(event) => event.stopPropagation()}
+            style={{ width: "100%", maxWidth: 760, maxHeight: "88vh", overflow: "hidden", background: "#fff", borderRadius: 20, boxShadow: "0 24px 70px rgba(0,0,0,0.25)", display: "flex", flexDirection: "column" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "20px 24px", borderBottom: "1px solid #e8edf3", background: "linear-gradient(110deg, #f3fbff, #fffde7)" }}>
+              <div>
+                <h3 id="requester-reviews-title" style={{ margin: 0, color: "#14344A", fontSize: 21, fontWeight: 800 }}>Requester Reviews</h3>
+                <p style={{ margin: "5px 0 0", color: "#64748b", fontSize: 13 }}>Reviews received by {fullName || "this requester"}</p>
+              </div>
+              <button type="button" onClick={closeRequesterReviews} aria-label="Close reviews" style={{ width: 38, height: 38, border: "1px solid #dbe4ec", borderRadius: 10, background: "#fff", color: "#14344A", display: "grid", placeItems: "center", cursor: "pointer", flexShrink: 0 }}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <div style={{ padding: 24, overflowY: "auto", minHeight: 220 }}>
+              {reviewSummary && (
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 15, marginBottom: 18, borderRadius: 14, background: "#f5f9fc", border: "1px solid #e5edf4" }}>
+                  <FaStar color="#d69e00" size={24} />
+                  <div>
+                    <div style={{ color: "#14344A", fontWeight: 800, fontSize: 20 }}>{Number(reviewSummary.averageRating || 0).toFixed(1)} / 5</div>
+                    <div style={{ color: "#64748b", fontSize: 13 }}>{reviewSummary.totalReviews ?? 0} total reviews</div>
+                  </div>
+                </div>
+              )}
+
+              {reviewsLoading ? (
+                <div style={{ minHeight: 180, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", gap: 10 }}>
+                  <div className="spinner-border" /><span>Loading reviews...</span>
+                </div>
+              ) : reviewsError ? (
+                <div style={{ padding: 18, borderRadius: 12, background: "#fff1f2", color: "#be123c", textAlign: "center" }}>
+                  {reviewsError}
+                  <div style={{ marginTop: 12 }}>
+                    <button type="button" onClick={() => fetchRequesterReviews(reviewPage)} style={{ border: "none", borderRadius: 8, padding: "9px 15px", background: "#14344A", color: "#fff", cursor: "pointer" }}>Try Again</button>
+                  </div>
+                </div>
+              ) : reviews.length === 0 ? (
+                <div style={{ padding: "48px 16px", textAlign: "center", color: "#64748b" }}>
+                  <FaStar size={28} color="#cbd5e1" />
+                  <p style={{ margin: "12px 0 0", fontWeight: 600 }}>No reviews found for this requester.</p>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 14 }}>
+                  {reviews.map((review: any, index: number) => {
+                    const reviewer = review.reviewer || review.reviewedBy || review.user || {};
+                    const reviewerName = [reviewer.firstName, reviewer.middleName, reviewer.lastName].filter(Boolean).join(" ") || reviewer.name || review.reviewerName || "Anonymous";
+                    const rating = Math.max(0, Math.min(5, Number(review.rating || 0)));
+                    return (
+                      <div key={review._id || review.id || `${reviewPage}-${index}`} style={{ border: "1px solid #e5edf4", borderRadius: 14, padding: 17, background: "#fff" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                          <div>
+                            <div style={{ color: "#14344A", fontWeight: 800 }}>{reviewerName}</div>
+                            {reviewer.email && <div style={{ color: "#64748b", fontSize: 12, marginTop: 3 }}>{reviewer.email}</div>}
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ display: "flex", gap: 3, justifyContent: "flex-end" }}>
+                              {[1, 2, 3, 4, 5].map((star) => <FaStar key={star} color={star <= rating ? "#eab308" : "#dbe2ea"} size={15} />)}
+                            </div>
+                            <div style={{ color: "#64748b", fontSize: 12, marginTop: 5 }}>{formatReviewDate(review.createdAt || review.updatedAt)}</div>
+                          </div>
+                        </div>
+                        <p style={{ margin: "14px 0 0", color: "#334155", fontSize: 14, lineHeight: 1.65, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                          {review.comment || review.review || "No written comment provided."}
+                        </p>
+                        {review.booking && (
+                          <div style={{ marginTop: 12, padding: "9px 11px", borderRadius: 9, background: "#f8fafc", color: "#475569", fontSize: 12 }}>
+                            <strong>Booking:</strong> {typeof review.booking === "object" ? (review.booking.bookingId || review.booking._id || "Booking details available") : review.booking}
+                          </div>
+                        )}
+                        {review.response?.comment && (
+                          <div style={{ marginTop: 13, borderLeft: "3px solid #8FDAFA", padding: "9px 12px", background: "#f5fbff", borderRadius: "0 9px 9px 0" }}>
+                            <div style={{ color: "#14344A", fontWeight: 700, fontSize: 12, marginBottom: 5 }}>Response</div>
+                            <div style={{ color: "#475569", fontSize: 13, lineHeight: 1.5 }}>{review.response.comment}</div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "15px 24px", borderTop: "1px solid #e8edf3" }}>
+              <span style={{ color: "#64748b", fontSize: 13 }}>Page {reviewPage}</span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button type="button" disabled={reviewPage <= 1 || reviewsLoading} onClick={() => fetchRequesterReviews(reviewPage - 1)} style={{ padding: "9px 14px", borderRadius: 9, border: "1px solid #dbe4ec", background: reviewPage <= 1 ? "#f1f5f9" : "#fff", color: "#14344A", cursor: reviewPage <= 1 || reviewsLoading ? "not-allowed" : "pointer", opacity: reviewPage <= 1 ? 0.55 : 1 }}>Previous</button>
+                <button type="button" disabled={!hasNextReviewPage || reviewsLoading} onClick={() => fetchRequesterReviews(reviewPage + 1)} style={{ padding: "9px 14px", borderRadius: 9, border: "1px solid #14344A", background: !hasNextReviewPage ? "#e2e8f0" : "#14344A", color: !hasNextReviewPage ? "#64748b" : "#fff", cursor: !hasNextReviewPage || reviewsLoading ? "not-allowed" : "pointer" }}>Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
