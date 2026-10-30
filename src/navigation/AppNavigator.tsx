@@ -26,6 +26,7 @@ import ViewMessages from "../screens/viewmessages";
 import MessageDetail from "../screens/MessageDetail";
 import BookingHistoryScreen from "../screens/adminbookingconfig";
 import  Questionaries from "../screens/managequestionaries";
+import  ProviderAcceptingSessionDetail from "../screens/sessiondetails"
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -68,6 +69,7 @@ const AppNavigator = () => {
           <Route path="/access-codes" element={<AccessCodeList />} />
           <Route path="/access-codes/:id" element={< ViewAccessCode />} />
           <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
+            <Route path="/provider-status/:id" element={<ProviderAcceptingSessionDetail />} />
           <Route path="/messages" element={<ViewMessages />} />
           <Route
             path="/messages/:conversationId"
@@ -76,6 +78,7 @@ const AppNavigator = () => {
           <Route path="/booking-history" element={<BookingHistoryScreen />} />
           <Route path="/manage-cities" element={<Cities />} />
              <Route path="/questionaries" element={<Questionaries/>} />
+            
          
           <Route
             path="/change-password"

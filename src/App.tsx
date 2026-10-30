@@ -34,6 +34,7 @@ import MessageDetail from "./screens/MessageDetail";
 import BookingHistoryScreen from "./screens/adminbookingconfig";
 import Cities from "./screens/managecities";
 import Questionaries from "./screens/managequestionaries";
+import ProviderAcceptingSessionDetail from "./screens/sessiondetails";
 import "./index.css";
 
 
@@ -74,6 +75,7 @@ function App() {
             <Route path="/access-codes" element={<AccessCodeList />} />
             <Route path="/access-codes/:id" element={<ViewAccessCode />} />
             <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
+             <Route path="/provider-status/:id" element={<ProviderAcceptingSessionDetail />} />
             <Route path="/messages" element={<ViewMessages />} />
             <Route
               path="/messages/:conversationId"
