@@ -315,7 +315,7 @@ const Dashboard: React.FC = () => {
 
   const pieData = [
     {
-      name: "Verified Caregiver",
+      name: "Verified Care giver",
       value: verifiedProviders,
     },
 
@@ -562,7 +562,7 @@ const Dashboard: React.FC = () => {
               marginBottom: 8,
             }}
           >
-          All Caregivers
+          All Care givers
           </h4>
 
           <h1
@@ -972,7 +972,7 @@ const Dashboard: React.FC = () => {
               fontWeight: 700,
             }}
           >
-            Caregiver Verification Status
+            Care giver Verification Status
           </h2>
 
           <ResponsiveContainer

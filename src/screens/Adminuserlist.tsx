@@ -248,7 +248,7 @@ setProviderPage(response?.pagination?.page || page);
   const handleActivate = async (id: string, isProvider = false) => {
     if (activatingId) return;
 
-    const accountType = isProvider ? "caregiver" : "requester";
+    const accountType = isProvider ? "care giver" : "requester";
 
     const confirmed = window.confirm(
       `Are you sure you want to activate this ${accountType} account?`
@@ -264,7 +264,7 @@ setProviderPage(response?.pagination?.page || page);
       console.log("ACTIVATE ACCOUNT RESPONSE:", response);
 
       toast.success(
-        `${isProvider ? "Caregiver" : "Requester"} account activated successfully`
+        `${isProvider ? "Care giver" : "Requester"} account activated successfully`
       );
 
       // Refresh the relevant list after activation
@@ -325,11 +325,11 @@ setProviderPage(response?.pagination?.page || page);
   const handleApprove = async (id: string) => {
     try {
       await approveProvider(id);
-      toast.success("Caregiver approved successfully");
+      toast.success("Care giver approved successfully");
       loadProviders(providerPage);
     } catch (error) {
       console.error("Approve Error:", error);
-      toast.error("Failed to approve Caregiver");
+      toast.error("Failed to approve Care giver");
     }
   };
 
@@ -341,11 +341,11 @@ setProviderPage(response?.pagination?.page || page);
 
     try {
       await rejectProvider(id, reason);
-      toast.success("Caregiver rejected successfully");
+      toast.success("Care giver rejected successfully");
       loadProviders(providerPage);
     } catch (error) {
       console.error("Reject Error:", error);
-      toast.error("Failed to reject Caregiver");
+      toast.error("Failed to reject Care giver");
     }
   };
 
@@ -669,7 +669,7 @@ setProviderPage(response?.pagination?.page || page);
           style={getTabStyle("provider")}
           onClick={() => loadProviders(providerPage)}
         >
-          Caregivers
+          Care givers
         </button>
 
         {/* PROVIDER STATUS */}
@@ -688,7 +688,7 @@ setProviderPage(response?.pagination?.page || page);
           }}
           onClick={() => navigate("/provider-status")}
         >
-          Caregiver Status
+          Care giver Status
         </button>
       </div>
 

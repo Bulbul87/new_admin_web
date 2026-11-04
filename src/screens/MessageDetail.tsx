@@ -94,7 +94,7 @@ const MessageDetail: React.FC = () => {
   }, [conversation]);
 
   const getParticipantRole = (role?: string) => {
-    if (role?.toLowerCase() === "provider") return "Caregiver";
+    if (role?.toLowerCase() === "provider") return "Care giver";
     if (role?.toLowerCase() === "user" || role?.toLowerCase() === "requester") {
       return "Requester";
     }

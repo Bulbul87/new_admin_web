@@ -408,7 +408,7 @@ const BookingHistoryScreen: React.FC = () => {
           <thead>
             <tr>
               <th>Requestor</th>
-              <th>Caregiver</th>
+              <th>Care giver</th>
               <th>Service</th>
               <th>Scheduled Date</th>
               <th>Time</th>
@@ -513,7 +513,7 @@ const BookingHistoryScreen: React.FC = () => {
           <thead>
             <tr>
               <th>Requestor</th>
-              <th>Caregiver</th>
+              <th>Care giver</th>
               <th>Service</th>
               <th>Scheduled</th>
               <th>Response</th>
@@ -632,7 +632,7 @@ const BookingHistoryScreen: React.FC = () => {
         <table className="booking-table booking-table--scheduled">
           <thead>
             <tr>
-              <th>Caregiver</th>
+              <th>Care giver</th>
               <th>Requestor</th>
               <th>Service</th>
               <th>Next Date</th>
@@ -752,7 +752,7 @@ const BookingHistoryScreen: React.FC = () => {
           <thead>
             <tr>
               <th>Requestor</th>
-              <th>Caregiver</th>
+              <th>Care giver</th>
               <th>Service</th>
               <th>Date</th>
               <th>Status</th>
@@ -880,7 +880,7 @@ const BookingHistoryScreen: React.FC = () => {
               <th>Service</th>
               <th>Scheduled Date</th>
               <th>Broadcast Status</th>
-              <th>Provider Declines</th>
+              <th>Care giver Declines</th>
               <th>Created At</th>
               <th>Broadcast ID</th>
             </tr>
@@ -1120,7 +1120,7 @@ const BookingHistoryScreen: React.FC = () => {
                 User Cancelled
               </option>
               <option value="cancelled_by_provider">
-                Caregiver Cancelled
+                Care giver Cancelled
               </option>
             </select>
           )}

@@ -1499,7 +1499,7 @@ loadExistingPricing(updatedRules);
                     marginBottom: 10,
                   }}
                 >
-                  Caregiver Price
+                  Care giver Price
                 </label>
 
                 <div

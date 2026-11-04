@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   Activity,
   RefreshCw,
-  Hash,
   CalendarCheck,
   AlertCircle,
   ClipboardList,
@@ -355,10 +354,10 @@ const BookingsDetailScreen: React.FC = () => {
           <span>{person.phone || "Not Available"}</span>
         </div>
 
-        <div>
+        {/* <div>
           <Hash size={15} />
           <span>ID: {getId(person._id) || "Not Available"}</span>
-        </div>
+        </div> */}
 
        
       </div>
@@ -465,10 +464,7 @@ const BookingsDetailScreen: React.FC = () => {
                 caregiver and service history.
               </p>
 
-              <div className="bd-booking-id">
-                <Hash size={15} />
-                <span>Booking ID: {bookingId}</span>
-              </div>
+             
             </div>
           </div>
 
@@ -549,7 +545,7 @@ const BookingsDetailScreen: React.FC = () => {
           <PersonCard
             person={provider}
             title={getName(provider)}
-            role="CAREGIVER"
+            role="CARE GIVER"
             icon={UserCheck}
           />
         </div>
@@ -559,12 +555,12 @@ const BookingsDetailScreen: React.FC = () => {
         <Section title="Service Information" icon={BriefcaseBusiness}>
           <div className="bd-details-grid">
           
-            <DetailItem label="Service ID" value={service._id} />
+         
             <DetailItem label="Category name" value={service.category} />
             <DetailItem label="Service Description" value={service.description} />
             <DetailItem label="Booking Duration (Minutes)" value={booking.duration} />
             <DetailItem label="Booking Status" value={status} />
-            <DetailItem label="Booking ID" value={bookingId} />
+         
           </div>
         </Section>
 
@@ -578,8 +574,7 @@ const BookingsDetailScreen: React.FC = () => {
             <DetailItem label="Scheduling Time Zone" value={booking.schedulingTimeZone} />
             <DetailItem label="Repeat Daily" value={booking.repeatDaily} />
             <DetailItem label="Multi-Day Series" value={booking.isMultiDaySeries} />
-            <DetailItem label="Created At" value={formatDateTime(booking.createdAt)} />
-            <DetailItem label="Updated At" value={formatDateTime(booking.updatedAt)} />
+          
           </div>
 
           <div className="bd-address">
@@ -616,7 +611,6 @@ const BookingsDetailScreen: React.FC = () => {
                       <DetailItem label="Start UTC" value={formatDateTime(day.startUtc)} />
                       <DetailItem label="End UTC" value={formatDateTime(day.endUtc)} />
                       <DetailItem label="Tasks" value={day.tasks} />
-                      <DetailItem label="Schedule ID" value={day._id} />
                       <DetailItem label="Pricing Lines" value={day.pricingLines?.length ?? 0} />
                     </div>
                   </div>
@@ -657,7 +651,7 @@ const BookingsDetailScreen: React.FC = () => {
 
         {/* PROVIDER RESPONSE */}
 
-        <Section title="Caregiver Response & Activity Timeline" icon={ClipboardList}>
+        <Section title="Care giver Response & Activity Timeline" icon={ClipboardList}>
           <div className="bd-details-grid">
             <DetailItem label="Provider Accepted At" value={formatDateTime(booking.providerAcceptedAt)} />
             <DetailItem label="Provider En Route At" value={formatDateTime(booking.providerEnRouteAt)} />
@@ -743,7 +737,7 @@ const BookingsDetailScreen: React.FC = () => {
             <DetailItem label="Total Amount" value={formatMoney(pricing.total)} />
             <DetailItem label="Platform Cut Basis" value={formatMoney(pricing.platformCutBasisUsd)} />
             <DetailItem label="Platform Cut From Requester" value={formatMoney(pricing.platformCutFromRequestorUsd)} />
-            <DetailItem label="Platform Cut From Provider" value={formatMoney(pricing.platformCutFromProviderUsd)} />
+            <DetailItem label="Platform Cut From Care Giver" value={formatMoney(pricing.platformCutFromProviderUsd)} />
             <DetailItem label="Provider Estimated Payout" value={formatMoney(pricing.providerEstimatedPayoutUsd)} />
           </div>
 
@@ -799,17 +793,7 @@ const BookingsDetailScreen: React.FC = () => {
           </Section>
         )}
 
-        {/* RECORD METADATA */}
-
-        <Section title="Booking Record Metadata" icon={Info}>
-          <div className="bd-details-grid">
-            <DetailItem label="MongoDB ID" value={booking._id} />
-            <DetailItem label="Booking ID" value={booking.bookingId} />
-            <DetailItem label="Version" value={booking.__v} />
-            <DetailItem label="Created At" value={formatDateTime(booking.createdAt)} />
-            <DetailItem label="Updated At" value={formatDateTime(booking.updatedAt)} />
-          </div>
-        </Section>
+       
 
         {/* FOOTER */}
 

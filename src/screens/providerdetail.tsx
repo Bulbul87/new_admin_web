@@ -687,7 +687,7 @@ const handleSsnReveal = () => {
           color: colors.navy,
         }}
       >
-        No Caregiver Found
+        No Care giver Found
       </div>
     );
   }
@@ -708,7 +708,7 @@ const handleSsnReveal = () => {
       provider.lastName,
     ]
       .filter(Boolean)
-      .join(" ") || "Caregiver";
+      .join(" ") || "Care giver";
 
   
 
@@ -916,7 +916,7 @@ const handleSsnReveal = () => {
       font: "inherit",
       fontWeight: 700,
     }}
-    aria-label={`View ${info.totalReviews ?? 0} caregiver reviews`}
+    aria-label={`View ${info.totalReviews ?? 0} care giver reviews`}
   >
     {info.totalReviews ?? 0} reviews
   </button>
@@ -942,7 +942,7 @@ const handleSsnReveal = () => {
         >
           <FaCheckCircle />
           {info.isVerified
-            ? "Verified Caregiver"
+            ? "Verified Care giver"
             : "Verification Pending"}
         </div>
       </section>
@@ -1068,7 +1068,7 @@ const handleSsnReveal = () => {
               fontWeight: 800,
             }}
           >
-            About Caregiver
+            About Care giver
           </h2>
 
           <p
@@ -1162,7 +1162,7 @@ const handleSsnReveal = () => {
 
         <Section
           title="Provider Profile & Work Details"
-          description="Professional profile and caregiver work preferences."
+          description="Professional profile and care giver work preferences."
           icon={<FaBriefcase />}
         >
           <FieldGrid>
@@ -1341,7 +1341,7 @@ const handleSsnReveal = () => {
 
         <Section
           title="Work Area & Location"
-          description="Caregiver service area and configured location coordinates."
+          description="Care giver service area and configured location coordinates."
           icon={<FaMapMarkerAlt />}
         >
           <FieldGrid>
@@ -1826,7 +1826,7 @@ const handleSsnReveal = () => {
               color: colors.navy,
             }}
           >
-            Caregiver Reviews
+            Care giver Reviews
           </h2>
 
           <p
@@ -1928,7 +1928,7 @@ const handleSsnReveal = () => {
               No reviews available
             </div>
             <div style={{ fontSize: 13, marginTop: 6 }}>
-              This caregiver has no visible reviews yet.
+              This care giver has no visible reviews yet.
             </div>
           </div>
         ) : (
@@ -2079,7 +2079,7 @@ const handleSsnReveal = () => {
                       marginBottom: 5,
                     }}
                   >
-                    Caregiver Response
+                    Care giver Response
                   </div>
 
                   <div
