@@ -1175,7 +1175,7 @@ const clearFilters = () => {
                   Requester Price
                 </th>
                 <th style={headerStyle}>
-                  Caregiver Price
+                  Care giver Price
                 </th>
                  <th style={headerStyle}>
                  Sales Tax (%)
