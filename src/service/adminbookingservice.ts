@@ -1,3 +1,4 @@
+
 /**
  * ============================================================
  * COMMON TYPES
@@ -11,6 +12,7 @@ export interface Person {
   email?: string;
   phone?: string;
   profileImage?: string;
+  address?: any;
 }
 
 export interface ServiceInfo {
@@ -19,6 +21,8 @@ export interface ServiceInfo {
   description?: string;
   category?: string;
   icon?: string;
+  price?: number;
+  duration?: number;
 }
 
 export interface ScheduledTime {
@@ -32,6 +36,60 @@ export interface CancellationInfo {
   reason?: string | null;
   refundAmount?: number | null;
   refundStatus?: string | null;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
+}
+
+/**
+ * ============================================================
+ * BOOKING VISITS
+ * ============================================================
+ */
+
+export interface DaySchedule {
+  date?: string;
+  fromTime?: string;
+  toTime?: string;
+  duration?: number;
+  tasks?: string[];
+  startUtc?: string;
+  endUtc?: string;
+}
+
+export interface BookingVisit {
+  _id: string;
+  booking: string;
+  visitIndex: number;
+
+  scheduledDate: string;
+  fromTime: string;
+  toTime: string;
+  duration: number;
+
+  tasks?: string[];
+  status: string;
+
+  startUtc?: string;
+  endUtc?: string;
+
+  providerEnRouteAt?: string;
+  providerArrivedAt?: string;
+  providerStartedAt?: string;
+
+  completionRequestedAt?: string;
+  completedAt?: string;
+
+  accessCode?: string;
+  accessCodeUsed?: boolean;
+
+  [key: string]: any;
 }
 
 /**
@@ -68,47 +126,46 @@ export interface ServiceResponse {
 
 /**
  * ============================================================
- * BOOKING VISITS
+ * BOOKING
  * ============================================================
  */
 
-export interface DaySchedule {
-  date?: string;
-  fromTime?: string;
-  toTime?: string;
-  duration?: number;
-  tasks?: string[];
-  startUtc?: string;
-  endUtc?: string;
-}
-
-export interface BookingVisit {
+export interface Booking {
   _id: string;
-  booking: string;
+  bookingId: string;
 
-  visitIndex: number;
+  user?: Person | null;
+  provider?: Person | null;
+  service?: ServiceInfo | null;
 
-  scheduledDate: string;
-  fromTime: string;
-  toTime: string;
+  requestor?: Person | null;
 
-  duration: number;
+  scheduledDate?: string | null;
+  scheduledTime?: ScheduledTime | null;
 
-  tasks?: string[];
   status: string;
 
-  startUtc?: string;
-  endUtc?: string;
+  duration?: number | null;
+  payment?: any;
+  location?: any;
+  cancellation?: CancellationInfo | null;
 
-  providerEnRouteAt?: string;
-  providerArrivedAt?: string;
-  providerStartedAt?: string;
+  daySchedules?: DaySchedule[];
 
-  completionRequestedAt?: string;
-  completedAt?: string;
+  visits?: BookingVisit[];
+  allVisits?: BookingVisit[];
 
-  accessCode?: string;
-  accessCodeUsed?: boolean;
+  isMultiDay?: boolean;
+  isMultiDaySeries?: boolean;
+
+  createdAt?: string;
+  updatedAt?: string;
+
+  [key: string]: any;
+}
+
+export interface BookingDetails extends Booking {
+  visits: BookingVisit[];
 }
 
 /**
@@ -117,25 +174,22 @@ export interface BookingVisit {
  * ============================================================
  */
 
-export interface ScheduledService {
-  bookingId: string;
-
+export interface ScheduledService extends Booking {
   requestor: Person | null;
   provider: Person | null;
   service: ServiceInfo | null;
-
-  scheduledDate?: string | null;
-  scheduledTime?: ScheduledTime | null;
-
-  duration?: number | null;
-
-  status: string;
 
   isMultiDay: boolean;
 
   daySchedules: DaySchedule[];
 
   visits: BookingVisit[];
+  allVisits?: BookingVisit[];
+
+  upcomingDaySchedules?: DaySchedule[];
+
+  nextScheduledDate?: string | null;
+  hasUpcomingVisits?: boolean;
 }
 
 /**
@@ -151,15 +205,34 @@ export interface PastService extends ScheduledService {
 
 /**
  * ============================================================
- * PAGINATION
+ * BROADCAST RECORDS
  * ============================================================
  */
 
-export interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
+export interface ProviderDecline {
+  provider: Person | null;
+  declinedAt?: string | null;
+
+  [key: string]: any;
+}
+
+export interface BroadcastRecord {
+  _id: string;
+
+  user?: Person | null;
+  service?: ServiceInfo | null;
+
+  providerDeclines?: ProviderDecline[];
+
+  scheduledDate?: string | null;
+  scheduledTime?: ScheduledTime | null;
+
+  status?: string;
+
+  createdAt?: string;
+  updatedAt?: string;
+
+  [key: string]: any;
 }
 
 /**
@@ -168,21 +241,38 @@ export interface Pagination {
  * ============================================================
  */
 
-export interface ServiceResponsesResponse {
+export interface ApiResponse<T> {
   success: boolean;
-  data: ServiceResponse[];
+  message?: string;
+  data: T;
+  pagination?: Pagination;
+}
+
+export interface ServiceResponsesResponse
+  extends ApiResponse<ServiceResponse[]> {
   pagination: Pagination;
 }
 
-export interface ScheduledServicesResponse {
-  success: boolean;
-  data: ScheduledService[];
+export interface ScheduledServicesResponse
+  extends ApiResponse<ScheduledService[]> {
   pagination: Pagination;
 }
 
-export interface PastServicesResponse {
-  success: boolean;
-  data: PastService[];
+export interface PastServicesResponse
+  extends ApiResponse<PastService[]> {
+  pagination: Pagination;
+}
+
+export interface AdminBookingsResponse
+  extends ApiResponse<Booking[]> {
+  pagination: Pagination;
+}
+
+export interface BookingDetailsResponse
+  extends ApiResponse<BookingDetails> {}
+
+export interface BroadcastsResponse
+  extends ApiResponse<BroadcastRecord[]> {
   pagination: Pagination;
 }
 
@@ -196,13 +286,34 @@ export interface ServiceResponseParams {
   providerId?: string;
   userId?: string;
 
-  status?:
-    | "accepted"
-    | "rejected"
-    | "cancelled_by_requestor"
-    | "cancelled_by_provider";
+  status?: ServiceResponseType;
 
   search?: string;
+
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * ============================================================
+ * ADMIN BOOKINGS PARAMS
+ * ============================================================
+ */
+
+export interface AdminBookingsParams {
+  userId?: string;
+  providerId?: string;
+  serviceId?: string;
+
+  status?: string;
+  paymentStatus?: string;
+
+  search?: string;
+
+  fromDate?: string;
+  toDate?: string;
+
+  sort?: "asc" | "desc";
 
   page?: number;
   limit?: number;
@@ -217,9 +328,16 @@ export interface ServiceResponseParams {
 export interface ScheduledServicesParams {
   providerId?: string;
   userId?: string;
+  serviceId?: string;
+
+  status?: string;
 
   fromDate?: string;
   toDate?: string;
+
+  search?: string;
+
+  period?: "today" | "tomorrow" | "week";
 
   page?: number;
   limit?: number;
@@ -234,11 +352,14 @@ export interface ScheduledServicesParams {
 export interface PastServicesParams {
   userId?: string;
   providerId?: string;
+  serviceId?: string;
 
   status?: "completed" | "cancelled" | "no-show";
 
   fromDate?: string;
   toDate?: string;
+
+  search?: string;
 
   page?: number;
   limit?: number;
@@ -246,13 +367,34 @@ export interface PastServicesParams {
 
 /**
  * ============================================================
- * ADMIN BOOKING API
+ * BROADCAST PARAMS
+ * ============================================================
+ */
+
+export interface BroadcastParams {
+  userId?: string;
+  serviceId?: string;
+
+  status?: string;
+
+  search?: string;
+
+  fromDate?: string;
+  toDate?: string;
+
+  sort?: "asc" | "desc";
+
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * ============================================================
+ * ADMIN BOOKING API CONFIGURATION
  * ============================================================
  */
 
 const ADMIN_API_BASE_URL = "https://api.senioramerica.us/api";
-
-
 
 const getAdminToken = (): string | null => {
   return localStorage.getItem("adminToken");
@@ -263,6 +405,7 @@ const getAdminToken = (): string | null => {
  * BUILD QUERY STRING
  * ============================================================
  */
+
 const buildQuery = <T extends object>(params: T): string => {
   const query = new URLSearchParams();
 
@@ -319,27 +462,16 @@ const adminFetch = async <T>(
 
 /**
  * ============================================================
- * GET ADMIN SERVICE RESPONSES
+ * 1. GET ADMIN SERVICE RESPONSES
  * ============================================================
  *
- * API:
  * GET /api/admin/service-responses
  *
- * Supported filters:
- * - providerId
- * - userId
- * - status
- * - search
- * - page
- * - limit
- *
- * Example:
- * /admin/service-responses?page=1&limit=20
- *
- * ============================================================
+ * Filters:
+ * providerId, userId, status, search, page, limit
  */
 
-export const getAdminServiceResponses =  async (
+export const getAdminServiceResponses = async (
   params: ServiceResponseParams = {}
 ): Promise<ServiceResponsesResponse> => {
   const query = buildQuery(params);
@@ -353,24 +485,59 @@ export const getAdminServiceResponses =  async (
 
 /**
  * ============================================================
- * GET ADMIN SCHEDULED SERVICES
+ * 2. GET ALL ADMIN BOOKINGS
  * ============================================================
  *
- * API:
+ * GET /api/admin/bookings
+ *
+ * Filters:
+ * userId, providerId, serviceId, status,
+ * paymentStatus, search, fromDate, toDate,
+ * sort, page, limit
+ */
+
+export const getAdminBookings = async (
+  params: AdminBookingsParams = {}
+): Promise<AdminBookingsResponse> => {
+  const query = buildQuery(params);
+
+  const endpoint = query
+    ? `/admin/bookings?${query}`
+    : "/admin/bookings";
+
+  return adminFetch<AdminBookingsResponse>(endpoint);
+};
+
+/**
+ * ============================================================
+ * 3. GET ADMIN BOOKING DETAILS BY ID
+ * ============================================================
+ *
+ * GET /api/admin/bookings/:id
+ */
+
+export const getAdminBookingById = async (
+  id: string
+): Promise<BookingDetailsResponse> => {
+  if (!id) {
+    throw new Error("Booking ID is required");
+  }
+
+  return adminFetch<BookingDetailsResponse>(
+    `/admin/bookings/${encodeURIComponent(id)}`
+  );
+};
+
+/**
+ * ============================================================
+ * 4. GET ADMIN SCHEDULED SERVICES
+ * ============================================================
+ *
  * GET /api/admin/scheduled-services
  *
- * Supported filters:
- * - providerId
- * - userId
- * - fromDate
- * - toDate
- * - page
- * - limit
- *
- * Example:
- * /admin/scheduled-services?page=1&limit=20
- *
- * ============================================================
+ * Filters:
+ * providerId, userId, serviceId, status,
+ * fromDate, toDate, search, period, page, limit
  */
 
 export const getAdminScheduledServices = async (
@@ -387,25 +554,14 @@ export const getAdminScheduledServices = async (
 
 /**
  * ============================================================
- * GET ADMIN PAST SERVICES
+ * 5. GET ADMIN PAST SERVICES
  * ============================================================
  *
- * API:
  * GET /api/admin/past-services
  *
- * Supported filters:
- * - userId
- * - providerId
- * - status
- * - fromDate
- * - toDate
- * - page
- * - limit
- *
- * Example:
- * /admin/past-services?page=15&limit=20
- *
- * ============================================================
+ * Filters:
+ * userId, providerId, serviceId, status,
+ * fromDate, toDate, search, page, limit
  */
 
 export const getAdminPastServices = async (
@@ -418,4 +574,30 @@ export const getAdminPastServices = async (
     : "/admin/past-services";
 
   return adminFetch<PastServicesResponse>(endpoint);
+};
+
+/**
+ * ============================================================
+ * 6. GET ALL ADMIN BROADCAST RECORDS
+ * ============================================================
+ *
+ * GET /api/admin/broadcasts
+ *
+ * By default all historical broadcast records are fetched.
+ *
+ * Filters:
+ * userId, serviceId, status, search,
+ * fromDate, toDate, sort, page, limit
+ */
+
+export const getAdminBroadcasts = async (
+  params: BroadcastParams = {}
+): Promise<BroadcastsResponse> => {
+  const query = buildQuery(params);
+
+  const endpoint = query
+    ? `/admin/broadcasts?${query}`
+    : "/admin/broadcasts";
+
+  return adminFetch<BroadcastsResponse>(endpoint);
 };

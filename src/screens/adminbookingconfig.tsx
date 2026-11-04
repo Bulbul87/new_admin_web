@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   CalendarDays,
@@ -12,14 +13,21 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Ban,
-
+  Radio,
+  ClipboardList,
 } from "lucide-react";
 
 import {
+  getAdminBookings,
   getAdminServiceResponses,
   getAdminScheduledServices,
   getAdminPastServices,
+  getAdminBroadcasts,
+
+  type Booking,
+  type BroadcastRecord,
   type ServiceResponse,
   type ScheduledService,
   type PastService,
@@ -29,18 +37,30 @@ import {
 
 import "./bookinghistory.css";
 
-type Tab = "responses" | "scheduled" | "past";
+type Tab =
+  | "bookings"
+  | "responses"
+  | "scheduled"
+  | "past"
+  | "broadcasts";
 
 const BookingHistoryScreen: React.FC = () => {
- 
+  const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<Tab>("responses");
+  // =====================================================
+  // STATE
+  // =====================================================
 
+  const [activeTab, setActiveTab] = useState<Tab>("bookings");
+
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [responses, setResponses] = useState<ServiceResponse[]>([]);
   const [scheduled, setScheduled] = useState<ScheduledService[]>([]);
   const [pastServices, setPastServices] = useState<PastService[]>([]);
+  const [broadcasts, setBroadcasts] = useState<BroadcastRecord[]>([]);
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
 
@@ -50,23 +70,33 @@ const BookingHistoryScreen: React.FC = () => {
   const [pastStatus, setPastStatus] =
     useState<PastServicesParams["status"]>(undefined);
 
+  const [scheduledPeriod, setScheduledPeriod] = useState<
+    "today" | "tomorrow" | "week" | ""
+  >("");
+
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const limit = 20;
+
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
     total: 0,
     totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
   });
+
+  // =====================================================
+  // HELPERS
+  // =====================================================
 
   const getName = (
     person?: {
       firstName?: string;
       lastName?: string;
       email?: string;
-     
-      
     } | null
   ) => {
     if (!person) return "—";
@@ -81,7 +111,11 @@ const BookingHistoryScreen: React.FC = () => {
   const formatDate = (date?: string | null) => {
     if (!date) return "—";
 
-    return new Date(date).toLocaleDateString("en-US", {
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) return "—";
+
+    return parsed.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -91,7 +125,11 @@ const BookingHistoryScreen: React.FC = () => {
   const formatDateTime = (date?: string | null) => {
     if (!date) return "—";
 
-    return new Date(date).toLocaleString("en-US", {
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) return "—";
+
+    return parsed.toLocaleString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -109,101 +147,212 @@ const BookingHistoryScreen: React.FC = () => {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
+  const getTimeLabel = (time?: any) => {
+    if (!time) return "—";
 
-      if (activeTab === "responses") {
-        const result = await getAdminServiceResponses({
-          page,
-          limit,
-          search: search.trim() || undefined,
-          status: responseStatus,
-        });
+    if (typeof time === "string") return time;
 
-        setResponses(result.data || []);
+    const start = time.start || time.fromTime || "";
+    const end = time.end || time.toTime || "";
 
-        setPagination(
-          result.pagination || {
-            page,
-            limit,
-            total: 0,
-            totalPages: 1,
-          }
-        );
-      }
+    if (start && end) return `${start} - ${end}`;
 
-      if (activeTab === "scheduled") {
-        const result = await getAdminScheduledServices({
-          page,
-          limit,
-        });
+    return start || end || "—";
+  };
 
+  const getBookingId = (booking: Booking) => {
+    return booking.bookingId || booking._id;
+  };
 
-  console.log("Scheduled API response:", result);
-  console.log("Scheduled records:", result.data);
+  const openBooking = (id?: string) => {
+    if (!id) return;
 
-        setScheduled(result.data || []);
+    navigate(
+      `/booking-history/${encodeURIComponent(id)}`
+    );
+  };
 
-        setPagination(
-          result.pagination || {
-            page,
-            limit,
-            total: 0,
-            totalPages: 1,
-          }
-        );
-      }
+  const getStatusClass = (status?: string) => {
+    switch (status) {
+      case "completed":
+        return "booking-status--completed";
 
-      if (activeTab === "past") {
-        const result = await getAdminPastServices({
-          page,
-          limit,
-          status: pastStatus,
-        });
+      case "cancelled":
+        return "booking-status--cancelled";
 
-        setPastServices(result.data || []);
+      case "no-show":
+        return "booking-status--noshow";
 
-        setPagination(
-          result.pagination || {
-            page,
-            limit,
-            total: 0,
-            totalPages: 1,
-          }
-        );
-      }
-    } catch (error) {
-      console.error("Failed to load admin booking data:", error);
-    } finally {
-      setLoading(false);
+      case "confirmed":
+        return "booking-status--confirmed";
+
+      case "in-progress":
+        return "booking-status--scheduled";
+
+      default:
+        return "booking-status--scheduled";
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [activeTab, page, responseStatus, pastStatus]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (activeTab === "responses") {
-        setPage(1);
-        loadData();
+  const updatePagination = (result: any) => {
+    setPagination(
+      result.pagination || {
+        page,
+        limit,
+        total: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
       }
-    }, 400);
+    );
+  };
 
-    return () => clearTimeout(timer);
-  }, [search]);
+  // =====================================================
+  // LOAD DATA
+  // =====================================================
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const commonSearch = search.trim() || undefined;
+
+        if (activeTab === "bookings") {
+          const result = await getAdminBookings({
+            page,
+            limit,
+            search: commonSearch,
+          });
+
+          if (!isMounted) return;
+
+          setBookings(result.data || []);
+          updatePagination(result);
+        }
+
+        if (activeTab === "responses") {
+          const result = await getAdminServiceResponses({
+            page,
+            limit,
+            search: commonSearch,
+            status: responseStatus,
+          });
+
+          if (!isMounted) return;
+
+          setResponses(result.data || []);
+          updatePagination(result);
+        }
+
+        if (activeTab === "scheduled") {
+          const result = await getAdminScheduledServices({
+            page,
+            limit,
+            search: commonSearch,
+            period: scheduledPeriod || undefined,
+          });
+
+          if (!isMounted) return;
+
+          setScheduled(result.data || []);
+          updatePagination(result);
+
+          console.log("Scheduled API response:", result);
+        }
+
+        if (activeTab === "past") {
+          const result = await getAdminPastServices({
+            page,
+            limit,
+            search: commonSearch,
+            status: pastStatus,
+          });
+
+          if (!isMounted) return;
+
+          setPastServices(result.data || []);
+          updatePagination(result);
+        }
+
+        if (activeTab === "broadcasts") {
+          const result = await getAdminBroadcasts({
+            page,
+            limit,
+            search: commonSearch,
+          });
+
+          if (!isMounted) return;
+
+          setBroadcasts(result.data || []);
+          updatePagination(result);
+        }
+      } catch (err) {
+        console.error("Failed to load booking data:", err);
+
+        if (isMounted) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load data"
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Debounce search requests.
+    const timer = setTimeout(() => {
+      loadData();
+    }, 350);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [
+    activeTab,
+    page,
+    limit,
+    search,
+    responseStatus,
+    pastStatus,
+    scheduledPeriod,
+    refreshKey,
+  ]);
+
+  // =====================================================
+  // TAB CHANGE
+  // =====================================================
 
   const changeTab = (tab: Tab) => {
     setActiveTab(tab);
     setPage(1);
     setSearch("");
+
     setResponseStatus(undefined);
     setPastStatus(undefined);
+    setScheduledPeriod("");
   };
 
+  const handleRefresh = () => {
+    setRefreshKey((current) => current + 1);
+  };
 
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  // =====================================================
+  // RESPONSE BADGE
+  // =====================================================
 
   const getResponseBadge = (type: string) => {
     switch (type) {
@@ -248,6 +397,115 @@ const BookingHistoryScreen: React.FC = () => {
     }
   };
 
+  // =====================================================
+  // ALL BOOKINGS TABLE
+  // =====================================================
+
+  const renderBookings = () => (
+    <div className="booking-table-card">
+      <div className="booking-table-wrapper">
+        <table className="booking-table">
+          <thead>
+            <tr>
+              <th>Requestor</th>
+              <th>Caregiver</th>
+              <th>Service</th>
+              <th>Scheduled Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {bookings.map((item) => (
+              <tr key={getBookingId(item)}>
+                <td>
+                  <div className="booking-person">
+                    <div className="booking-avatar">
+                      <UserRound size={17} />
+                    </div>
+
+                    <div className="booking-person-info">
+                      <p className="booking-person-name">
+                        {getName(item.requestor || item.user)}
+                      </p>
+
+                      <p className="booking-person-email">
+                        {(item.requestor || item.user)?.email || "—"}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span className="booking-table-text">
+                    {getName(item.provider)}
+                  </span>
+                </td>
+
+                <td>
+                  <div className="booking-service">
+                    <BriefcaseBusiness size={16} />
+                    <span>{item.service?.name || "—"}</span>
+                  </div>
+                </td>
+
+                <td>
+                  {formatDate(item.scheduledDate)}
+                </td>
+
+                <td>
+                  {getTimeLabel(item.scheduledTime)}
+                </td>
+
+                <td>
+                  <span
+                    className={`booking-status ${getStatusClass(
+                      item.status
+                    )}`}
+                  >
+                    {formatStatus(item.status)}
+                  </span>
+                </td>
+
+                <td>
+                  {formatDate(item.createdAt)}
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    className="booking-view-btn"
+                    title="View Booking Details"
+                    onClick={() => openBooking(getBookingId(item))}
+                  >
+                    <Eye size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {!loading && bookings.length === 0 && (
+              <tr>
+                <td colSpan={8}>
+                  <div className="booking-empty">
+                    No bookings found.
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  // =====================================================
+  // SERVICE RESPONSES TABLE
+  // =====================================================
+
   const renderResponses = () => (
     <div className="booking-table-card">
       <div className="booking-table-wrapper">
@@ -260,11 +518,12 @@ const BookingHistoryScreen: React.FC = () => {
               <th>Scheduled</th>
               <th>Response</th>
               <th>Reason</th>
+              <th>Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {responses.map((item,index) => (
+            {responses.map((item, index) => (
               <tr key={`${item.id}-${index}`}>
                 <td>
                   <div className="booking-person">
@@ -279,7 +538,6 @@ const BookingHistoryScreen: React.FC = () => {
 
                       <p className="booking-person-email">
                         {item.requestor?.email || "—"}
-                     
                       </p>
                     </div>
                   </div>
@@ -306,7 +564,6 @@ const BookingHistoryScreen: React.FC = () => {
                 <td>
                   <div className="booking-service">
                     <BriefcaseBusiness size={16} />
-
                     <span>{item.service?.name || "—"}</span>
                   </div>
                 </td>
@@ -316,10 +573,7 @@ const BookingHistoryScreen: React.FC = () => {
                     <p>{formatDate(item.scheduledDate)}</p>
 
                     <span>
-                      {item.scheduledTime?.start || "—"}{" "}
-                      {item.scheduledTime?.end
-                        ? `- ${item.scheduledTime.end}`
-                        : ""}
+                      {getTimeLabel(item.scheduledTime)}
                     </span>
                   </div>
                 </td>
@@ -339,12 +593,23 @@ const BookingHistoryScreen: React.FC = () => {
                     {item.cancellation?.reason || "—"}
                   </span>
                 </td>
+
+                <td>
+                  <button
+                    type="button"
+                    className="booking-view-btn"
+                    title="View Details"
+                    onClick={() => openBooking(item.id)}
+                  >
+                    <Eye size={18} />
+                  </button>
+                </td>
               </tr>
             ))}
 
             {!loading && responses.length === 0 && (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={7}>
                   <div className="booking-empty">
                     No service responses found.
                   </div>
@@ -357,6 +622,10 @@ const BookingHistoryScreen: React.FC = () => {
     </div>
   );
 
+  // =====================================================
+  // SCHEDULED SERVICES TABLE
+  // =====================================================
+
   const renderScheduled = () => (
     <div className="booking-table-card">
       <div className="booking-table-wrapper">
@@ -366,10 +635,12 @@ const BookingHistoryScreen: React.FC = () => {
               <th>Caregiver</th>
               <th>Requestor</th>
               <th>Service</th>
-              <th>Date</th>
+              <th>Next Date</th>
               <th>Time</th>
               <th>Status</th>
               <th>Type</th>
+              <th>Visits</th>
+              <th>Action</th>
             </tr>
           </thead>
 
@@ -402,21 +673,24 @@ const BookingHistoryScreen: React.FC = () => {
 
                 <td>
                   <span className="booking-table-text">
-                    {formatDate(item.scheduledDate)}
+                    {formatDate(
+                      item.nextScheduledDate || item.scheduledDate
+                    )}
                   </span>
                 </td>
 
                 <td>
                   <span className="booking-table-text">
-                    {item.scheduledTime?.start || "—"}{" "}
-                    {item.scheduledTime?.end
-                      ? `- ${item.scheduledTime.end}`
-                      : ""}
+                    {getTimeLabel(item.scheduledTime)}
                   </span>
                 </td>
 
                 <td>
-                  <span className="booking-status booking-status--scheduled">
+                  <span
+                    className={`booking-status ${getStatusClass(
+                      item.status
+                    )}`}
+                  >
                     {formatStatus(item.status)}
                   </span>
                 </td>
@@ -432,12 +706,29 @@ const BookingHistoryScreen: React.FC = () => {
                     </span>
                   )}
                 </td>
+
+                <td>
+                  <span className="booking-table-text">
+                    {item.visits?.length || 0}
+                  </span>
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    className="booking-view-btn"
+                    title="View Booking Details"
+                    onClick={() => openBooking(item.bookingId)}
+                  >
+                    <Eye size={18} />
+                  </button>
+                </td>
               </tr>
             ))}
 
             {!loading && scheduled.length === 0 && (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={9}>
                   <div className="booking-empty">
                     No scheduled services found.
                   </div>
@@ -449,6 +740,10 @@ const BookingHistoryScreen: React.FC = () => {
       </div>
     </div>
   );
+
+  // =====================================================
+  // PAST SERVICES TABLE
+  // =====================================================
 
   const renderPast = () => (
     <div className="booking-table-card">
@@ -462,8 +757,9 @@ const BookingHistoryScreen: React.FC = () => {
               <th>Date</th>
               <th>Status</th>
               <th>Completed</th>
-              <th>Cancelled </th>
+              <th>Cancelled</th>
               <th>Reason</th>
+              <th>Action</th>
             </tr>
           </thead>
 
@@ -502,13 +798,9 @@ const BookingHistoryScreen: React.FC = () => {
 
                 <td>
                   <span
-                    className={`booking-status ${
-                      item.status === "completed"
-                        ? "booking-status--completed"
-                        : item.status === "cancelled"
-                        ? "booking-status--cancelled"
-                        : "booking-status--noshow"
-                    }`}
+                    className={`booking-status ${getStatusClass(
+                      item.status
+                    )}`}
                   >
                     {formatStatus(item.status)}
                   </span>
@@ -520,30 +812,13 @@ const BookingHistoryScreen: React.FC = () => {
                   </span>
                 </td>
 
-             
-               
-<td>
-  {item.cancellation?.
-cancelledAt ? (
-    <span className="booking-status">
-      {new Date(
-        item.cancellation.
-cancelledAt
-      ).toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      })}
-    </span>
-  ) : (
-    <span className="booking-muted">—</span>
-  )}
-</td>
-
-
+                <td>
+                  <span className="booking-table-text">
+                    {formatDateTime(
+                      item.cancellation?.cancelledAt
+                    )}
+                  </span>
+                </td>
 
                 <td>
                   {item.cancellation ? (
@@ -562,12 +837,23 @@ cancelledAt
                     <span className="booking-muted">—</span>
                   )}
                 </td>
+
+                <td>
+                  <button
+                    type="button"
+                    className="booking-view-btn"
+                    title="View Booking Details"
+                    onClick={() => openBooking(item.bookingId)}
+                  >
+                    <Eye size={18} />
+                  </button>
+                </td>
               </tr>
             ))}
 
             {!loading && pastServices.length === 0 && (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={9}>
                   <div className="booking-empty">
                     No past services found.
                   </div>
@@ -580,10 +866,117 @@ cancelledAt
     </div>
   );
 
+  // =====================================================
+  // BROADCAST HISTORY TABLE
+  // =====================================================
+
+  const renderBroadcasts = () => (
+    <div className="booking-table-card">
+      <div className="booking-table-wrapper">
+        <table className="booking-table">
+          <thead>
+            <tr>
+              <th>Requestor</th>
+              <th>Service</th>
+              <th>Scheduled Date</th>
+              <th>Broadcast Status</th>
+              <th>Provider Declines</th>
+              <th>Created At</th>
+              <th>Broadcast ID</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {broadcasts.map((item) => (
+              <tr key={item._id}>
+                <td>
+                  <div className="booking-person">
+                    <div className="booking-avatar">
+                      <UserRound size={17} />
+                    </div>
+
+                    <div className="booking-person-info">
+                      <p className="booking-person-name">
+                        {getName(item.user)}
+                      </p>
+
+                      <p className="booking-person-email">
+                        {item.user?.email || "—"}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div className="booking-service">
+                    <BriefcaseBusiness size={16} />
+                    <span>{item.service?.name || "—"}</span>
+                  </div>
+                </td>
+
+                <td>
+                  <div className="booking-date-block">
+                    <p>{formatDate(item.scheduledDate)}</p>
+
+                    <span>
+                      {getTimeLabel(item.scheduledTime)}
+                    </span>
+                  </div>
+                </td>
+
+                <td>
+                  <span
+                    className={`booking-status ${getStatusClass(
+                      item.status
+                    )}`}
+                  >
+                    {formatStatus(item.status)}
+                  </span>
+                </td>
+
+                <td>
+                  <span className="booking-table-text">
+                    {item.providerDeclines?.length || 0}
+                  </span>
+                </td>
+
+                <td>
+                  {formatDateTime(item.createdAt)}
+                </td>
+
+                <td>
+                  <span className="booking-table-text">
+                    {item._id}
+                  </span>
+                </td>
+              </tr>
+            ))}
+
+            {!loading && broadcasts.length === 0 && (
+              <tr>
+                <td colSpan={7}>
+                  <div className="booking-empty">
+                    No broadcast records found.
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  // =====================================================
+  // MAIN UI
+  // =====================================================
+
   return (
     <div className="booking-page">
       <div className="booking-container">
-        {/* Header */}
+
+        {/* HEADER */}
+
         <div className="booking-header">
           <div className="booking-header-content">
             <div>
@@ -598,16 +991,15 @@ cancelledAt
               </div>
 
               <p className="booking-subtitle">
-                Manage caregiver responses, scheduled services and
-                requestor booking history.
+                Manage bookings, caregiver responses, scheduled
+                services, past services and broadcast history.
               </p>
             </div>
 
             <div className="booking-header-actions">
-             
-
               <button
-                onClick={loadData}
+                type="button"
+                onClick={handleRefresh}
                 disabled={loading}
                 className="booking-refresh-btn"
               >
@@ -621,9 +1013,23 @@ cancelledAt
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* TABS */}
+
         <div className="booking-tabs-card">
           <div className="booking-tabs">
+
+            <button
+              onClick={() => changeTab("bookings")}
+              className={`booking-tab ${
+                activeTab === "bookings"
+                  ? "booking-tab--active"
+                  : ""
+              }`}
+            >
+              <ClipboardList size={17} />
+              All Bookings
+            </button>
+
             <button
               onClick={() => changeTab("responses")}
               className={`booking-tab ${
@@ -659,22 +1065,41 @@ cancelledAt
               <Clock3 size={17} />
               Past Services
             </button>
+
+            <button
+              onClick={() => changeTab("broadcasts")}
+              className={`booking-tab ${
+                activeTab === "broadcasts"
+                  ? "booking-tab--active"
+                  : ""
+              }`}
+            >
+              <Radio size={17} />
+              Broadcast History
+            </button>
+
           </div>
         </div>
 
-        {/* Response Filters */}
-        {activeTab === "responses" && (
-          <div className="booking-filter-card">
-            <div className="booking-search">
-              <Search size={18} />
+        {/* SEARCH AND FILTERS */}
 
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search requestor, caregiver or service..."
-              />
-            </div>
+        <div className="booking-filter-card">
 
+          <div className="booking-search">
+            <Search size={18} />
+
+            <input
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder={
+                activeTab === "broadcasts"
+                  ? "Search broadcast records..."
+                  : "Search requestor, caregiver or service..."
+              }
+            />
+          </div>
+
+          {activeTab === "responses" && (
             <select
               value={responseStatus || ""}
               onChange={(e) => {
@@ -683,15 +1108,14 @@ cancelledAt
                     ? (e.target.value as ServiceResponseParams["status"])
                     : undefined
                 );
+
                 setPage(1);
               }}
               className="booking-select"
             >
               <option value="">All Responses</option>
               <option value="accepted">Accepted</option>
-              <option value="rejected">
-                Caregiver Rejected
-              </option>
+              <option value="rejected">Caregiver Rejected</option>
               <option value="cancelled_by_requestor">
                 User Cancelled
               </option>
@@ -699,12 +1123,32 @@ cancelledAt
                 Caregiver Cancelled
               </option>
             </select>
-          </div>
-        )}
+          )}
 
-        {/* Past Filters */}
-        {activeTab === "past" && (
-          <div className="booking-filter-card booking-filter-card--past">
+          {activeTab === "scheduled" && (
+            <select
+              value={scheduledPeriod}
+              onChange={(e) => {
+                setScheduledPeriod(
+                  e.target.value as
+                    | "today"
+                    | "tomorrow"
+                    | "week"
+                    | ""
+                );
+
+                setPage(1);
+              }}
+              className="booking-select"
+            >
+              <option value="">All Upcoming</option>
+              <option value="today">Today</option>
+              <option value="tomorrow">Tomorrow</option>
+              <option value="week">This Week</option>
+            </select>
+          )}
+
+          {activeTab === "past" && (
             <select
               value={pastStatus || ""}
               onChange={(e) => {
@@ -713,6 +1157,7 @@ cancelledAt
                     ? (e.target.value as PastServicesParams["status"])
                     : undefined
                 );
+
                 setPage(1);
               }}
               className="booking-select"
@@ -722,10 +1167,20 @@ cancelledAt
               <option value="cancelled">Cancelled</option>
               <option value="no-show">No Show</option>
             </select>
+          )}
+
+        </div>
+
+        {/* ERROR */}
+
+        {error && (
+          <div className="booking-empty">
+            {error}
           </div>
         )}
 
-        {/* Content */}
+        {/* CONTENT */}
+
         {loading ? (
           <div className="booking-loading-card">
             <RefreshCw size={22} className="booking-spin" />
@@ -733,13 +1188,16 @@ cancelledAt
           </div>
         ) : (
           <div className="booking-content">
+            {activeTab === "bookings" && renderBookings()}
             {activeTab === "responses" && renderResponses()}
             {activeTab === "scheduled" && renderScheduled()}
             {activeTab === "past" && renderPast()}
+            {activeTab === "broadcasts" && renderBroadcasts()}
           </div>
         )}
 
-        {/* Pagination */}
+        {/* PAGINATION */}
+
         <div className="booking-pagination">
           <div className="booking-pagination-info">
             <span>Total</span>
@@ -748,11 +1206,10 @@ cancelledAt
 
           <div className="booking-pagination-controls">
             <button
+              type="button"
               disabled={page <= 1 || loading}
               onClick={() =>
-                setPage((current) =>
-                  Math.max(current - 1, 1)
-                )
+                setPage((current) => Math.max(current - 1, 1))
               }
               className="booking-pagination-btn"
             >
@@ -767,12 +1224,11 @@ cancelledAt
             </div>
 
             <button
+              type="button"
               disabled={
                 page >= pagination.totalPages || loading
               }
-              onClick={() =>
-                setPage((current) => current + 1)
-              }
+              onClick={() => setPage((current) => current + 1)}
               className="booking-pagination-btn"
             >
               Next
@@ -780,6 +1236,7 @@ cancelledAt
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );

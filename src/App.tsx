@@ -35,7 +35,9 @@ import BookingHistoryScreen from "./screens/adminbookingconfig";
 import Cities from "./screens/managecities";
 import Questionaries from "./screens/managequestionaries";
 import ProviderAcceptingSessionDetail from "./screens/sessiondetails";
+
 import "./index.css";
+import BookingsDetailScreen from "./screens/bookingsdetailscreen";
 
 
 function App() {
@@ -82,6 +84,7 @@ function App() {
               element={<MessageDetail />}
             />
                 <Route path="/booking-history" element={<BookingHistoryScreen />} />
+               <Route path="/booking-history/:id" element={<BookingsDetailScreen />} />
                   <Route path="/manage-cities" element={<Cities />} />
                     <Route path="/questionaries" element={<Questionaries/>} />
             <Route

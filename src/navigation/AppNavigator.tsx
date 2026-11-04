@@ -27,6 +27,7 @@ import MessageDetail from "../screens/MessageDetail";
 import BookingHistoryScreen from "../screens/adminbookingconfig";
 import  Questionaries from "../screens/managequestionaries";
 import  ProviderAcceptingSessionDetail from "../screens/sessiondetails"
+import BookingsDetailScreen from "../screens/bookingsdetailscreen";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -76,6 +77,7 @@ const AppNavigator = () => {
             element={<MessageDetail />}
           />
           <Route path="/booking-history" element={<BookingHistoryScreen />} />
+          <Route path="/booking-history/:id" element={<BookingsDetailScreen />} />
           <Route path="/manage-cities" element={<Cities />} />
              <Route path="/questionaries" element={<Questionaries/>} />
             
