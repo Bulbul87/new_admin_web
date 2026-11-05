@@ -88,20 +88,85 @@ const ViewAccessCode: React.FC<ViewAccessCodeProps> = ({ visitId }) => {
     if (typeof user === "string") return user;
     return user.requestorInfo?.publicRequesterId || "-";
   };
+
+  const getCaregiverId = (user?: PopulatedUser | string | null) => {
+    if (!user || typeof user === "string") return "-";
+
+    const provider = user as PopulatedUser & {
+      providerInfo?: {
+        publicProviderId?: string;
+      };
+    };
+
+    return provider.providerInfo?.publicProviderId || "-";
+  };
+
+  const getPublicServiceId = () => {
+    const data = visit as AccessCodeVisit & {
+      publicServiceId?: string;
+      booking?: {
+        publicServiceId?: string;
+        service?: {
+          publicServiceId?: string;
+          _id?: string;
+        } | string;
+      } | string;
+    };
+
+    const bookingData =
+      data.booking && typeof data.booking !== "string"
+        ? data.booking
+        : undefined;
+
+    const serviceData =
+      service && typeof service !== "string"
+        ? service as PopulatedService & { publicServiceId?: string }
+        : undefined;
+
+    return (
+      data.publicServiceId ||
+      bookingData?.publicServiceId ||
+      serviceData?.publicServiceId ||
+      serviceData?._id ||
+      "-"
+    );
+  };
   const getServiceName = (service?: PopulatedService | string | null) => {
     if (!service) return "-";
     return typeof service === "string" ? service : service.name || "-";
   };
   const getStatusStyle = (status?: string) => {
     const value = status?.toLowerCase().replace(/_/g, "-");
-    if (["completed", "confirmed", "arrived"].includes(value || "")) return { background: "#EAF8F0", color: "#16834B" };
-    if (["in-progress", "en-route", "scheduled", "accepted", "active"].includes(value || "")) return { background: "#EEF4FF", color: "#315EA8" };
-    if (["cancelled", "canceled", "disputed", "no-show", "rejected"].includes(value || "")) return { background: "#FFF0F0", color: "#D64545" };
+
+    if (["completed", "confirmed", "arrived"].includes(value || ""))
+      return { background: "#EAF8F0", color: "#16834B" };
+    if (["in-progress", "en-route", "scheduled", "accepted", "active"].includes(value || ""))
+      return { background: "#EEF4FF", color: "#315EA8" };
+    if (["cancelled", "canceled", "disputed", "no-show", "rejected"].includes(value || ""))
+      return { background: "#FFF0F0", color: "#D64545" };
+
     return { background: "#F2F4F7", color: "#667085" };
   };
 
-  if (loading) return <div style={pageStyle}><div style={loadingContainer}><Loader2 size={32} style={{ animation: "spin 1s linear infinite", color: "#14344A" }} /><p style={loadingText}>Loading access code details...</p></div></div>;
-  if (error || !visit) return <div style={pageStyle}><div style={errorCard}><XCircle size={40} color="#D64545" /><h3 style={errorTitle}>Unable to load access code</h3><p style={errorText}>{error || "Access code record not found."}</p><button onClick={handleBack} style={backButton}><ArrowLeft size={15} />Back</button></div></div>;
+  if (loading)
+    return
+  <div style={pageStyle}>
+    <div style={loadingContainer}>
+      <Loader2 size={32} style={{ animation: "spin 1s linear infinite", color: "#14344A" }} />
+      <p style={loadingText}>Loading access code details...</p>
+    </div>
+  </div>;
+  if (error || !visit)
+    return
+  <div style={pageStyle}>
+    <div style={errorCard}>
+      <XCircle size={40} color="#D64545" />
+      <h3 style={errorTitle}>Unable to load access code</h3>
+      <p style={errorText}>{error || "Access code record not found."}</p>
+      <button onClick={handleBack} style={backButton}>
+        <ArrowLeft size={15} />Back</button>
+    </div>
+  </div>;
 
   // BookingVisit documents may store people/service directly; booking records generally store them on booking.
   const booking = visit.booking && typeof visit.booking !== "string" ? visit.booking : undefined;
@@ -124,7 +189,10 @@ const ViewAccessCode: React.FC<ViewAccessCodeProps> = ({ visitId }) => {
   return (
     <div style={pageStyle}>
       <div style={headerRow}>
-        <div style={titleRow}><div style={headerIcon}><KeyRound size={21} /></div><div><h2 style={pageTitle}>{recordType === "visit" ? "Visit Access Code" : "Booking Access Code"}</h2><p style={pageSubtitle}>Complete access code and {recordType === "visit" ? "visit" : "booking"} information</p></div></div>
+        <div style={titleRow}><div style={headerIcon}><KeyRound size={21} /></div><div><h2 style={pageTitle}>{recordType === "visit" ? "Visit Access Code" : "Booking Access Code"}</h2><p style={pageSubtitle}>Complete access code and {recordType === "visit" ? "visit" : "booking"} information</p>
+        </div>
+        </div>
+
         <div style={headerActions}>
           <button onClick={handleBack} style={backButton}><ArrowLeft size={15} />Back</button>
           <span style={{ ...statusBadge, ...statusStyle }}><Activity size={13} />{statusLabel}</span>
@@ -133,8 +201,19 @@ const ViewAccessCode: React.FC<ViewAccessCodeProps> = ({ visitId }) => {
       </div>
 
       <div style={accessCodeCard}>
-        <div><div style={heroLabel}>{recordType === "visit" ? "VISIT ACCESS CODE" : "BOOKING ACCESS CODE"}</div><div style={accessCodeText}>{visit.accessCode || (isPending ? "NOT GENERATED" : "-")}</div></div>
-        <div style={codeStatusBox}>{isUsed ? <CheckCircle2 size={22} color="#65D69A" /> : isPending ? <Clock3 size={22} color="#FFD28A" /> : <ShieldCheck size={22} color="#8FC7FF" />}<div style={codeStatusContent}><strong>{isUsed ? "Used" : isPending ? "Not Generated" : "Active"}</strong><span>{isUsed ? formatDateTime(visit.providerStartedAt) : isPending ? "No access code available" : "Not used yet"}</span></div></div>
+        <div>
+          <div style={heroLabel}>{recordType === "visit" ? "VISIT ACCESS CODE" : "BOOKING ACCESS CODE"}</div>
+          <div style={accessCodeText}>{visit.accessCode || (isPending ? "NOT GENERATED" : "-")}</div>
+        </div>
+        <div style={codeStatusBox}>{isUsed ?
+          <CheckCircle2 size={22} color="#65D69A" />
+          : isPending ? <Clock3 size={22} color="#FFD28A" />
+            : <ShieldCheck size={22} color="#8FC7FF" />}
+          <div style={codeStatusContent}>
+            <strong>{isUsed ? "Used" : isPending ? "Not Generated" : "Active"}</strong>
+            <span>{isUsed ? formatDateTime(visit.providerStartedAt) : isPending ? "No access code available" : "Not used yet"}</span>
+          </div>
+        </div>
       </div>
 
       <Section title={recordType === "visit" ? "Visit Overview" : "Booking Overview"} icon={<CalendarDays size={17} />}>
@@ -149,8 +228,46 @@ const ViewAccessCode: React.FC<ViewAccessCodeProps> = ({ visitId }) => {
       <Section title="Booking Information" icon={<User size={17} />}>
         <div style={peopleGrid}>
           <PersonCard role="REQUESTER" name={getUserName(requester)} email={getUserEmail(requester)} idLabel="User ID" userId={getUserId(requester)} tone="requester" />
-          <PersonCard role="CAREGIVER" name={getUserName(caregiver)} email={getUserEmail(caregiver)} idLabel="Caregiver ID" userId={getUserId(caregiver)} tone="caregiver" />
-          <div style={personCard}><div style={personCardHeader}><div style={{ ...personAvatar, background: "#FFF6E8", color: "#B7791F" }}><ClipboardList size={18} /></div><div style={personHeaderContent}><div style={personRole}>SERVICE</div><div style={personName}>{getServiceName(service)}</div></div></div><div style={personDetails}><DetailRow icon={<ClipboardList size={11} />} label="Service Name" value={getServiceName(service)} /></div></div>
+          <PersonCard
+            role="CARE GIVER"
+            name={getUserName(caregiver)}
+            email={getUserEmail(caregiver)}
+            idLabel="Care giver ID"
+            userId={getCaregiverId(caregiver)}
+            tone="caregiver"
+          />
+          <div style={personCard}>
+            <div style={personCardHeader}>
+              <div style={{
+                ...personAvatar,
+                background: "#FFF6E8",
+                color: "#B7791F"
+              }}>
+                <ClipboardList size={18} />
+              </div>
+
+              <div style={personHeaderContent}>
+                <div style={personRole}>SERVICE</div>
+
+              </div>
+            </div>
+
+            <div style={personDetails}>
+              <DetailRow
+                icon={<ClipboardList size={11} />}
+                label="Service category"
+                value={getServiceName(service)}
+              />
+
+              <DetailRow
+                icon={<Hash size={11} />}
+                label="Service ID"
+                value={getPublicServiceId()}
+              />
+            </div>
+          </div>
+
+
         </div>
       </Section>
 
@@ -196,7 +313,8 @@ const ViewAccessCode: React.FC<ViewAccessCodeProps> = ({ visitId }) => {
   );
 };
 
-const Section = ({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) => <div style={sectionCard}><div style={sectionHeader}><div style={sectionTitle}><div style={sectionIcon}>{icon}</div>{title}</div></div><div>{children}</div></div>;
+const Section = ({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) =>
+  <div style={sectionCard}><div style={sectionHeader}><div style={sectionTitle}><div style={sectionIcon}>{icon}</div>{title}</div></div><div>{children}</div></div>;
 const InfoCard = ({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) => <div style={infoCard}><div style={infoIcon}>{icon}</div><div style={{ minWidth: 0 }}><div style={smallLabel}>{label}</div><div style={infoValue}>{value}</div></div></div>;
 const InfoBlock = ({ label, value }: { label: string; value: string }) => <div style={infoBlock}><div style={smallLabel}>{label}</div><div style={infoBlockValue}>{value}</div></div>;
 const MoneyCard = ({ label, value }: { label: string; value?: number }) => <div style={moneyCard}><div style={smallLabel}>{label}</div><div style={moneyValue}>${Number(value || 0).toFixed(2)}</div></div>;

@@ -47,28 +47,11 @@ const AccessCodeList: React.FC = () => {
   // COMMON HELPERS
   // =====================================================
 
-  const getRequesterId = (item: AccessCodeVisit): string => {
-    const booking =
-      item.booking && typeof item.booking !== "string"
-        ? item.booking
-        : undefined;
-
-    const bookingUser =
-      booking?.user && typeof booking.user !== "string"
-        ? booking.user
-        : undefined;
-
-    const directUser =
-      item.user && typeof item.user !== "string"
-        ? item.user
-        : undefined;
-
-    return (
-      item.requesterPublicId ||
-      bookingUser?.requestorInfo?.publicRequesterId ||
-      directUser?.requestorInfo?.publicRequesterId ||
-      "-"
-    );
+  // Public Service ID is already returned at the top level by the API.
+  // Keep this local cast so the UI can read it without changing the service file.
+  const getPublicServiceId = (item: AccessCodeVisit): string => {
+    const record = item as AccessCodeVisit & { publicServiceId?: string };
+    return record.publicServiceId || "-";
   };
 
   const getVisitDate = (item: AccessCodeVisit): string => {
@@ -512,7 +495,7 @@ const AccessCodeList: React.FC = () => {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by Requester Public ID..."
+              placeholder="Search access code records..."
               style={{
                 width: "100%",
                 height: 42,
@@ -667,7 +650,7 @@ const AccessCodeList: React.FC = () => {
                       borderBottom: "1px solid #E9EDF2",
                     }}
                   >
-                    <TableHeader>Requester ID</TableHeader>
+                    <TableHeader>Public Service ID</TableHeader>
                     <TableHeader>Access Code</TableHeader>
                     <TableHeader>Visit Date</TableHeader>
                     <TableHeader>Time</TableHeader>
@@ -693,7 +676,7 @@ const AccessCodeList: React.FC = () => {
                           borderBottom: "1px solid #EEF1F4",
                         }}
                       >
-                        {/* Requester */}
+                        {/* Public Service ID */}
                         <TableCell>
                           <div
                             style={{
@@ -725,7 +708,7 @@ const AccessCodeList: React.FC = () => {
                                   fontSize: 12,
                                 }}
                               >
-                                {getRequesterId(visit)}
+                                {getPublicServiceId(visit)}
                               </div>
 
                               <div
