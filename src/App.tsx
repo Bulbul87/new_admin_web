@@ -38,6 +38,7 @@ import ProviderAcceptingSessionDetail from "./screens/sessiondetails";
 
 import "./index.css";
 import BookingsDetailScreen from "./screens/bookingsdetailscreen";
+import MilesManageScreen from "./screens/milesmangescreen";
 
 
 function App() {
@@ -73,6 +74,7 @@ function App() {
             <Route path="/requester-details/:id" element={<RequesterDetails />}
             />
             <Route path="/admin-config" element={<Adminconfigscreen />} />
+             <Route path="/milesmanage" element={<MilesManageScreen />} />
             <Route path="/support-tickets" element={<SupportTicket />} />
             <Route path="/access-codes" element={<AccessCodeList />} />
             <Route path="/access-codes/:id" element={<ViewAccessCode />} />

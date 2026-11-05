@@ -28,6 +28,7 @@ import BookingHistoryScreen from "../screens/adminbookingconfig";
 import  Questionaries from "../screens/managequestionaries";
 import  ProviderAcceptingSessionDetail from "../screens/sessiondetails"
 import BookingsDetailScreen from "../screens/bookingsdetailscreen";
+import  MilesManageScreen from "../screens/milesmangescreen";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -67,6 +68,7 @@ const AppNavigator = () => {
           <Route path="/requester-details/:id" element={<RequesterDetails />} />
           <Route path="/support-tickets" element={<SupportTicket />} />
           <Route path="/admin-config" element={<Adminconfigscreen />} />
+          <Route path="/milesmanage" element={<MilesManageScreen />} />
           <Route path="/access-codes" element={<AccessCodeList />} />
           <Route path="/access-codes/:id" element={< ViewAccessCode />} />
           <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />

@@ -163,12 +163,6 @@ const BookingHistoryScreen: React.FC = () => {
   const getBookingId = (booking: Booking) => {
     return booking.bookingId || booking._id;
   };
-
-  // =====================================================
-  // PUBLIC ID HELPERS
-  // =====================================================
-
-
   // =====================================================
   // PUBLIC ID HELPERS
   // =====================================================
@@ -541,6 +535,7 @@ const BookingHistoryScreen: React.FC = () => {
         <table className="booking-table booking-table--responses">
           <thead>
             <tr>
+             <th>Booking ID</th>
               <th>Requestor</th>
               <th>Care giver</th>
               <th>Service</th>
@@ -554,6 +549,14 @@ const BookingHistoryScreen: React.FC = () => {
           <tbody>
             {responses.map((item, index) => (
               <tr key={`${item.id}-${index}`}>
+                 <td>
+                  <span
+                    className="booking-table-text"
+                    title={getPublicServiceId(item)}
+                  >
+                    {getPublicServiceId(item)}
+                  </span>
+                </td>
                 <td>
                   <div className="booking-person">
                     <div className="booking-avatar">
@@ -661,6 +664,7 @@ const BookingHistoryScreen: React.FC = () => {
         <table className="booking-table booking-table--scheduled">
           <thead>
             <tr>
+              <th>Booking ID</th>
               <th>Care giver</th>
               <th>Requestor</th>
               <th>Service</th>
@@ -676,6 +680,14 @@ const BookingHistoryScreen: React.FC = () => {
           <tbody>
             {scheduled.map((item) => (
               <tr key={item.bookingId}>
+                <td>
+                  <span
+                    className="booking-table-text"
+                    title={getPublicServiceId(item)}
+                  >
+                    {getPublicServiceId(item)}
+                  </span>
+                </td>
                 <td>
                   <div className="booking-person">
                     <div className="booking-avatar">
@@ -780,6 +792,7 @@ const BookingHistoryScreen: React.FC = () => {
         <table className="booking-table booking-table--past">
           <thead>
             <tr>
+              <th>Booking ID</th>
               <th>Requestor</th>
               <th>Care giver</th>
               <th>Service</th>
@@ -795,6 +808,15 @@ const BookingHistoryScreen: React.FC = () => {
           <tbody>
             {pastServices.map((item) => (
               <tr key={item.bookingId}>
+
+                <td>
+                  <span
+                    className="booking-table-text"
+                    title={getPublicServiceId(item)}
+                  >
+                    {getPublicServiceId(item)}
+                  </span>
+                </td>
                 <td>
                   <div className="booking-person">
                     <div className="booking-avatar">
@@ -911,7 +933,7 @@ const BookingHistoryScreen: React.FC = () => {
               <th>Broadcast Status</th>
               <th>Care giver Declines</th>
               <th>Created At</th>
-              <th>Broadcast ID</th>
+             
             </tr>
           </thead>
 
@@ -973,11 +995,7 @@ const BookingHistoryScreen: React.FC = () => {
                   {formatDateTime(item.createdAt)}
                 </td>
 
-                <td>
-                  <span className="booking-table-text">
-                    {item._id}
-                  </span>
-                </td>
+              
               </tr>
             ))}
 
