@@ -388,7 +388,7 @@ const BookingsDetailScreen: React.FC = () => {
 
         <div>
           <UserRound size={15} />
-          <span>Public ID: {publicId}</span>
+          <span>ID: {publicId}</span>
         </div>
       </div>
     </div>
@@ -582,7 +582,7 @@ const BookingsDetailScreen: React.FC = () => {
 
         <Section title="Service Information" icon={BriefcaseBusiness}>
           <div className="bd-details-grid">
-            <DetailItem label="Public Service ID" value={publicServiceId} />
+            <DetailItem label="Service ID" value={publicServiceId} />
             <DetailItem label="Category name" value={service.category} />
             <DetailItem label="Service Name" value={service.name} />
             <DetailItem label="Service Description" value={service.description} />
