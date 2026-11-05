@@ -7,22 +7,48 @@
 
 export interface Person {
   _id: string;
+
   firstName?: string;
   lastName?: string;
   email?: string;
   phone?: string;
   profileImage?: string;
   address?: any;
+
+  // Public IDs
+  publicProviderId?: string | null;
+  publicRequesterId?: string | null;
+
+  // Requester information
+  requestorInfo?: {
+    publicRequesterId?: string | null;
+    [key: string]: any;
+  } | null;
+
+  // Provider information
+  providerInfo?: {
+    publicProviderId?: string | null;
+    [key: string]: any;
+  } | null;
+
+  // Preserve all additional User fields
+  [key: string]: any;
 }
 
 export interface ServiceInfo {
   _id: string;
+
+  // Public Service ID
+  publicServiceId?: string | null;
+
   name?: string;
   description?: string;
   category?: string;
   icon?: string;
   price?: number;
   duration?: number;
+
+  [key: string]: any;
 }
 
 export interface ScheduledTime {
@@ -36,6 +62,8 @@ export interface CancellationInfo {
   reason?: string | null;
   refundAmount?: number | null;
   refundStatus?: string | null;
+
+  [key: string]: any;
 }
 
 export interface Pagination {
@@ -61,6 +89,8 @@ export interface DaySchedule {
   tasks?: string[];
   startUtc?: string;
   endUtc?: string;
+
+  [key: string]: any;
 }
 
 export interface BookingVisit {
@@ -108,6 +138,11 @@ export interface ServiceResponse {
   id: string;
   type: ServiceResponseType;
 
+  // Public IDs
+  publicServiceId?: string | null;
+  publicProviderId?: string | null;
+  publicRequesterId?: string | null;
+
   requestor: Person | null;
   provider: Person | null;
   service: ServiceInfo | null;
@@ -122,6 +157,8 @@ export interface ServiceResponse {
 
   source?: string;
   broadcastRequestId?: string;
+
+  [key: string]: any;
 }
 
 /**
@@ -132,13 +169,27 @@ export interface ServiceResponse {
 
 export interface Booking {
   _id: string;
+
+  // Internal MongoDB booking ID
   bookingId: string;
 
+  // Public IDs
+  publicServiceId?: string | null;
+  publicProviderId?: string | null;
+  publicRequesterId?: string | null;
+
+  // Original booking references
   user?: Person | null;
   provider?: Person | null;
   service?: ServiceInfo | null;
 
   requestor?: Person | null;
+
+  // Requester information
+  requestorInfo?: {
+    publicRequesterId?: string | null;
+    [key: string]: any;
+  } | null;
 
   scheduledDate?: string | null;
   scheduledTime?: ScheduledTime | null;
@@ -146,6 +197,7 @@ export interface Booking {
   status: string;
 
   duration?: number | null;
+
   payment?: any;
   location?: any;
   cancellation?: CancellationInfo | null;
@@ -161,6 +213,7 @@ export interface Booking {
   createdAt?: string;
   updatedAt?: string;
 
+  // All other Booking database fields
   [key: string]: any;
 }
 
@@ -269,7 +322,7 @@ export interface AdminBookingsResponse
 }
 
 export interface BookingDetailsResponse
-  extends ApiResponse<BookingDetails> {}
+  extends ApiResponse<BookingDetails> { }
 
 export interface BroadcastsResponse
   extends ApiResponse<BroadcastRecord[]> {

@@ -142,7 +142,6 @@ const BookingsDetailScreen: React.FC = () => {
     return `$${amount.toFixed(2)}`;
   };
 
-
   const getStatusColor = (status?: string) => {
     const value = (status || "").toLowerCase();
 
@@ -245,6 +244,7 @@ const BookingsDetailScreen: React.FC = () => {
   const address = location?.address || {};
 
   const scheduledTime = booking?.scheduledTime || {};
+
   const daySchedules = Array.isArray(booking?.daySchedules)
     ? booking.daySchedules
     : [];
@@ -264,6 +264,32 @@ const BookingsDetailScreen: React.FC = () => {
   const statusStyle = getStatusColor(status);
 
   const bookingId = getId(booking?._id || booking?.bookingId || id);
+
+  // ==========================================
+  // PUBLIC IDs
+  // ==========================================
+
+  const publicServiceId =
+    booking?.publicServiceId ||
+    booking?.service?.publicServiceId ||
+    booking?.serviceInfo?.publicServiceId ||
+    booking?.pricingLines?.[0]?.publicServiceId ||
+    "Not Available";
+
+  const publicRequesterId =
+    booking?.publicRequesterId ||
+    booking?.requestorInfo?.publicRequesterId ||
+    booking?.requesterInfo?.publicRequesterId ||
+    booking?.user?.publicRequesterId ||
+    booking?.user?.requestorInfo?.publicRequesterId ||
+    "Not Available";
+
+  const publicProviderId =
+    booking?.publicProviderId ||
+    booking?.provider?.publicProviderId ||
+    booking?.provider?.providerInfo?.publicProviderId ||
+    booking?.providerInfo?.publicProviderId ||
+    "Not Available";
 
   // Dynamic care assessment object
   const careNeedsAssessment = booking?.careNeedsAssessment || {};
@@ -308,34 +334,40 @@ const BookingsDetailScreen: React.FC = () => {
     </div>
   );
 
+  // ==========================================
+  // PERSON CARD
+  // ==========================================
+
   const PersonCard = ({
     person,
     title,
     role,
     icon: Icon,
+    publicId,
   }: {
     person: AnyRecord;
     title: string;
     role: string;
     icon: React.ElementType;
+    publicId: string;
   }) => (
     <div className="bd-person-card">
       <div className="bd-person-top">
-       <div className="bd-person-avatar">
-  {person.profileImage ? (
-    <img
-      src={`https://api.senioramerica.us${person.profileImage}`}
-      alt={getName(person)}
-      className="bd-profile-image"
-      crossOrigin="anonymous"
-      onError={(e) => {
-        e.currentTarget.style.display = "none";
-      }}
-    />
-  ) : (
-    <Icon size={25} />
-  )}
-</div>
+        <div className="bd-person-avatar">
+          {person.profileImage ? (
+            <img
+              src={`https://api.senioramerica.us${person.profileImage}`}
+              alt={getName(person)}
+              className="bd-profile-image"
+              crossOrigin="anonymous"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <Icon size={25} />
+          )}
+        </div>
 
         <div>
           <span className="bd-person-role">{role}</span>
@@ -354,12 +386,10 @@ const BookingsDetailScreen: React.FC = () => {
           <span>{person.phone || "Not Available"}</span>
         </div>
 
-        {/* <div>
-          <Hash size={15} />
-          <span>ID: {getId(person._id) || "Not Available"}</span>
-        </div> */}
-
-       
+        <div>
+          <UserRound size={15} />
+          <span>Public ID: {publicId}</span>
+        </div>
       </div>
     </div>
   );
@@ -376,7 +406,6 @@ const BookingsDetailScreen: React.FC = () => {
           <h3>Loading Booking Details</h3>
           <p>Please wait while we fetch the booking information.</p>
         </div>
-       
       </div>
     );
   }
@@ -414,7 +443,6 @@ const BookingsDetailScreen: React.FC = () => {
             </button>
           </div>
         </div>
-    
       </div>
     );
   }
@@ -463,8 +491,6 @@ const BookingsDetailScreen: React.FC = () => {
                 Complete booking information, requester,
                 caregiver and service history.
               </p>
-
-             
             </div>
           </div>
 
@@ -540,6 +566,7 @@ const BookingsDetailScreen: React.FC = () => {
             title={getName(requestor)}
             role="REQUESTER"
             icon={UserRound}
+            publicId={publicRequesterId}
           />
 
           <PersonCard
@@ -547,6 +574,7 @@ const BookingsDetailScreen: React.FC = () => {
             title={getName(provider)}
             role="CARE GIVER"
             icon={UserCheck}
+            publicId={publicProviderId}
           />
         </div>
 
@@ -554,13 +582,12 @@ const BookingsDetailScreen: React.FC = () => {
 
         <Section title="Service Information" icon={BriefcaseBusiness}>
           <div className="bd-details-grid">
-          
-         
+            <DetailItem label="Public Service ID" value={publicServiceId} />
             <DetailItem label="Category name" value={service.category} />
+            <DetailItem label="Service Name" value={service.name} />
             <DetailItem label="Service Description" value={service.description} />
             <DetailItem label="Booking Duration (Minutes)" value={booking.duration} />
             <DetailItem label="Booking Status" value={status} />
-         
           </div>
         </Section>
 
@@ -574,7 +601,6 @@ const BookingsDetailScreen: React.FC = () => {
             <DetailItem label="Scheduling Time Zone" value={booking.schedulingTimeZone} />
             <DetailItem label="Repeat Daily" value={booking.repeatDaily} />
             <DetailItem label="Multi-Day Series" value={booking.isMultiDaySeries} />
-          
           </div>
 
           <div className="bd-address">
@@ -793,8 +819,6 @@ const BookingsDetailScreen: React.FC = () => {
           </Section>
         )}
 
-       
-
         {/* FOOTER */}
 
         <div className="bd-footer">
@@ -809,14 +833,8 @@ const BookingsDetailScreen: React.FC = () => {
           </div>
         </div>
       </div>
-
-  
     </div>
   );
 };
-
-
-
-
 
 export default BookingsDetailScreen;
