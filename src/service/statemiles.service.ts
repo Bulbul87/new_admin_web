@@ -1,8 +1,9 @@
-import axios from "axios";
+import { api } from "./api";
 
-const API_URL = "https://api.senioramerica.us/api";
+// ==========================================
+// TYPES
+// ==========================================
 
-// Types
 export interface StateMilesRecord {
   _id: string;
   stateId: {
@@ -23,6 +24,26 @@ export interface StateMiles {
   milesRecord: StateMilesRecord | null;
 }
 
+interface RawStateMilesResponse {
+  success: boolean;
+  message: string;
+  total: number;
+  configured: number;
+  data: StateMiles[];
+}
+
+interface RawSetMilesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    stateId: string;
+    name: string;
+    code: string;
+    miles: number;
+    milesRecord: StateMilesRecord;
+  };
+}
+
 export interface StateMilesResponse {
   success: boolean;
   message: string;
@@ -31,43 +52,62 @@ export interface StateMilesResponse {
   data: StateMiles[];
 }
 
-// Get token
-const getHeaders = () => {
-  const token = localStorage.getItem("adminToken");
+export interface SetStateMilesResponse {
+  success: boolean;
+  message: string;
+  data: RawSetMilesResponse["data"];
+}
 
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-};
+// ==========================================
+// GET ALL STATES WITH MILES
+// ==========================================
 
-// GET all states with miles
 export const getStateMiles = async (): Promise<StateMilesResponse> => {
-  const response = await axios.get(
-    `${API_URL}/state-miles`,
-    {
-      headers: getHeaders(),
-    }
-  );
+  const response = await api.get<
+    StateMiles[] | RawStateMilesResponse
+  >("/state-miles");
 
-  return response.data;
+  // api.ts returns data.data || data
+  // Handle both possible response structures
+
+  if (Array.isArray(response)) {
+    return {
+      success: true,
+      message: "State miles fetched successfully",
+      total: response.length,
+      configured: response.filter(
+        (item) => item.milesRecord !== null
+      ).length,
+      data: response,
+    };
+  }
+
+  return response;
 };
 
-// ADD / UPDATE state miles
+// ==========================================
+// ADD / UPDATE STATE MILES
+// ==========================================
+
 export const setStateMiles = async (
   stateId: string,
   miles: number
-) => {
-  const response = await axios.post(
-    `${API_URL}/state-miles/set`,
-    {
-      stateId,
-      miles,
-    },
-    {
-      headers: getHeaders(),
-    }
-  );
+): Promise<SetStateMilesResponse> => {
+  const response = await api.post<
+    RawSetMilesResponse["data"] | RawSetMilesResponse
+  >("/admin/state-miles/set", {
+    stateId,
+    miles,
+  });
 
-  return response.data;
+  // api.ts returns response.data directly
+  if ("stateId" in response && "miles" in response) {
+    return {
+      success: true,
+      message: "State miles saved successfully",
+      data: response,
+    };
+  }
+
+  return response;
 };
