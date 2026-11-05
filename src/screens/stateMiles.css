@@ -1,0 +1,470 @@
+.state-miles-page {
+   margin-left: 260px;
+        margin-top: 70px;
+        padding: 30px;
+        min-height: calc(100vh - 70px);
+        background: #f4f7fb;
+        box-sizing: border-box;
+}
+
+/* HEADER */
+
+.sm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+
+
+.sm-header h2 {
+  font-size: 25px;
+  font-weight: 750;
+  margin: 0;
+  color: #14344a;
+}
+
+.sm-header p {
+  color: #8190a3;
+  margin: 7px 0 0;
+  font-size: 13px;
+}
+
+.sm-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid #e0e7ef;
+  padding: 11px 17px;
+  border-radius: 9px;
+  color: #14344a;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sm-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* STATS */
+
+.sm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 17px;
+  margin-bottom: 24px;
+}
+
+.sm-stat-card {
+  background: white;
+  border: 1px solid #e9edf3;
+  border-radius: 13px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 3px 12px rgba(20, 52, 74, 0.035);
+}
+
+.sm-stat-icon {
+  width: 47px;
+  height: 47px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sm-stat-icon.blue {
+  color: #2563eb;
+  background: #eaf1ff;
+}
+
+.sm-stat-icon.green {
+  color: #159768;
+  background: #e5f8ef;
+}
+
+.sm-stat-icon.orange {
+  color: #dc8b20;
+  background: #fff4df;
+}
+
+.sm-stat-icon.purple {
+  color: #8353ce;
+  background: #f2eaff;
+}
+
+.sm-stat-card span {
+  color: #8491a2;
+  font-size: 12px;
+}
+
+.sm-stat-card h3 {
+  margin: 5px 0 0;
+  font-size: 23px;
+  font-weight: 750;
+  color: #14344a;
+}
+
+/* MAIN CARD */
+
+.sm-main-card {
+  background: white;
+  border: 1px solid #e9edf3;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 3px 14px rgba(20, 52, 74, 0.035);
+}
+
+.sm-card-header {
+  padding: 21px 23px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.sm-card-header h3 {
+  font-size: 17px;
+  font-weight: 750;
+  margin: 0;
+}
+
+.sm-card-header p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #8b97a7;
+}
+
+/* SEARCH */
+
+.sm-search {
+  height: 42px;
+  width: 290px;
+  border: 1px solid #e1e7ef;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 9px;
+  color: #8593a4;
+  background: #fff;
+}
+
+.sm-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  color: #14344a;
+}
+
+.sm-search button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #8491a2;
+}
+
+/* TABLE */
+
+.sm-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.sm-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1050px;
+}
+
+.sm-table thead {
+  background: #f7f9fc;
+}
+
+.sm-table th {
+  padding: 15px 13px;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 0.55px;
+  font-weight: 750;
+  color: #8290a3;
+  white-space: nowrap;
+}
+
+.sm-table td {
+  padding: 15px 13px;
+  border-top: 1px solid #edf0f5;
+  font-size: 12px;
+  color: #526276;
+  white-space: nowrap;
+}
+
+.sm-table tbody tr:hover {
+  background: #fafcff;
+}
+
+/* STATE */
+
+.sm-state-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #14344a;
+}
+
+.sm-state-name strong {
+  font-size: 13px;
+}
+
+.sm-state-icon {
+  width: 32px;
+  height: 32px;
+  background: #edf3fa;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #25618a;
+}
+
+.sm-code {
+  background: #edf3fa;
+  color: #245a7d;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-weight: 750;
+}
+
+.sm-id {
+  color: #8491a2;
+  font-size: 10px;
+  font-family: monospace;
+}
+
+/* MILES */
+
+.sm-mile-value {
+  color: #14344a;
+  font-size: 15px;
+}
+
+.sm-mile-value small {
+  font-size: 10px;
+  color: #8491a2;
+}
+
+.sm-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sm-input-wrapper input {
+  width: 105px;
+  padding: 9px 10px;
+  border: 1px solid #286b98;
+  border-radius: 7px;
+  outline: none;
+  color: #14344a;
+  font-size: 13px;
+}
+
+.sm-input-wrapper span {
+  color: #8491a2;
+  font-size: 11px;
+}
+
+/* STATUS */
+
+.sm-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sm-status.configured {
+  background: #e8f8ef;
+  color: #188653;
+}
+
+.sm-status.pending {
+  background: #fff4df;
+  color: #c18119;
+}
+
+/* BUTTONS */
+
+.sm-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sm-edit-btn,
+.sm-save-btn,
+.sm-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sm-edit-btn {
+  color: #23648c;
+  background: #edf5fc;
+  border: 1px solid #dceaf6;
+}
+
+.sm-save-btn {
+  color: white;
+  background: linear-gradient(135deg, #14344a, #236b91);
+  border: none;
+}
+
+.sm-cancel-btn {
+  background: white;
+  border: 1px solid #e1e7ef;
+  color: #778496;
+}
+
+.sm-save-btn:disabled,
+.sm-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* LOADING / EMPTY */
+
+.sm-loading,
+.sm-empty {
+  padding: 55px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #8290a3;
+}
+
+.sm-empty h4 {
+  color: #14344a;
+  margin: 0;
+  font-size: 15px;
+}
+
+.sm-empty p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.sm-spin {
+  animation: smRotate 1s linear infinite;
+}
+
+@keyframes smRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* FOOTER */
+
+.sm-table-footer {
+  border-top: 1px solid #edf0f5;
+  padding: 15px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: #8290a3;
+}
+
+.sm-table-footer strong {
+  color: #14344a;
+}
+
+.sm-table-footer span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #188653;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .sm-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .state-miles-page {
+    padding: 15px;
+  }
+
+  .sm-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sm-header h2 {
+    font-size: 21px;
+  }
+
+  .sm-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .sm-stat-card {
+    padding: 13px;
+    gap: 9px;
+  }
+
+  .sm-stat-icon {
+    width: 37px;
+    height: 37px;
+  }
+
+  .sm-stat-card h3 {
+    font-size: 19px;
+  }
+
+  .sm-stat-card span {
+    font-size: 10px;
+  }
+
+  .sm-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sm-search {
+    width: 100%;
+  }
+
+  .sm-table-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
