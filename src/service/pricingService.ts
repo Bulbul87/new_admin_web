@@ -363,6 +363,7 @@ export async function getCitiesByState(
 }
 
 
+
 /* ======================================================
    ADD CITY
    POST /services/cities
@@ -372,16 +373,26 @@ export async function createCity(
   name: string,
   stateId: string
 ): Promise<CityOption> {
-  const response = await api.post<any>(
-    ENDPOINTS.cities,
-    {
-      name,
-      stateId,
-    }
-  );
+  try {
+    const response = await api.post<any>(
+      ENDPOINTS.cities,
+      {
+        name: name.trim(),
+        stateId,
+      }
+    );
 
-  return response.data;
+    console.log("CREATE CITY API RESPONSE:", response);
+
+    // api.ts already extracts response.data
+    return (response?.city ?? response) as CityOption;
+
+  } catch (error: any) {
+    console.error("CREATE CITY API ERROR:", error);
+    throw error;
+  }
 }
+
 
 /* ======================================================
    UPDATE CITY NAME ONLY
@@ -392,15 +403,26 @@ export async function updateCityName(
   cityId: string,
   name: string
 ): Promise<CityOption> {
-  const response = await api.put<any>(
-    `${ENDPOINTS.cities}/${cityId}`,
-    {
-      name,
-    }
-  );
+  try {
+    const response = await api.put<any>(
+      `${ENDPOINTS.cities}/${cityId}`,
+      {
+        name: name.trim(),
+      }
+    );
 
-  return response.data;
+    console.log("UPDATE CITY API RESPONSE:", response);
+
+    // api.ts already extracts response.data
+    return (response?.city ?? response) as CityOption;
+
+  } catch (error: any) {
+    console.error("UPDATE CITY API ERROR:", error);
+    throw error;
+  }
 }
+
+
 
 // ======================================================
 // GET SERVICE CATALOG

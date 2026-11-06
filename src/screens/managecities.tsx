@@ -253,15 +253,15 @@ const Cities: React.FC = () => {
 
       await loadData();
     } catch (err: any) {
-      console.error("Failed to save city:", err);
-      toast.error(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Unable to save city. Please try again."
-      );
-    } finally {
-      setSaving(false);
-    }
+  console.error("Failed to save city:", err);
+
+  toast.error(
+    err?.message || "Unable to save city. Please try again."
+  );
+} finally {
+  setSaving(false);
+}
+    
   };
 
   const handleRefresh = async () => {
