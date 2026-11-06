@@ -364,17 +364,13 @@ export async function getCitiesByState(
 
 
 
-/* ======================================================
-   ADD CITY
-   POST /services/cities
-====================================================== */
-
+// ADD CITY
 export async function createCity(
   name: string,
   stateId: string
 ): Promise<CityOption> {
   try {
-    const response = await api.post<any>(
+    const response = await api.post<CityOption>(
       ENDPOINTS.cities,
       {
         name: name.trim(),
@@ -382,46 +378,35 @@ export async function createCity(
       }
     );
 
-    console.log("CREATE CITY API RESPONSE:", response);
-
-    // api.ts already extracts response.data
-    return (response?.city ?? response) as CityOption;
-
-  } catch (error: any) {
-    console.error("CREATE CITY API ERROR:", error);
+    console.log("CREATE CITY SUCCESS:", response);
+    return response;
+  } catch (error) {
+    console.error("CREATE CITY ERROR:", error);
     throw error;
   }
 }
 
 
-/* ======================================================
-   UPDATE CITY NAME ONLY
-   PUT /services/cities/:id
-====================================================== */
-
+// UPDATE CITY NAME ONLY
 export async function updateCityName(
   cityId: string,
   name: string
 ): Promise<CityOption> {
   try {
-    const response = await api.put<any>(
+    const response = await api.put<CityOption>(
       `${ENDPOINTS.cities}/${cityId}`,
       {
         name: name.trim(),
       }
     );
 
-    console.log("UPDATE CITY API RESPONSE:", response);
-
-    // api.ts already extracts response.data
-    return (response?.city ?? response) as CityOption;
-
-  } catch (error: any) {
-    console.error("UPDATE CITY API ERROR:", error);
+    console.log("UPDATE CITY SUCCESS:", response);
+    return response;
+  } catch (error) {
+    console.error("UPDATE CITY ERROR:", error);
     throw error;
   }
 }
-
 
 
 // ======================================================
