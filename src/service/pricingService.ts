@@ -214,6 +214,7 @@ const ENDPOINTS = {
   filterPricing: "/pricing-rules/filter",
 
   searchPricing: "/pricing-rules/search",
+  deletePricing: "/pricing-rules",
 };
 
 // ======================================================
@@ -828,3 +829,31 @@ export function hasServiceSelected(
   return Boolean(serviceId);
 }
 
+// ======================================================
+// DELETE SINGLE PRICING RULE
+// DELETE /pricing-rules/:id
+// ======================================================
+
+export interface DeletePricingResponse {
+  success: boolean;
+  message: string;
+  data?: PricingRule;
+}
+
+export async function deletePricing(
+  pricingId: string
+): Promise<DeletePricingResponse> {
+  try {
+    const response = await api.delete<DeletePricingResponse>(
+      `${ENDPOINTS.deletePricing}/${pricingId}`
+    );
+
+    console.log("DELETE PRICING SUCCESS:", response);
+
+    return response;
+
+  } catch (error) {
+    console.error("DELETE PRICING ERROR:", error);
+    throw error;
+  }
+}

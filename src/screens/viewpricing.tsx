@@ -10,6 +10,7 @@ import {
   MapPinned,
   RefreshCw,
   Search,
+  Trash2,
 } from "lucide-react";
 
 
@@ -23,6 +24,7 @@ import {
   getParentServices,
   getChildServices,
   getStateIdFromCity,
+  deletePricing
 } from "../service/pricingService";
 
 import type {
@@ -257,6 +259,24 @@ const PricingRules: React.FC = () => {
     return null;
   };
 
+ const handleDeletePricing = async (pricingId: string) => {
+  try {
+    const response = await deletePricing(pricingId);
+
+    if (response.success) {
+      toast.success(response.message);
+
+      await loadData();
+    }
+  } catch (error: any) {
+    toast.error(
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to delete pricing"
+    );
+  }
+};
+
   // ============================================
   // Service lookup
   // ============================================
@@ -435,9 +455,8 @@ const PricingRules: React.FC = () => {
     );
   }, [services, selectedParentServiceId]);
 
-  // ============================================
-  // Filtered Pricing Rules
-  // ============================================
+
+  
 
 // ============================================
 // Server-Filtered Pricing Rules
@@ -1183,6 +1202,7 @@ const clearFilters = () => {
                  <th style={headerStyle}>
                  Service Fees
                 </th>
+                <th style={headerStyle}> Actions</th>
               </tr>
             </thead>
 
@@ -1190,7 +1210,7 @@ const clearFilters = () => {
               {filteredPricingRules.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                   colSpan={10}
                     style={{
                       color: "#14344A",
                       border: "1px solid #cde3f8",
@@ -1306,6 +1326,46 @@ const clearFilters = () => {
                             {rule.servicefees} %
                           </span>
                         </td>
+
+                        {/* ACTION - DELETE */}
+<td style={cellStyle}>
+  <button
+    type="button"
+    title="Delete Pricing Record"
+    onClick={() => {
+      const confirmed = window.confirm(
+        `Are you sure you want to delete this pricing record?`
+      );
+
+      if (confirmed && rule._id) {
+        handleDeletePricing(rule._id);
+      }
+    }}
+    disabled={!rule._id}
+    style={{
+      background: "#FEE2E2",
+      color: "#DC2626",
+      border: "1px solid #FECACA",
+      borderRadius: "8px",
+      padding: "8px",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      transition: "0.2s",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.background = "#DC2626";
+      e.currentTarget.style.color = "#FFFFFF";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.background = "#FEE2E2";
+      e.currentTarget.style.color = "#DC2626";
+    }}
+  >
+    <Trash2 size={18} />
+  </button>
+</td>
                       </tr>
                     );
                   }
