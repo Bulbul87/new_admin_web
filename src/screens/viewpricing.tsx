@@ -1,3 +1,4 @@
+import * as XLSX from "xlsx";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,6 +12,7 @@ import {
   RefreshCw,
   Search,
   Trash2,
+  FileSpreadsheet,
 } from "lucide-react";
 
 
@@ -45,7 +47,7 @@ const PricingRules: React.FC = () => {
   const [cities, setCities] = useState<CityOption[]>([]);
   const [services, setServices] = useState<ServiceCatalogItem[]>([]);
   const [pricingRules, setPricingRules] = useState<PricingRule[]>([]);
-
+  const [exporting, setExporting] = useState(false);
   // ============================================
   // Pagination
   // ============================================
@@ -177,6 +179,105 @@ const PricingRules: React.FC = () => {
     await loadData();
   };
 
+
+// ============================================
+// EXPORT ALL PRICING RECORDS TO EXCEL
+// ============================================
+
+const handleExportExcel = async () => {
+  try {
+    setExporting(true);
+
+    toast.info("Preparing all pricing records...");
+
+    // First request: fetch first page and total pages
+    const firstResponse = await filterPricingRules({
+      page: 1,
+      limit: 100,
+    });
+
+    let allRecords: PricingRule[] = Array.isArray(firstResponse.data)
+      ? [...firstResponse.data]
+      : [];
+
+    const totalPages = firstResponse.pagination?.totalPages ?? 1;
+
+    // Fetch all remaining pages
+    for (let page = 2; page <= totalPages; page++) {
+      const response = await filterPricingRules({
+        page,
+        limit: 100,
+      });
+
+      if (Array.isArray(response.data)) {
+        allRecords.push(...response.data);
+      }
+    }
+
+    // Check if records exist
+    if (allRecords.length === 0) {
+      toast.error("No pricing records found.");
+      return;
+    }
+
+    // Convert records into Excel rows
+    const excelData = allRecords.map((rule, index) => ({
+      "S.No": index + 1,
+      "State": rule.stateId?.name || "-",
+      "City": rule.cityId?.name || "-",
+      "Service Category": getCategoryName(rule),
+      "Service": getServiceName(rule),
+      "Requester Price": rule.requesterPrice ?? 0,
+      "Caregiver Price": rule.providerPrice ?? 0,
+      "Sales Tax (%)": Number(rule.Tax ?? 0),
+      "Service Fees (%)": Number(rule.servicefees ?? 0),
+    }));
+
+    // Create Excel worksheet
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set Excel column widths
+    worksheet["!cols"] = [
+      { wch: 10 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 25 },
+      { wch: 25 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 18 },
+    ];
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Pricing Records"
+    );
+
+    // Download Excel file
+    XLSX.writeFile(
+      workbook,
+      `SeniorAmerica_Pricing_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+
+    toast.success(
+      `Successfully exported ${allRecords.length} pricing records!`
+    );
+
+  } catch (error: any) {
+    console.error("Pricing Excel Export Error:", error);
+
+    toast.error(
+      error?.message || "Failed to export pricing records."
+    );
+  } finally {
+    setExporting(false);
+  }
+};
 
 
   // ============================================
@@ -550,6 +651,34 @@ const clearFilters = () => {
 
               Refresh Data
             </button>
+<button
+  onClick={handleExportExcel}
+  disabled={exporting}
+  style={{
+    border: "none",
+    padding: "11px 20px",
+    borderRadius: "8px",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: exporting ? "not-allowed" : "pointer",
+    background: "linear-gradient(135deg, #15803d, #16a34a)",
+    color: "#fff",
+    boxShadow: "0 4px 10px rgba(22, 163, 74, 0.2)",
+    opacity: exporting ? 0.7 : 1,
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  }}
+>
+  {exporting ? (
+    <Loader2 className="h-5 w-5 animate-spin" />
+  ) : (
+    <FileSpreadsheet size={20} />
+  )}
+
+  {exporting ? "Preparing Excel..." : "Export Excel"}
+</button>
+
              <button
           onClick={() => navigate("/pricing")}
           style={{
