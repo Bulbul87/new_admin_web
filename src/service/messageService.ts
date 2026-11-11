@@ -222,3 +222,74 @@ export const getOtherParticipant = (
     (participant) => participant._id !== userId
   );
 };
+
+
+/* =========================================================
+   FETCH ALL ADMIN CONVERSATIONS
+========================================================= */
+
+export const getAllAdminConversations = async (): Promise<Conversation[]> => {
+  const allConversations: Conversation[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  do {
+    const response = await getAdminConversations(page, 100);
+
+    allConversations.push(...response.conversations);
+    totalPages = response.pagination.totalPages;
+
+    if (!response.pagination.hasNextPage || page >= totalPages) {
+      break;
+    }
+
+    page++;
+  } while (page <= totalPages);
+
+  return allConversations;
+};
+
+
+/* =========================================================
+   FETCH ALL MESSAGES OF ONE CONVERSATION
+========================================================= */
+
+export const getAllMessagesForConversation = async (
+  conversationId: string
+): Promise<AdminConversationData> => {
+  const allMessages: LastMessage[] = [];
+  let page = 1;
+  let totalPages = 1;
+  let conversation: Conversation = {} as Conversation;
+
+  do {
+    const response = await getAdminConversation(
+      conversationId,
+      page,
+      100
+    );
+
+    conversation = response.conversation || conversation;
+    allMessages.push(...response.messages);
+    totalPages = response.pagination.totalPages;
+
+    if (!response.pagination.hasNextPage || page >= totalPages) {
+      break;
+    }
+
+    page++;
+  } while (page <= totalPages);
+
+  return {
+    conversation,
+    messages: allMessages,
+    pagination: {
+      currentPage: 1,
+      totalPages,
+      totalMessages: allMessages.length,
+      limit: 100,
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+  };
+};

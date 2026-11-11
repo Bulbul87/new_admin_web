@@ -1,3 +1,5 @@
+import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -6,6 +8,7 @@ import {
   ChevronRight,
   Clock3,
   FileText,
+  FileSpreadsheet,
   Image as ImageIcon,
   MessageCircle,
   Mic,
@@ -14,9 +17,10 @@ import {
 } from "lucide-react";
 
 import {
- type Conversation,
- type LastMessage,
+  type Conversation,
+  type LastMessage,
   getAdminConversation,
+  getAllMessagesForConversation,
   getUserFullName,
 } from "../service/messageService";
 
@@ -33,7 +37,7 @@ const MessageDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-
+const [exporting, setExporting] = useState(false);
   const [page, setPage] = useState(1);
 
   const [pagination, setPagination] = useState({
@@ -84,6 +88,109 @@ const MessageDetail: React.FC = () => {
       setRefreshing(false);
     }
   };
+
+
+const handleExportThisChat = async () => {
+  if (!conversationId) {
+    toast.error("Conversation ID is missing.");
+    return;
+  }
+
+  try {
+    setExporting(true);
+    toast.info("Preparing conversation export...");
+
+    // Fetch all messages, not only current page
+    const detail = await getAllMessagesForConversation(
+      conversationId
+    );
+
+    const currentConversation = detail.conversation;
+    const participants = currentConversation.participants || [];
+
+    const chatDetailsRows = [
+      {
+        "Conversation ID": currentConversation._id || conversationId,
+        "Participants": participants
+          .map((user) => getUserFullName(user))
+          .join(" | "),
+        "Participant Emails": participants
+          .map((user) => user.email || "-")
+          .join(" | "),
+        "Participant Roles": participants
+          .map((user) =>
+            user.role?.toLowerCase() === "provider"
+              ? "Caregiver"
+              : user.role?.toLowerCase() === "user" ||
+                user.role?.toLowerCase() === "requester"
+              ? "Requester"
+              : user.role || "User"
+          )
+          .join(" | "),
+        "Created At": currentConversation.createdAt || "-",
+        "Last Activity": currentConversation.lastMessageAt || "-",
+        "Total Messages": detail.messages.length,
+      },
+    ];
+
+    const messageRows = detail.messages.map((message) => ({
+      "Conversation ID": conversationId,
+      "Message ID": message._id,
+      "Sender Name": getUserFullName(message.sender),
+      "Sender Email": message.sender?.email || "-",
+      "Sender Role": message.sender?.role || "-",
+      "Receiver Name": getUserFullName(message.receiver),
+      "Receiver Email": message.receiver?.email || "-",
+      "Receiver Role": message.receiver?.role || "-",
+      "Message Type": message.messageType || "-",
+      "Message Content": message.isDeleted
+        ? "This message was deleted"
+        : message.messageType === "text"
+        ? maskAbusiveWords(message.content || "")
+        : message.content || `[${message.messageType || "Message"}]`,
+      "Media URL": message.media?.url || "-",
+      "Media Type": message.media?.type || "-",
+      "Read Status": message.isRead ? "Read" : "Unread",
+      "Deleted": message.isDeleted ? "Yes" : "No",
+      "Created At": message.createdAt || "-",
+      "Updated At": message.updatedAt || "-",
+    }));
+
+    // Create Excel workbook
+    const workbook = XLSX.utils.book_new();
+
+    const detailsSheet = XLSX.utils.json_to_sheet(chatDetailsRows);
+    const messagesSheet = XLSX.utils.json_to_sheet(messageRows);
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      detailsSheet,
+      "Chat Details"
+    );
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      messagesSheet,
+      "Messages"
+    );
+
+    const fileName = `SeniorAmerica_Chat_${conversationId}_${
+      new Date().toISOString().slice(0, 10)
+    }.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+
+    toast.success(
+      `Chat exported successfully! ${messageRows.length} messages exported.`
+    );
+  } catch (error) {
+    console.error("Export This Chat Error:", error);
+    toast.error("Failed to export this conversation.");
+  } finally {
+    setExporting(false);
+  }
+};
+
 
   useEffect(() => {
     loadConversation(1);
@@ -316,6 +423,28 @@ const MessageDetail: React.FC = () => {
             <ArrowLeft size={17} />
             Back 
           </button>
+
+<button
+  onClick={handleExportThisChat}
+  disabled={exporting}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    border: "none",
+    borderRadius: "8px",
+    padding: "9px 16px",
+    background: "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+    color: "#14344A",
+    fontWeight: 700,
+    cursor: exporting ? "not-allowed" : "pointer",
+    opacity: exporting ? 0.7 : 1,
+  }}
+>
+  <FileSpreadsheet size={17} />
+  {exporting ? "Exporting..." : "Export This Chat"}
+</button>
+
         <button
           onClick={() => loadConversation(page, true)}
           disabled={refreshing}

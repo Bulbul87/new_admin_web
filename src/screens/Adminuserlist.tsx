@@ -1,3 +1,5 @@
+import * as XLSX from "xlsx";
+import { FaFileExcel } from "react-icons/fa";
 import { toast } from "react-toastify";
 import React, { useEffect, useState } from "react";
 
@@ -97,17 +99,17 @@ const AdminUsers: React.FC = () => {
   const [originalData, setOriginalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-
+  const [exporting, setExporting] = useState(false);
   // ACTIVATION LOADING
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   // PAGINATION
   const [requesterPage, setRequesterPage] = useState(1);
-  const [deactivePage, setDeactivePage] = useState(1);
+  const [deactivePage] = useState(1);
   const [providerPage, setProviderPage] = useState(1);
 
   const [requesterTotalPages, setRequesterTotalPages] = useState(1);
-  const [deactiveTotalPages, setDeactiveTotalPages] = useState(1);
+  const [deactiveTotalPages] = useState(1);
   const [providerTotalPages, setProviderTotalPages] = useState(1);
 
   const ITEMS_PER_PAGE = 20;
@@ -148,62 +150,47 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  
-  
- 
-  // FETCH INACTIVE REQUESTERS + CAREGIVERS
-  const loadDeactiveUsers = async (page = deactivePage) => {
-    try {
-      setLoading(true);
-      setActiveTab("deactive");
-      setSearch("");
+  const loadDeactiveUsers = async () => {
+  try {
+    setLoading(true);
+    setActiveTab("deactive");
+    setSearch("");
 
-      const [requesterResponse, providerResponse] = await Promise.all([
-        getAllUsers(page, ITEMS_PER_PAGE),
-        getAllProviders(page, ITEMS_PER_PAGE),
-      ]);
+    const [requesterResponse, providerResponse] = await Promise.all([
+      getAllUsers(1, 100000),
+      getAllProviders(1, 100000),
+    ]);
 
-      console.log("INACTIVE REQUESTERS RESPONSE:", requesterResponse);
-      console.log("INACTIVE CAREGIVERS RESPONSE:", providerResponse);
+    const inactiveRequesters = (requesterResponse?.users || [])
+      .filter((user: any) => user.isActive === false)
+      .map((user: any) => ({
+        ...user,
+        _isProvider: false,
+      }));
 
-      const inactiveRequesters = (requesterResponse?.users || [])
-        .filter((user: any) => user.isActive === false)
-        .map((user: any) => ({
-          ...user,
-          _isProvider: false,
-        }));
+    const inactiveCaregivers = (providerResponse?.users || [])
+      .filter((provider: any) => provider.isActive === false)
+      .map((provider: any) => ({
+        ...provider,
+        _isProvider: true,
+      }));
 
-      const inactiveCaregivers = (providerResponse?.users || [])
-        .filter((provider: any) => provider.isActive === false)
-        .map((provider: any) => ({
-          ...provider,
-          _isProvider: true,
-        }));
+    const inactiveAccounts = [
+      ...inactiveRequesters,
+      ...inactiveCaregivers,
+    ];
 
-      const inactiveAccounts = [
-        ...inactiveRequesters,
-        ...inactiveCaregivers,
-      ];
+    setData(inactiveAccounts);
+    setOriginalData(inactiveAccounts);
 
-      setData(inactiveAccounts);
-      setOriginalData(inactiveAccounts);
-
-      setDeactiveTotalPages(
-        Math.max(
-          requesterResponse?.pagination?.totalPages || 1,
-          providerResponse?.pagination?.totalPages || 1
-        )
-      );
-
-      setDeactivePage(page);
-    } catch (err) {
-      console.error("Deactive Accounts Error:", err);
-      setData([]);
-      setOriginalData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    console.error("Deactive Accounts Error:", err);
+    setData([]);
+    setOriginalData([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   // FETCH ALL PROVIDERS: VERIFIED + UNVERIFIED
@@ -271,7 +258,7 @@ setProviderPage(response?.pagination?.page || page);
       if (isProvider) {
         await loadProviders(providerPage);
       } else {
-        await loadDeactiveUsers(deactivePage);
+        await loadDeactiveUsers();
       }
     } catch (error: any) {
       console.error("Activate Account Error:", error);
@@ -321,6 +308,203 @@ setProviderPage(response?.pagination?.page || page);
     }
   };
 
+
+// ============================================
+// EXPORT ALL REQUESTERS / CAREGIVERS TO EXCEL
+// ============================================
+
+
+
+const handleExportExcel = async () => {
+  try {
+    if (activeTab === "deactive") {
+      toast.info("Please select Requesters or Caregivers tab.");
+      return;
+    }
+
+    setExporting(true);
+    toast.info("Preparing all user records for Excel...");
+
+    const isProvider = activeTab === "provider";
+    const limit = 100;
+
+    // FIRST PAGE
+    const firstResponse = isProvider
+      ? await getAllProviders(1, limit)
+      : await getAllUsers(1, limit);
+
+    const totalPages = Math.max(
+      1,
+      firstResponse?.pagination?.totalPages || 1
+    );
+
+    let allUsers = [...(firstResponse?.users || [])];
+
+    // FETCH REMAINING PAGES
+    if (totalPages > 1) {
+      const remainingPages = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, index) => {
+          const page = index + 2;
+
+          return isProvider
+            ? getAllProviders(page, limit)
+            : getAllUsers(page, limit);
+        })
+      );
+
+      remainingPages.forEach((response) => {
+        allUsers = allUsers.concat(response?.users || []);
+      });
+    }
+
+    // SAME ACTIVE FILTER AS USER LIST
+    const activeUsers = allUsers.filter(
+      (user: any) => user.isActive === true
+    );
+
+    if (activeUsers.length === 0) {
+      toast.warning("No records available to export.");
+      return;
+    }
+
+    // HELPER: GET ADDRESS VALUE
+    const getAddress = (user: any) => {
+      const address =
+        user.address ||
+        user.location ||
+        user.liveLocation ||
+        {};
+
+      if (typeof address === "string") return address;
+
+      return [
+        address.street,
+        address.addressLine1,
+        address.addressLine2,
+        address.city,
+        address.state,
+        address.zipCode || address.postalCode,
+        address.country,
+      ]
+        .filter(Boolean)
+        .join(", ");
+    };
+
+    // MAP ALL RECORDS
+    const excelData = activeUsers.map((user: any, index: number) => {
+      const fullName = [
+        user.firstName,
+        user.middleName,
+        user.lastName,
+      ]
+        .filter(Boolean)
+        .join(" ") || user.name || "-";
+
+      const publicId = isProvider
+        ? user.providerInfo?.publicProviderId ||
+          user.publicProviderId ||
+          ""
+        : user.requestorInfo?.publicRequesterId ||
+          user.publicRequesterId ||
+          "";
+
+      const info = isProvider
+        ? user.providerInfo || {}
+        : user.requestorInfo || {};
+
+      const specializations = Array.isArray(info.specializations)
+        ? info.specializations
+            .map((item: any) =>
+              typeof item === "string"
+                ? item
+                : item.name || item.categoryName || ""
+            )
+            .filter(Boolean)
+            .join(", ")
+        : "";
+
+      return {
+        "S.No": index + 1,
+        "User ID": user._id || "",
+        "Public ID": publicId,
+        "Full Name": fullName,
+        "Email": user.email || "",
+        "Phone Number": user.phone || "",
+        "Role": isProvider ? "Caregiver" : "Requester",
+        "Date of Birth":
+          user.dateOfBirth || user.dob || "",
+        "Gender": user.gender || info.gender || "",
+        "Address": getAddress(user),
+        "City": user.city || info.city || "",
+        "State": user.state || info.state || "",
+        "Account Status": user.isActive ? "Active" : "Inactive",
+        "Verification Status": isProvider
+          ? user.providerInfo?.isVerified
+            ? "Verified"
+            : "Unverified"
+          : "N/A",
+        "Specializations": isProvider ? specializations : "",
+        "Registration Date": user.createdAt
+          ? new Date(user.createdAt).toLocaleDateString("en-IN")
+          : "",
+      };
+    });
+
+    // CREATE EXCEL WORKBOOK
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    worksheet["!cols"] = [
+      { wch: 8 },
+      { wch: 28 },
+      { wch: 20 },
+      { wch: 25 },
+      { wch: 32 },
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 16 },
+      { wch: 14 },
+      { wch: 35 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 18 },
+      { wch: 20 },
+      { wch: 35 },
+      { wch: 18 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      isProvider ? "Caregivers" : "Requesters"
+    );
+
+    // DOWNLOAD EXCEL
+    const fileName = isProvider
+      ? `SeniorAmerica_Caregivers_${new Date().toISOString().slice(0, 10)}.xlsx`
+      : `SeniorAmerica_Requesters_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+
+    toast.success(
+      `${activeUsers.length} records exported successfully!`
+    );
+
+  } catch (error: any) {
+    console.error("USER EXCEL EXPORT ERROR:", error);
+
+    toast.error(
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to export user records."
+    );
+  } finally {
+    setExporting(false);
+  }
+};
+
+
   // APPROVE PROVIDER
   const handleApprove = async (id: string) => {
     try {
@@ -354,7 +538,7 @@ setProviderPage(response?.pagination?.page || page);
     if (activeTab === "provider") {
       loadProviders(1);
     } else if (activeTab === "deactive") {
-      loadDeactiveUsers(1);
+      loadDeactiveUsers();
     } else {
       loadRequesters(1);
     }
@@ -439,7 +623,7 @@ setProviderPage(response?.pagination?.page || page);
       if (activeTab === "requester") {
         loadRequesters(page);
       } else if (activeTab === "deactive") {
-        loadDeactiveUsers(page);
+        loadDeactiveUsers();
       } else {
         loadProviders(page);
       }
@@ -660,7 +844,7 @@ setProviderPage(response?.pagination?.page || page);
 
         <button
           style={getTabStyle("deactive")}
-          onClick={() => loadDeactiveUsers(deactivePage)}
+         onClick={() => loadDeactiveUsers()}
         >
           Deactive Users
         </button>
@@ -735,6 +919,47 @@ setProviderPage(response?.pagination?.page || page);
           />
         </div>
       </div>
+
+
+{/* EXPORT EXCEL BUTTON */}
+
+{activeTab !== "deactive" && (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "flex-end",
+      marginBottom: 20,
+    }}
+  >
+    <button
+      onClick={handleExportExcel}
+      disabled={exporting || loading}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "13px 22px",
+        border: "none",
+        borderRadius: 12,
+        background: exporting
+          ? "#9CA3AF"
+          : "linear-gradient(to right,#198754,#20A464)",
+        color: "#fff",
+        fontWeight: 700,
+        fontSize: 14,
+        cursor: exporting || loading
+          ? "not-allowed"
+          : "pointer",
+        boxShadow: "0 5px 15px rgba(25,135,84,.2)",
+      }}
+    >
+      <FaFileExcel size={18} />
+
+      {exporting ? "Exporting..." : "Export Excel"}
+    </button>
+  </div>
+)}
+
 
       {/* LOADER AND TABLE */}
       {loading ? (
@@ -1114,8 +1339,9 @@ setProviderPage(response?.pagination?.page || page);
               </tbody>
             </table>
           </div>
+          {activeTab !== "deactive" && renderPagination()}
 
-          {renderPagination()}
+          {/* {renderPagination()} */}
         </div>
       )}
     </div>

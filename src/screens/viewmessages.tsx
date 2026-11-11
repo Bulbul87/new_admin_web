@@ -1,8 +1,13 @@
+import { FileSpreadsheet } from "lucide-react";
+import { toast } from "react-toastify";
+import * as XLSX from "xlsx";
 import { useEffect, useState } from "react";
 import {  Eye, MessageSquare, RefreshCw, Search, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   getAdminConversations,
+  getAllAdminConversations,
+  getAllMessagesForConversation,
   getUserFullName,
   type Conversation,
 } from "../service/messageService";
@@ -15,7 +20,7 @@ const ViewMessages = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
-
+  const [exporting, setExporting] = useState(false);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -61,6 +66,120 @@ const ViewMessages = () => {
       setRefreshing(false);
     }
   };
+
+
+const handleExportAllChats = async () => {
+  try {
+    setExporting(true);
+    toast.info("Preparing all chat records...");
+
+    // Fetch ALL conversations from database
+    const allConversations = await getAllAdminConversations();
+
+    if (!allConversations.length) {
+      toast.warning("No conversations found to export.");
+      return;
+    }
+
+    const chatListRows: any[] = [];
+    const messageRows: any[] = [];
+
+    // Fetch complete message history of every conversation
+    for (const conversation of allConversations) {
+      const participants = conversation.participants || [];
+
+      chatListRows.push({
+        "Conversation ID": conversation._id,
+        "Participants": participants
+          .map((user) => getUserFullName(user))
+          .join(" | "),
+        "Participant Emails": participants
+          .map((user) => user.email || "-")
+          .join(" | "),
+        "Participant Roles": participants
+          .map((user) =>
+            user.role?.toLowerCase() === "provider"
+              ? "Caregiver"
+              : user.role?.toLowerCase() === "user" ||
+                user.role?.toLowerCase() === "requester"
+              ? "Requester"
+              : user.role || "User"
+          )
+          .join(" | "),
+        "Last Message": conversation.lastMessage?.content || "-",
+        "Last Activity": conversation.lastMessageAt || "-",
+        "Created At": conversation.createdAt || "-",
+        "Updated At": conversation.updatedAt || "-",
+        "Total Unread": Object.values(
+          conversation.unreadCount || {}
+        ).reduce((total, count) => total + Number(count || 0), 0),
+      });
+
+      const detail = await getAllMessagesForConversation(
+        conversation._id
+      );
+
+      detail.messages.forEach((message) => {
+        messageRows.push({
+          "Conversation ID": conversation._id,
+          "Message ID": message._id,
+          "Sender Name": getUserFullName(message.sender),
+          "Sender Email": message.sender?.email || "-",
+          "Sender Role": message.sender?.role || "-",
+          "Receiver Name": getUserFullName(message.receiver),
+          "Receiver Email": message.receiver?.email || "-",
+          "Receiver Role": message.receiver?.role || "-",
+          "Message Type": message.messageType || "-",
+          "Message Content": message.isDeleted
+            ? "This message was deleted"
+            : message.messageType === "text"
+            ? maskAbusiveWords(message.content || "")
+            : message.content || `[${message.messageType || "Message"}]`,
+          "Media URL": message.media?.url || "-",
+          "Media Type": message.media?.type || "-",
+          "Read Status": message.isRead ? "Read" : "Unread",
+          "Deleted": message.isDeleted ? "Yes" : "No",
+          "Created At": message.createdAt || "-",
+          "Updated At": message.updatedAt || "-",
+        });
+      });
+    }
+
+    // Create Excel workbook
+    const workbook = XLSX.utils.book_new();
+
+    const chatSheet = XLSX.utils.json_to_sheet(chatListRows);
+    const messageSheet = XLSX.utils.json_to_sheet(messageRows);
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      chatSheet,
+      "Chat List"
+    );
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      messageSheet,
+      "Chat Messages"
+    );
+
+    const fileName = `SeniorAmerica_All_Chats_${
+      new Date().toISOString().slice(0, 10)
+    }.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+
+    toast.success(
+      `Export completed! ${allConversations.length} conversations and ${messageRows.length} messages exported.`
+    );
+  } catch (error) {
+    console.error("Export All Chats Error:", error);
+    toast.error("Failed to export chats.");
+  } finally {
+    setExporting(false);
+  }
+};
+
 
   const formatDate = (date?: string) => {
     if (!date) return "-";
@@ -182,6 +301,29 @@ const ViewMessages = () => {
 
           {refreshing ? "Refreshing..." : "Refresh"}
         </button>
+
+
+<button
+  onClick={handleExportAllChats}
+  disabled={exporting}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    border: "none",
+    borderRadius: "8px",
+    padding: "9px 16px",
+    background: "linear-gradient(to right, #FFFF6D, #8FDAFA)",
+    color: "#14344A",
+    cursor: exporting ? "not-allowed" : "pointer",
+    fontWeight: 700,
+    opacity: exporting ? 0.7 : 1,
+  }}
+>
+  <FileSpreadsheet size={17} />
+  {exporting ? "Exporting..." : "Export All Chats"}
+</button>
+
         </div>
       </div>
 
