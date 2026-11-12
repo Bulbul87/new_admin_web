@@ -78,7 +78,11 @@ const Sidebar = () => {
       icon: <History size={20} />
 
     },
-
+    {
+      name: "Payment Reports",
+      path: "/payment-reports",
+      icon: <DollarSign size={20} />,
+    },
     {
       name: "Change Password",
       path: "/change-password",

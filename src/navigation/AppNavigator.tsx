@@ -29,6 +29,7 @@ import  Questionaries from "../screens/managequestionaries";
 import  ProviderAcceptingSessionDetail from "../screens/sessiondetails"
 import BookingsDetailScreen from "../screens/bookingsdetailscreen";
 import  MilesManageScreen from "../screens/milesmangescreen";
+import PaymentReports from "../screens/paymentreports";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -81,8 +82,8 @@ const AppNavigator = () => {
           <Route path="/booking-history" element={<BookingHistoryScreen />} />
           <Route path="/booking-history/:id" element={<BookingsDetailScreen />} />
           <Route path="/manage-cities" element={<Cities />} />
-             <Route path="/questionaries" element={<Questionaries/>} />
-            
+           <Route path="/questionaries" element={<Questionaries/>} />
+            <Route path="/payment-reports" element={<PaymentReports />} />
          
           <Route
             path="/change-password"

@@ -35,7 +35,7 @@ import BookingHistoryScreen from "./screens/adminbookingconfig";
 import Cities from "./screens/managecities";
 import Questionaries from "./screens/managequestionaries";
 import ProviderAcceptingSessionDetail from "./screens/sessiondetails";
-
+import PaymentReports from "./screens/paymentreports";
 import "./index.css";
 import BookingsDetailScreen from "./screens/bookingsdetailscreen";
 import MilesManageScreen from "./screens/milesmangescreen";
@@ -89,6 +89,7 @@ function App() {
                <Route path="/booking-history/:id" element={<BookingsDetailScreen />} />
                   <Route path="/manage-cities" element={<Cities />} />
                     <Route path="/questionaries" element={<Questionaries/>} />
+                    <Route path="/payment-reports" element={<PaymentReports />} />
             <Route
               path="/change-password"
               element={<ChangePassword />}
