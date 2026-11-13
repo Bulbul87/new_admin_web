@@ -349,12 +349,7 @@ const PaymentReports: React.FC = () => {
     },
   ];
 
-  const colorStyles: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-600",
-    green: "bg-emerald-50 text-emerald-600",
-    orange: "bg-orange-50 text-orange-600",
-    purple: "bg-purple-50 text-purple-600",
-  };
+ 
 
   return (
     <div style={{
@@ -431,7 +426,7 @@ const PaymentReports: React.FC = () => {
                   </h2>
                 </div>
 
-                <div className={`p-3 rounded-xl ${colorStyles[card.color]}`}>
+                <div className="card-table p-3 rounded-xl ${colorStyles[card.color]}">
                   <Icon size={24} />
                 </div>
               </div>
@@ -705,7 +700,7 @@ const PaymentReports: React.FC = () => {
               <tr className="text-xs uppercase text-gray-500">
                 <th className="px-5 py-4">#</th>
                 <th className="px-5 py-4">User / Requester</th>
-                <th className="px-5 py-4">Provider</th>
+                <th className="px-5 py-4">Care Giver</th>
                 <th className="px-5 py-4">Booking ID</th>
                 <th className="px-5 py-4">Payment Method</th>
                 <th className="px-5 py-4">Amount</th>
@@ -740,7 +735,7 @@ const PaymentReports: React.FC = () => {
                       {payment.provider}
                     </div>
                     <div className="text-xs text-gray-400">
-                      Caregiver
+                      Care giver
                     </div>
                   </td>
 
@@ -872,7 +867,7 @@ const PaymentReports: React.FC = () => {
                   Transaction Details
                 </h2>
                 <p className="text-xs text-gray-400 mt-1">
-                  Complete payment information
+                  complete information about this payment transaction
                 </p>
               </div>
 

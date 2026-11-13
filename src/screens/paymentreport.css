@@ -199,10 +199,16 @@
   letter-spacing: -0.8px;
 }
 
+.card-table {
+    margin-top: -15px;
+}
+
 .payment-summary > div > div {
   position: relative;
   z-index: 1;
-}
+  display: flex;
+  justify-content: space-between;
+  }
 
 .payment-summary svg {
   stroke-width: 2;
@@ -751,6 +757,7 @@ svg.lucide.lucide-clock {
   font-size: 12px;
   font-weight: 750;
 }
+
 
 .payment-modal-overlay > div > div:last-child button:hover {
   box-shadow: 0 5px 14px rgba(20, 52, 74, 0.2);
