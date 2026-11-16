@@ -39,6 +39,8 @@ import PaymentReports from "./screens/paymentreports";
 import "./index.css";
 import BookingsDetailScreen from "./screens/bookingsdetailscreen";
 import MilesManageScreen from "./screens/milesmangescreen";
+import PaymentReceiptDetails from "./screens/PaymentReceiptDetails";
+import PaymentReceipts from "./screens/PaymentReceipts";
 
 
 function App() {
@@ -90,6 +92,14 @@ function App() {
                   <Route path="/manage-cities" element={<Cities />} />
                     <Route path="/questionaries" element={<Questionaries/>} />
                     <Route path="/payment-reports" element={<PaymentReports />} />
+                     <Route
+  path="/payment-receipts"
+  element={<PaymentReceipts />}
+/>
+<Route
+            path="/payment-receipts/:id"
+            element={<PaymentReceiptDetails />}
+          />
             <Route
               path="/change-password"
               element={<ChangePassword />}

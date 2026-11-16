@@ -30,6 +30,8 @@ import  ProviderAcceptingSessionDetail from "../screens/sessiondetails"
 import BookingsDetailScreen from "../screens/bookingsdetailscreen";
 import  MilesManageScreen from "../screens/milesmangescreen";
 import PaymentReports from "../screens/paymentreports";
+import PaymentReceipts from "../screens/PaymentReceipts";
+import PaymentReceiptDetails from "../screens/PaymentReceiptDetails";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -84,6 +86,14 @@ const AppNavigator = () => {
           <Route path="/manage-cities" element={<Cities />} />
            <Route path="/questionaries" element={<Questionaries/>} />
             <Route path="/payment-reports" element={<PaymentReports />} />
+            <Route
+  path="/payment-receipts"
+  element={<PaymentReceipts />}
+/>
+<Route
+            path="/payment-receipts/:id"
+            element={<PaymentReceiptDetails />}
+          />
          
           <Route
             path="/change-password"

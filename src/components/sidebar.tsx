@@ -18,6 +18,7 @@ import {
   MessageCircle,
   History
 } from "lucide-react";
+import { BiLogoTrello } from "react-icons/bi";
 
 
 const Sidebar = () => {
@@ -82,6 +83,11 @@ const Sidebar = () => {
       name: "Payment Reports",
       path: "/payment-reports",
       icon: <DollarSign size={20} />,
+    },
+     {
+      name: "Payment Receipts",
+      path: "/payment-receipts",
+      icon: <BiLogoTrello size={20} />,
     },
     {
       name: "Change Password",
