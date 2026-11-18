@@ -201,7 +201,7 @@ const Adminconfigscreen: React.FC = () => {
             boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
           }}
         >
-     SetRegulated Categories
+     Set Regulated Categories
         </button>
 
         <button
@@ -218,7 +218,7 @@ const Adminconfigscreen: React.FC = () => {
             boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
           }}
         >
-     SetTransportation Distance
+     Set Transportation Distance
         </button>
 
          <button
