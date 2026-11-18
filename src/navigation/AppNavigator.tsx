@@ -32,6 +32,7 @@ import  MilesManageScreen from "../screens/milesmangescreen";
 import PaymentReports from "../screens/paymentreports";
 import PaymentReceipts from "../screens/PaymentReceipts";
 import PaymentReceiptDetails from "../screens/PaymentReceiptDetails";
+import  Setregulatedcategories from "../screens/adminset_regulatedcatogries";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -94,6 +95,7 @@ const AppNavigator = () => {
             path="/payment-receipts/:id"
             element={<PaymentReceiptDetails />}
           />
+         <Route path="/setregulated-categories" element={<Setregulatedcategories />} />
          
           <Route
             path="/change-password"

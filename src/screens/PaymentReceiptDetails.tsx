@@ -507,7 +507,6 @@ const PaymentReceiptDetails: React.FC = () => {
   );
 
 
-
   /* =========================================
      MAIN UI
   ========================================= */
@@ -658,7 +657,7 @@ const PaymentReceiptDetails: React.FC = () => {
                 <div className="payment-profile-info">
                   <h4>{requesterName}</h4>
 
-                  <p>Requester / Customer</p>
+                  <p>Requester </p>
                 </div>
 
                 <div className="payment-profile-tag">
@@ -753,7 +752,7 @@ const PaymentReceiptDetails: React.FC = () => {
               <hr className="payment-divider" />
 
               <h4 className="payment-subsection-title">
-                Assigned Provider
+                Assigned Care giver
               </h4>
 
               <div className="payment-profile-strip">
@@ -764,7 +763,7 @@ const PaymentReceiptDetails: React.FC = () => {
                 <div className="payment-profile-info">
                   <h4>{providerName}</h4>
 
-                  <p>Service  Caregiver</p>
+                  <p>Service  Care giver</p>
                 </div>
               </div>
 
@@ -839,7 +838,6 @@ const PaymentReceiptDetails: React.FC = () => {
               </div>
             </section>
 
-         
 
             {/* RECEIPT DOCUMENT */}
 

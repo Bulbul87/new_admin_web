@@ -41,6 +41,7 @@ import BookingsDetailScreen from "./screens/bookingsdetailscreen";
 import MilesManageScreen from "./screens/milesmangescreen";
 import PaymentReceiptDetails from "./screens/PaymentReceiptDetails";
 import PaymentReceipts from "./screens/PaymentReceipts";
+import Setregulatedcategories from "./screens/adminset_regulatedcatogries";
 
 
 function App() {
@@ -100,6 +101,8 @@ function App() {
             path="/payment-receipts/:id"
             element={<PaymentReceiptDetails />}
           />
+
+            <Route path="/setregulated-categories" element={<Setregulatedcategories />} />
             <Route
               path="/change-password"
               element={<ChangePassword />}
