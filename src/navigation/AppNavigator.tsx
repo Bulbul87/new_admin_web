@@ -33,6 +33,7 @@ import PaymentReports from "../screens/paymentreports";
 import PaymentReceipts from "../screens/PaymentReceipts";
 import PaymentReceiptDetails from "../screens/PaymentReceiptDetails";
 import  Setregulatedcategories from "../screens/adminset_regulatedcatogries";
+import TransportationDistance from "../screens/TransportaionDistance";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -96,6 +97,7 @@ const AppNavigator = () => {
             element={<PaymentReceiptDetails />}
           />
          <Route path="/setregulated-categories" element={<Setregulatedcategories />} />
+         <Route path="/settransportation-distance" element={<TransportationDistance />} />
          
           <Route
             path="/change-password"

@@ -165,31 +165,18 @@ const Adminconfigscreen: React.FC = () => {
           margin: '0 auto',
         }}
       >
-        < div style={{  display: 'flex', alignItems: 'center', gap: '8px' ,justifyContent: 'space-between'}}>  
 
-        <div style={{ marginBottom: '24px' }}>
-          <h2
-            style={{
-              color: '#14344A',
-              fontSize: '27px',
-              fontWeight: 700,
-              margin: '0 0 8px',
-            }}
-          >
-            Admin Configuration
-          </h2>
-          <p style={{ color: '#6b7c8d', margin: 0, fontSize: '14px' }}>
-            Manage registration and service eligibility age settings.
-          </p>
-        </div>
 
+        < div style={{  display: 'flex', alignItems: 'center', textAlign: 'center', gap: '8px' , justifyContent: 'center', marginBottom: '20px' }}>  
+
+      
             <button
           onClick={() => navigate("/milesmanage")}
           style={{
             background: "linear-gradient(135deg, #14344A, #163A5F)",
             color: "#fff",
             border: "none",
-            padding: "11px 20px",
+            padding: "14px 20px",
             borderRadius: "8px",
             fontSize: "14px",
             fontWeight: 600,
@@ -206,7 +193,7 @@ const Adminconfigscreen: React.FC = () => {
             background: "linear-gradient(135deg, #14344A, #163A5F)",
             color: "#fff",
             border: "none",
-            padding: "11px 20px",
+            padding: "14px 20px",
             borderRadius: "8px",
             fontSize: "14px",
             fontWeight: 600,
@@ -215,6 +202,23 @@ const Adminconfigscreen: React.FC = () => {
           }}
         >
      SetRegulated Categories
+        </button>
+
+        <button
+          onClick={() => navigate("/settransportation-distance")}
+          style={{
+            background: "linear-gradient(135deg, #14344A, #163A5F)",
+            color: "#fff",
+            border: "none",
+            padding: "14px 20px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+          }}
+        >
+     SetTransportation Distance
         </button>
 
          
