@@ -284,8 +284,6 @@ const SummaryItem: React.FC<{
  */
 const API_ORIGIN = "https://api.senioramerica.us";
 
-
-
 const getImageUrl = (path?: string): string => {
   if (!path || typeof path !== "string") return "";
 
@@ -300,9 +298,9 @@ const getImageUrl = (path?: string): string => {
   return `${API_ORIGIN}${cleanPath.startsWith("/") ? "" : "/"}${cleanPath}`;
 };
 
-const getDocumentUrl = (path?: string): string => {
-  return getImageUrl(path);
-};
+const getDocumentUrl = (path?: string): string => getImageUrl(path);
+
+
 
 /**
  * Shows an uploaded image or PDF when the file type is supported.
@@ -331,6 +329,7 @@ const DocumentPreview: React.FC<{
     <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
       {isImage ? (
         <a
+      
           href={url}
           target="_blank"
           rel="noopener noreferrer"
@@ -341,7 +340,7 @@ const DocumentPreview: React.FC<{
             maxWidth: "100%",
           }}
         >
-          <img
+          <img 
             src={url}
             alt={label}
             loading="lazy"
@@ -1504,9 +1503,11 @@ const handleSsnReveal = () => {
 
                     <div style={{ gridColumn: "1 / -1", minWidth: 0 }}>
                       <div style={labelStyle}>License Document</div>
+                     
                       <DocumentPreview
                         path={license?.photoUrl}
                         label={`License ${index + 1} document`}
+                        
                       />
                     </div>
                   </FieldGrid>
