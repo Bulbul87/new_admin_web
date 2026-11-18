@@ -227,8 +227,8 @@ const PaymentReceipts: React.FC = () => {
         .payment-receipts-page .receipt-header button { min-height:46px; padding:0 20px; border-radius:12px; background:linear-gradient(115deg,#14344A 0%,#1769A5 58%,#0799DC 100%); box-shadow:0 8px 18px rgba(20,80,125,.2); letter-spacing:.01em; }
         .payment-receipts-page .receipt-header button:hover { transform:translateY(-2px); box-shadow:0 12px 24px rgba(20,80,125,.26); }
 
-        .payment-receipts-page .receipt-stats-grid { gap:18px; }
-        .payment-receipts-page .receipt-stat-card { position:relative; min-height:145px; padding:22px 23px; overflow:hidden; border:1px solid #e5edf5; border-radius:20px; background:linear-gradient(145deg,#fff 0%,#fbfdff 100%); box-shadow:0 7px 22px rgba(19,52,74,.045); transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease; }
+      .payment-receipts-page .receipt-stats-grid{ display:flex; margin-top:10px; margin-bottom:10px; gap:18px; }
+        .payment-receipts-page .receipt-stat-card { position:relative; min-height:145px; width: 100%; padding:22px 23px; overflow:hidden; border:1px solid #e5edf5; border-radius:20px; background:linear-gradient(145deg,#fff 0%,#fbfdff 100%); box-shadow:0 7px 22px rgba(19,52,74,.045); transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease; }
         .payment-receipts-page .receipt-stat-card:before { content:""; position:absolute; left:0; top:0; width:100%; height:4px; background:linear-gradient(90deg,#1769F5,#0799DC); opacity:.9; }
         .payment-receipts-page .receipt-stat-card:after { content:""; position:absolute; width:135px; height:135px; right:-54px; bottom:-70px; border-radius:50%; background:currentColor; opacity:.045; pointer-events:none; }
         .payment-receipts-page .receipt-stat-card:hover { transform:translateY(-4px); border-color:#cbddec; box-shadow:0 14px 30px rgba(19,52,74,.09); }
@@ -316,7 +316,7 @@ const PaymentReceipts: React.FC = () => {
         <div className="receipt-stats-grid grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
           <div className="receipt-stat-card rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
+            <div className="card-div">
               <div>
                 <p className="text-sm font-medium text-gray-500">
                   Total Receipts
@@ -329,13 +329,11 @@ const PaymentReceipts: React.FC = () => {
                 <ReceiptText size={23} />
               </div>
             </div>
-            <p className="mt-3 text-xs text-gray-400">
-              Total matching records
-            </p>
+           
           </div>
 
           <div className="receipt-stat-card rounded-2xl border border-green-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
+            <div className="card-div">
               <div>
                 <p className="text-sm font-medium text-gray-500">
                   Completed
@@ -348,13 +346,11 @@ const PaymentReceipts: React.FC = () => {
                 <CheckCircle2 size={23} />
               </div>
             </div>
-            <p className="mt-3 text-xs text-gray-400">
-              On this page
-            </p>
+            
           </div>
 
           <div className="receipt-stat-card rounded-2xl border border-yellow-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
+            <div className="card-div">
               <div>
                 <p className="text-sm font-medium text-gray-500">
                   Pending / Held
@@ -367,13 +363,11 @@ const PaymentReceipts: React.FC = () => {
                 <Clock3 size={23} />
               </div>
             </div>
-            <p className="mt-3 text-xs text-gray-400">
-              On this page
-            </p>
+            
           </div>
 
           <div className="receipt-stat-card rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
+            <div className="card-div">
               <div>
                 <p className="text-sm font-medium text-gray-500">
                   Failed / Cancelled
@@ -386,9 +380,7 @@ const PaymentReceipts: React.FC = () => {
                 <XCircle size={23} />
               </div>
             </div>
-            <p className="mt-3 text-xs text-gray-400">
-              On this page
-            </p>
+          
           </div>
         </div>
 
@@ -399,9 +391,9 @@ const PaymentReceipts: React.FC = () => {
             <h3 className="font-semibold">Search & Filters</h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="search-filter">
 
-            <div className="relative xl:col-span-2">
+            <div className="relative xl:col-span-2 search-input">
               <Search
                 size={18}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -434,7 +426,7 @@ const PaymentReceipts: React.FC = () => {
               <option value="cancelled">Cancelled</option>
             </select>
 
-            <div className="relative">
+            <div className="relative date-input">
               <CalendarDays
                 size={17}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"

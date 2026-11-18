@@ -8,22 +8,18 @@ import {
   CalendarDays,
   CreditCard,
   Hash,
-  CheckCircle2,
   RefreshCw,
   Download,
   FileText,
   ShieldCheck,
   Wallet,
-  Clock3,
   ArrowUpRight,
   Copy,
   Mail,
   Phone,
   BriefcaseBusiness,
   BadgeCheck,
-  CircleDollarSign,
-  Building2,
-  Fingerprint,
+ 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -217,37 +213,8 @@ const getServiceName = (booking: any): string => {
   );
 };
 
-/* =========================================
-   STATUS CSS CLASS
-========================================= */
 
-const getStatusClass = (status?: string): string => {
-  const value = String(status || "").toLowerCase();
 
-  if (
-    ["completed", "succeeded", "paid"].includes(value)
-  ) {
-    return "success";
-  }
-
-  if (
-    ["pending", "processing", "authorized", "held"].includes(value)
-  ) {
-    return "pending";
-  }
-
-  if (
-    ["failed", "cancelled", "canceled"].includes(value)
-  ) {
-    return "failed";
-  }
-
-  if (value === "refunded") {
-    return "refunded";
-  }
-
-  return "default";
-};
 
 /* =========================================
    SECTION HEADER
@@ -354,44 +321,6 @@ const DetailItem = ({
 };
 
 /* =========================================
-   SUMMARY CARD
-========================================= */
-
-const SummaryCard = ({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  color,
-}: {
-  title: string;
-  value: React.ReactNode;
-  subtitle: string;
-  icon: React.ElementType;
-  color: string;
-}) => (
-  <div className={`payment-summary-card ${color}`}>
-    <div className="payment-summary-info">
-      <p className="payment-summary-label">
-        {title}
-      </p>
-
-      <div className="payment-summary-value">
-        {value}
-      </div>
-
-      <p className="payment-summary-subtitle">
-        {subtitle}
-      </p>
-    </div>
-
-    <div className="payment-summary-icon">
-      <Icon size={21} />
-    </div>
-  </div>
-);
-
-/* =========================================
    MAIN COMPONENT
 ========================================= */
 
@@ -466,13 +395,7 @@ const PaymentReceiptDetails: React.FC = () => {
     };
   }, [id]);
 
-  /* =========================================
-     PRINT RECEIPT
-  ========================================= */
 
-  const handlePrint = () => {
-    window.print();
-  };
 
   /* =========================================
      LOADING STATE
@@ -559,22 +482,13 @@ const PaymentReceiptDetails: React.FC = () => {
 
   const currency = receiptData.currency || "USD";
 
-  const status = safeDisplayValue(
-    receiptData.status
-  );
 
   const paymentMethod = formatPaymentMethod(
     receiptData.paymentMethod
   );
 
-  const paymentType = formatPaymentMethod(
-    receiptData.paymentType
-  );
 
-  const gateway = safeDisplayValue(
-    receiptData.paymentGateway?.gateway ||
-      receiptData.paymentGateway?.name
-  );
+
 
   const transactionId = getTransactionId(receipt);
 
@@ -592,7 +506,7 @@ const PaymentReceiptDetails: React.FC = () => {
     receiptData.receiptNumber
   );
 
-  const statusClass = getStatusClass(status);
+
 
   /* =========================================
      MAIN UI
@@ -637,13 +551,7 @@ const PaymentReceiptDetails: React.FC = () => {
               Back
             </button>
 
-            <button
-              onClick={handlePrint}
-              className="payment-btn payment-btn-primary"
-            >
-              <Download size={17} />
-              Print / Save PDF
-            </button>
+           
           </div>
         </div>
 
@@ -664,17 +572,7 @@ const PaymentReceiptDetails: React.FC = () => {
                 : receiptNumber}
             </h2>
 
-            <div className="payment-hero-meta">
-              <span>
-                <Fingerprint size={16} />
-                Payment ID: {safeDisplayValue(receiptData._id)}
-              </span>
-
-              <span>
-                <CalendarDays size={16} />
-                {formatDate(receiptData.createdAt)}
-              </span>
-            </div>
+           
           </div>
 
           <div className="payment-hero-amount">
@@ -684,76 +582,17 @@ const PaymentReceiptDetails: React.FC = () => {
               {formatCurrency(amount, currency)}
             </h2>
 
-            <span className="payment-status-badge">
-              <span className="payment-status-dot" />
-              {status === "—" ? "Unknown" : status}
-            </span>
+           
           </div>
         </div>
 
-        {/* =====================================
-            SUMMARY CARDS
-        ===================================== */}
-
-        <div className="payment-summary-grid">
-          <SummaryCard
-            title="Total Amount"
-            value={formatCurrency(amount, currency)}
-            subtitle="Total recorded payment"
-            icon={CircleDollarSign}
-            color="green"
-          />
-
-          <SummaryCard
-            title="Payment Status"
-            value={
-              <span className="compact">
-                {status}
-              </span>
-            }
-            subtitle="Current payment status"
-            icon={BadgeCheck}
-            color="blue"
-          />
-
-          <SummaryCard
-            title="Payment Date"
-            value={
-              <span className="compact">
-                {receiptData.createdAt
-                  ? new Date(
-                      receiptData.createdAt
-                    ).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  : "—"}
-              </span>
-            }
-            subtitle="Transaction creation date"
-            icon={Clock3}
-            color="orange"
-          />
-
-          <SummaryCard
-            title="Payment Gateway"
-            value={
-              <span className="compact">
-                {gateway}
-              </span>
-            }
-            subtitle="Payment processing provider"
-            icon={Building2}
-            color="purple"
-          />
-        </div>
+        
 
         {/* =====================================
             MAIN CONTENT
         ===================================== */}
 
-        <div className="payment-main-grid">
+        <div className="payment-main-grid mt-2">
 
           {/* LEFT COLUMN */}
 
@@ -776,12 +615,7 @@ const PaymentReceiptDetails: React.FC = () => {
                   copyable
                 />
 
-                <DetailItem
-                  label="Payment ID"
-                  value={safeDisplayValue(receiptData._id)}
-                  icon={Fingerprint}
-                  copyable
-                />
+                
 
                 <DetailItem
                   label="Receipt Number"
@@ -790,17 +624,7 @@ const PaymentReceiptDetails: React.FC = () => {
                   copyable
                 />
 
-                <DetailItem
-                  label="Payment Status"
-                  value={
-                    <span
-                      className={`payment-status ${statusClass}`}
-                    >
-                      {status}
-                    </span>
-                  }
-                  icon={BadgeCheck}
-                />
+               
 
                 <DetailItem
                   label="Payment Method"
@@ -808,29 +632,12 @@ const PaymentReceiptDetails: React.FC = () => {
                   icon={Wallet}
                 />
 
-                <DetailItem
-                  label="Payment Type"
-                  value={paymentType}
-                  icon={CreditCard}
-                />
+              
 
-                <DetailItem
-                  label="Payment Gateway"
-                  value={gateway}
-                  icon={Building2}
-                />
+               
 
-                <DetailItem
-                  label="Payment Date"
-                  value={formatDate(receiptData.createdAt)}
-                  icon={CalendarDays}
-                />
 
-                <DetailItem
-                  label="Last Updated"
-                  value={formatDate(receiptData.updatedAt)}
-                  icon={RefreshCw}
-                />
+               
               </div>
             </section>
 
@@ -866,15 +673,7 @@ const PaymentReceiptDetails: React.FC = () => {
                   icon={UserRound}
                 />
 
-                <DetailItem
-                  label="Requester ID"
-                  value={safeDisplayValue(
-                    user?.publicRequesterId || user?._id
-                  )}
-                  icon={Fingerprint}
-                  copyable
-                />
-
+                
                 <DetailItem
                   label="Email Address"
                   value={safeDisplayValue(user?.email)}
@@ -965,26 +764,18 @@ const PaymentReceiptDetails: React.FC = () => {
                 <div className="payment-profile-info">
                   <h4>{providerName}</h4>
 
-                  <p>Service Provider / Caregiver</p>
+                  <p>Service  Caregiver</p>
                 </div>
               </div>
 
               <div className="payment-detail-grid">
                 <DetailItem
-                  label="Provider Name"
+                  label="Care giver Name"
                   value={providerName}
                   icon={UserRound}
                 />
 
-                <DetailItem
-                  label="Provider ID"
-                  value={safeDisplayValue(
-                    provider?.publicProviderId ||
-                      provider?._id
-                  )}
-                  icon={Fingerprint}
-                  copyable
-                />
+               
               </div>
             </section>
           </div>
@@ -1048,42 +839,7 @@ const PaymentReceiptDetails: React.FC = () => {
               </div>
             </section>
 
-            {/* PAYMENT RECORD */}
-
-            <section className="payment-record-card">
-              <div className="payment-record-heading">
-                <div className="payment-record-icon">
-                  <ShieldCheck size={21} />
-                </div>
-
-                <div>
-                  <h3>Payment Record</h3>
-
-                  <p>Receipt information</p>
-                </div>
-              </div>
-
-              <div className="payment-record-list">
-                <div className="payment-record-item">
-                  <CheckCircle2 size={17} />
-
-                  <p>
-                    Payment information is retrieved from
-                    the SeniorAmerica payment API.
-                  </p>
-                </div>
-
-                <div className="payment-record-item">
-                  <FileText size={17} />
-
-                  <p>
-                    Transaction and booking details are
-                    displayed using the available payment
-                    record.
-                  </p>
-                </div>
-              </div>
-            </section>
+         
 
             {/* RECEIPT DOCUMENT */}
 
@@ -1117,28 +873,7 @@ const PaymentReceiptDetails: React.FC = () => {
           </aside>
         </div>
 
-        {/* =====================================
-            FOOTER
-        ===================================== */}
-
-        <div className="payment-detail-footer">
-          <div className="payment-footer-title">
-            <CheckCircle2 size={18} />
-
-            <span>
-              SeniorAmerica Payment Records
-            </span>
-          </div>
-
-          <p>
-            This page displays the payment and transaction
-            information returned by SeniorAmerica's payment API.
-          </p>
-
-          <div className="payment-footer-brand">
-            SENIORAMERICA • PAYMENT MANAGEMENT
-          </div>
-        </div>
+       
       </div>
     </div>
   );

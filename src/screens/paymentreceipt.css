@@ -939,7 +939,26 @@
   color: #98a5b2;
   font-size: 10px;
 }
+.search-filter{
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.search-input{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.date-input{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.card-div{
+    display: flex;
+    justify-content: space-between;
 
+}
 .payment-document-link {
   display: flex;
   align-items: center;
