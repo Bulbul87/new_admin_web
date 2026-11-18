@@ -7,6 +7,16 @@ import { api } from "../service/api";
 // TYPES
 // ==============================
 
+export interface License {
+  _id?: string;
+  type?: string;
+  number?: string;
+  state?: string;
+  status?: string;
+  photoUrl?: string;
+  [key: string]: any;
+}
+
 export interface User {
   _id: string;
   firstName?: string;
@@ -21,14 +31,19 @@ export interface User {
   location?: Record<string, any>;
   liveLocation?: Record<string, any>;
   requestorInfo?: Record<string, any>;
+
   providerInfo?: {
     identityData?: {
       ssn?: string;
       ssnLast4?: string;
       [key: string]: any;
     };
+
+    licenses?: License[];
+
     [key: string]: any;
   };
+
   [key: string]: any;
 }
 
@@ -64,6 +79,8 @@ export interface PaginatedUsersResponse {
     profileImage.startsWith("/") ? "" : "/"
   }${profileImage}`;
 };
+
+
 
 // Get all requesters (users)
 export const getAllUsers = async (

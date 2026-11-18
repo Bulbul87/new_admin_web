@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, } from "react-router-dom";
 import {
   FaStar,
   FaEnvelope,
@@ -21,9 +21,10 @@ import { ArrowLeft,} from "lucide-react";
 import rating1 from "../assets/rating1.png";
 import rating2 from "../assets/rating2.png";
 import rating3 from "../assets/rating3.png";
-import { getAllProviders, getProfileImage, getAdminUserReviews } from "../service/admin.service";
+import { getAllProviders, getProfileImage, getAdminUserReviews, } from "../service/admin.service";
 
 import { decryptData } from "../utils/crypto";
+import { api } from "../service/api";
 
 const colors = {
   navy: "#14344A",
@@ -276,149 +277,349 @@ const SummaryItem: React.FC<{
 );
 
 
-
-
-/**
- * Use the API server as the base for relative upload paths.
- * Absolute URLs are returned without modification.
- */
-const API_ORIGIN = "https://api.senioramerica.us";
-
-const getImageUrl = (path?: string): string => {
-  if (!path || typeof path !== "string") return "";
-
-  const cleanPath = path.trim();
-
-  if (!cleanPath) return "";
-
-  if (/^https?:\/\//i.test(cleanPath)) {
-    return cleanPath;
-  }
-
-  return `${API_ORIGIN}${cleanPath.startsWith("/") ? "" : "/"}${cleanPath}`;
-};
-
-const getDocumentUrl = (path?: string): string => getImageUrl(path);
-
-
-
 /**
  * Shows an uploaded image or PDF when the file type is supported.
  * The original path is retained as a link for troubleshooting/opening.
  */
+
+const API_ORIGIN = "https://api.senioramerica.us";
+
+const resolveMediaUrl = (url?: string) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${API_ORIGIN}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const DocumentPreview: React.FC<{
   path?: string;
   label?: string;
 }> = ({ path, label = "Document" }) => {
-  if (!path || typeof path !== "string") {
-    return (
-      <div style={{ color: colors.muted, fontSize: 13 }}>
-        No document uploaded.
-      </div>
-    );
-  }
+  const [signedUrl, setSignedUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
 
-  const url = getDocumentUrl(path);
-  const normalizedPath = path.split("?")[0].toLowerCase();
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDocument = async () => {
+      setSignedUrl("");
+      setError("");
+
+      if (!path || typeof path !== "string" || !path.trim()) {
+        setError("No document uploaded.");
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const params = new URLSearchParams({
+          path: path.trim(),
+        });
+
+        const response: any = await api.get(
+          `/media/sign?${params.toString()}`
+        );
+
+        // Actual response from your API wrapper
+        const signedPath =
+          response?.url ||
+          response?.data?.url ||
+          response?.data?.data?.url;
+
+        if (!signedPath) {
+          console.error("Unexpected sign-media response:", response);
+          throw new Error("Signed document URL was not returned.");
+        }
+
+        const finalUrl = resolveMediaUrl(signedPath);
+
+        if (!cancelled) {
+          setSignedUrl(finalUrl);
+        }
+      } catch (err: any) {
+        console.error("DOCUMENT SIGNING ERROR:", err);
+        console.error("API ERROR RESPONSE:", err?.response?.data);
+        console.error("API ERROR STATUS:", err?.response?.status);
+
+        if (!cancelled) {
+          setError(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Unable to generate secure document link."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDocument();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [path, retryCount]);
+
+  const normalizedPath = (path || "").split("?")[0].toLowerCase();
+
   const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|avif)$/i.test(
     normalizedPath
   );
+
   const isPdf = /\.pdf$/i.test(normalizedPath);
 
+  const fileType = isPdf ? "PDF Document" : isImage ? "Image Document" : "Document";
+
   return (
-    <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
-      {isImage ? (
-        <a
-      
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Open ${label}`}
+    <div
+      style={{
+        display: "grid",
+        gap: 14,
+        minWidth: 0,
+      }}
+    >
+      {/* LOADING STATE */}
+      {loading && (
+        <div
           style={{
-            display: "block",
-            width: "fit-content",
-            maxWidth: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: 20,
+            background: "#F7FAFD",
+            border: "1px solid #E1EAF3",
+            borderRadius: 16,
           }}
         >
-          <img 
-            src={url}
-            alt={label}
-            loading="lazy"
+          <div
             style={{
-              display: "block",
-              maxWidth: "100%",
-              width: 360,
-              maxHeight: 280,
-              objectFit: "contain",
-              border: `1px solid ${colors.border}`,
+              width: 38,
+              height: 38,
               borderRadius: 12,
-              background: "#FFFFFF",
-              padding: 6,
+              background: "#E6EFF8",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 18,
             }}
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-          />
-        </a>
-      ) : isPdf ? (
-        <iframe
-          title={label}
-          src={url}
-          style={{
-            width: "100%",
-            height: 420,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 12,
-            background: "#FFFFFF",
-          }}
-        />
-      ) : (
-        <div style={{ color: colors.muted, fontSize: 13 }}>
-          Preview is unavailable for this file type. Open the file to view it.
+          >
+            ⟳
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: "#14344A",
+              }}
+            >
+              Preparing secure document
+            </div>
+
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: "#71849A",
+              }}
+            >
+              Please wait while {label.toLowerCase()} is being prepared...
+            </div>
+          </div>
         </div>
       )}
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          flexWrap: "wrap",
-        }}
-      >
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
+      {/* ERROR STATE */}
+      {!loading && error && (
+        <div
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "9px 13px",
-            borderRadius: 10,
-            background: colors.navy,
-            color: "#FFFFFF",
-            textDecoration: "none",
-            fontSize: 12,
-            fontWeight: 700,
+            padding: 18,
+            background: "#FFF8F8",
+            border: "1px solid #F0D5D5",
+            borderRadius: 15,
           }}
         >
-          Open {isPdf ? "PDF" : isImage ? "Image" : "Document"}
-        </a>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                flexShrink: 0,
+                borderRadius: 11,
+                background: "#FDEAEA",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#B42318",
+                fontSize: 18,
+              }}
+            >
+              !
+            </div>
 
-        <span
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  color: "#8F2525",
+                  fontWeight: 700,
+                  fontSize: 14,
+                }}
+              >
+                Document unavailable
+              </div>
+
+              <div
+                style={{
+                  color: "#9B5555",
+                  fontSize: 12,
+                  marginTop: 5,
+                  lineHeight: 1.6,
+                }}
+              >
+                {error}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setRetryCount((prev) => prev + 1)}
+                style={{
+                  marginTop: 12,
+                  padding: "9px 14px",
+                  border: "none",
+                  borderRadius: 9,
+                  background: "#14344A",
+                  color: "#FFFFFF",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                Retry Loading
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DOCUMENT CARD */}
+      {!loading && !error && signedUrl && (
+        <div
           style={{
-            color: colors.muted,
-            fontSize: 11,
-            overflowWrap: "anywhere",
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            flexWrap: "wrap",
+            padding: 20,
+            border: "1px solid #DFE8F1",
+            borderRadius: 16,
+            background:
+              "linear-gradient(135deg, #FFFFFF 0%, #F6F9FC 100%)",
+            boxShadow: "0 4px 15px rgba(20,52,74,0.04)",
           }}
         >
-          {path}
-        </span>
-      </div>
+          {/* File icon */}
+          <div
+            style={{
+              width: 58,
+              height: 58,
+              borderRadius: 16,
+              background: isPdf ? "#FFF0EE" : "#EAF3FC",
+              color: isPdf ? "#C24132" : "#1B5B87",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 25,
+              flexShrink: 0,
+            }}
+          >
+            {isPdf ? "PDF" : "IMG"}
+          </div>
+
+          {/* Document info */}
+          <div
+            style={{
+              flex: "1 1 160px",
+              minWidth: 0,
+            }}
+          >
+            <div
+              style={{
+                color: "#14344A",
+                fontWeight: 700,
+                fontSize: 14,
+              }}
+            >
+              {label}
+            </div>
+
+            <div
+              style={{
+                color: "#71849A",
+                fontSize: 12,
+                marginTop: 5,
+              }}
+            >
+              {fileType} • Securely stored
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                marginTop: 8,
+                color: "#16804A",
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              <span>●</span>
+              Secure link generated successfully
+            </div>
+          </div>
+
+          {/* OPEN DOCUMENT */}
+          <a
+            href={signedUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "12px 18px",
+              borderRadius: 11,
+              background: "linear-gradient(135deg, #14344A, #1E5276)",
+              color: "#FFFFFF",
+              textDecoration: "none",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 0.2,
+              boxShadow: "0 4px 10px rgba(20,52,74,0.15)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            ↗ View {isPdf ? "PDF" : "Document"}
+          </a>
+        </div>
+      )}
     </div>
   );
 };
+
+
 
 const ProviderDetails: React.FC = () => {
   const navigate = useNavigate();
