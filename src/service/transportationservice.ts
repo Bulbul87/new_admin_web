@@ -7,6 +7,9 @@ export interface TransportationState {
   stateCode: string;
   distance1: number | null;
   distance2: number | null;
+  d1_hours: number | null;
+  d2_hours: number | null;
+  price_permiles: number | null;
   configured: boolean;
   recordId?: string | null;
   updatedAt?: string | null;
@@ -16,6 +19,10 @@ export interface TransportationDistancePayload {
   stateId: string;
   distance1: number;
   distance2: number;
+  d1_hours: number;
+  d2_hours: number;
+  price_permiles: number;
+
 }
 
 const ENDPOINT = "/admin/state-transportation-distance";

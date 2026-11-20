@@ -29,6 +29,9 @@ const TransportationDistance: React.FC = () => {
     const [selectedState, setSelectedState] = useState("");
     const [distance1, setDistance1] = useState("");
     const [distance2, setDistance2] = useState("");
+    const [d1_hours, setd1hours] = useState("");
+    const [d2_hours, setd2hours] = useState("");
+    const [price_permiles, setprice] = useState("");
     const [search, setSearch] = useState("");
 
     const [loading, setLoading] = useState(true);
@@ -68,6 +71,9 @@ const TransportationDistance: React.FC = () => {
         setSelectedState("");
         setDistance1("");
         setDistance2("");
+        setd1hours("");
+        setd2hours("");
+        setprice("");
     };
 
     const handleStateChange = (stateId: string) => {
@@ -86,6 +92,21 @@ const TransportationDistance: React.FC = () => {
                 ? String(record.distance2)
                 : ""
         );
+         setd1hours(
+            record?.configured && record.d1_hours != null
+                ? String(record.d1_hours)
+                : ""
+        );
+         setd2hours(
+            record?.configured && record.d2_hours != null
+                ? String(record.d2_hours)
+                : ""
+        );
+         setprice(
+            record?.configured && record.price_permiles != null
+                ? String(record.price_permiles)
+                : ""
+        );
     };
 
     const handleSave = async () => {
@@ -94,19 +115,28 @@ const TransportationDistance: React.FC = () => {
             return;
         }
 
-        if (distance1.trim() === "" || distance2.trim() === "") {
+        if (distance1.trim() === "" || distance2.trim() === ""||d1_hours.trim() === "" || d2_hours.trim() === "" || price_permiles.trim()==="") {
             toast.warning("Please enter both distances");
             return;
         }
 
         const d1 = Number(distance1);
         const d2 = Number(distance2);
-
+        const H1 = Number(d1_hours);
+        const H2 = Number(d2_hours);
+         const Pricemiles = Number(price_permiles);
+   
         if (
             !Number.isFinite(d1) ||
-            !Number.isFinite(d2) ||
-            d1 < 0 ||
-            d2 < 0
+      !Number.isFinite(d2) ||
+      !Number.isFinite(H1) ||
+      !Number.isFinite(H2) ||
+      !Number.isFinite(Pricemiles) ||
+      d1 < 0 ||
+      d2 < 0 ||
+      H1 < 0 ||
+      H2 < 0 ||
+      Pricemiles < 0
         ) {
             toast.error("Enter valid non-negative distances");
             return;
@@ -115,7 +145,7 @@ const TransportationDistance: React.FC = () => {
         try {
             setSaving(true);
 
-            const payload = { distance1: d1, distance2: d2 };
+            const payload = { distance1: d1, distance2: d2 ,d1_hours: H1, d2_hours: H2,price_permiles: Pricemiles  };
 
             if (isConfigured) {
                 await updateStateDistance(selectedState, payload);
@@ -299,6 +329,52 @@ const TransportationDistance: React.FC = () => {
                             />
                         </div>
                     </div>
+
+                      <div className="transport-field">
+                        <label>Hours 1 <span>*</span></label>
+                        <div className="transport-input-wrap">
+                            <ArrowLeftRight size={18} />
+                            <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                placeholder="Enter hours 1"
+                                value={d1_hours}
+                                onChange={(e) => setd1hours(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+
+                      <div className="transport-field">
+                        <label>Hours 2 <span>*</span></label>
+                        <div className="transport-input-wrap">
+                            <ArrowLeftRight size={18} />
+                            <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                placeholder="Enter hours 2"
+                                value={d2_hours}
+                                onChange={(e) => setd2hours(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                      <div className="transport-field">
+                        <label>price per miles <span>*</span></label>
+                        <div className="transport-input-wrap">
+                            <ArrowLeftRight size={18} />
+                            <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                placeholder="Enter price per miles"
+                                value={price_permiles}
+                                onChange={(e) => setprice(e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {selectedState && (
@@ -373,6 +449,9 @@ const TransportationDistance: React.FC = () => {
                                 <th>STATE</th>
                                 <th>DISTANCE 1</th>
                                 <th>DISTANCE 2</th>
+                                 <th>HOURS 1</th>
+                                <th>HOURS 2</th>
+                                  <th>PRICE PER MILES</th>
                                 <th>STATUS</th>
                                 <th>LAST UPDATED</th>
                                 <th>ACTION</th>
@@ -418,6 +497,15 @@ const TransportationDistance: React.FC = () => {
 
                                         <td>
                                             {record.configured ? record.distance2 : "—"}
+                                        </td>
+                                         <td>
+                                            {record.configured ? record.d1_hours : "—"}
+                                        </td>
+                                         <td>
+                                            {record.configured ? record.d2_hours : "—"}
+                                        </td>
+                                          <td>
+                                            {record.configured ? record.price_permiles : "—"}
                                         </td>
 
                                         <td>
