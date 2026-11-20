@@ -526,6 +526,212 @@
   box-shadow: none;
 }
 
+
+
+/* =========================================
+   LICENSE REQUIREMENTS SECTION
+========================================= */
+
+.regulation-license-section {
+  width: 100%;
+  margin-top: 20px;
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid #e5eaf1;
+  border-radius: 13px;
+}
+
+.regulation-license-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.regulation-license-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #14344a;
+}
+
+.regulation-license-title > svg {
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.regulation-license-title h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #14344a;
+}
+
+.regulation-license-title p {
+  margin: 0;
+  font-size: 12px;
+  color: #718096;
+}
+
+.regulation-license-count {
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #eaf2ff;
+  color: #2456a6;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.regulation-license-list {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e5eaf1;
+  border-radius: 10px;
+}
+
+.regulation-license-list-heading,
+.regulation-license-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 120px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.regulation-license-list-heading {
+  background: #f0f4fa;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.regulation-license-list-heading span:not(:first-child) {
+  text-align: center;
+}
+
+.regulation-license-item {
+  border-top: 1px solid #edf0f5;
+  transition: background 0.2s ease;
+}
+
+.regulation-license-item:hover {
+  background: #f8fbff;
+}
+
+.regulation-license-item.selected {
+  background: #f1f7ff;
+}
+
+.regulation-license-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.regulation-license-info strong {
+  color: #263b53;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.regulation-license-info span {
+  color: #8793a3;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.regulation-license-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #45566c;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.regulation-license-checkbox input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.regulation-required-checkbox input {
+  accent-color: #16a36a;
+}
+
+.regulation-license-checkbox.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.regulation-license-checkbox.disabled input {
+  cursor: not-allowed;
+}
+
+.regulation-license-loading,
+.regulation-license-empty {
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: #ffffff;
+  border: 1px dashed #d7e0eb;
+  border-radius: 10px;
+  color: #718096;
+  font-size: 13px;
+}
+
+.regulation-license-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 13px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.regulation-license-summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.regulation-license-summary span:first-child {
+  color: #16845b;
+}
+
+/* =========================================
+   CATEGORY ROW LAYOUT
+========================================= */
+
+.regulation-category-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.regulation-category-left {
+  flex: 1;
+  min-width: 220px;
+}
+
+.regulation-category-right {
+  flex-shrink: 0;
+}
+
+
+
 /* ANIMATION */
 
 .regulation-spin {
@@ -547,6 +753,44 @@
 }
 
 @media (max-width: 768px) {
+
+  .regulation-license-section {
+    padding: 13px;
+  }
+
+  .regulation-license-header {
+    align-items: flex-start;
+  }
+
+  .regulation-license-list-heading,
+  .regulation-license-item {
+    grid-template-columns: minmax(0, 1fr) 75px 90px;
+    gap: 7px;
+    padding: 11px 9px;
+  }
+
+  .regulation-license-info strong {
+    font-size: 12px;
+  }
+
+  .regulation-license-info span {
+    font-size: 10px;
+  }
+
+  .regulation-license-checkbox {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .regulation-license-summary {
+    gap: 10px;
+  }
+
+  .regulation-category-right {
+    width: 100%;
+    margin-top: 12px;
+  }
+
   .regulation-page {
     padding: 17px;
   }
@@ -607,6 +851,15 @@
 }
 
 @media (max-width: 480px) {
+
+  .regulation-license-title p {
+    line-height: 1.5;
+  }
+
+  .regulation-license-count {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
   .regulation-stats-grid {
     grid-template-columns: 1fr 1fr;
     gap: 10px;

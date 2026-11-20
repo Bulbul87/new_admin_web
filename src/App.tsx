@@ -44,6 +44,7 @@ import PaymentReceipts from "./screens/PaymentReceipts";
 import Setregulatedcategories from "./screens/adminset_regulatedcatogries";
 import TransportationDistance from "./screens/TransportaionDistance";
 import StatusTemplates from "./screens/statustamplates";
+import LicenseManagement from "./screens/license";
 
 function App() {
   return (
@@ -106,6 +107,7 @@ function App() {
             <Route path="/setregulated-categories" element={<Setregulatedcategories />} />
                 <Route path="/settransportation-distance" element={<TransportationDistance />} />
             <Route path="/statustemplates" element={<StatusTemplates />} />
+              <Route path="/licenses" element={<LicenseManagement />} />
             <Route
               path="/change-password"
               element={<ChangePassword />}
