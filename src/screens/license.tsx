@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Award,
   Search,
@@ -33,6 +34,7 @@ import type {
 } from "../service/licenseservice";
 
 import "./license.css";
+import { FaArrowLeft } from "react-icons/fa";
 
 const DEFAULT_PAGINATION: LicensePagination = {
   total: 0,
@@ -51,6 +53,7 @@ const emptyForm = (): LicensePayload => ({
 });
 
 const LicenseManagement: React.FC = () => {
+  const navigate = useNavigate();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [pagination, setPagination] =
     useState<LicensePagination>(DEFAULT_PAGINATION);
@@ -86,46 +89,46 @@ const LicenseManagement: React.FC = () => {
 
       const response = await getLicenses({
         search: search.trim(),
-        status: statusFilter, // "" | "true" | "false"
+        status: statusFilter,
         page,
         limit,
       });
 
       if (requestId !== requestIdRef.current) return;
 
-      const data = Array.isArray(response?.data)
-        ? response.data
-        : Array.isArray(response?.data)
-          ? response.data
-          : [];
+      console.log("LICENSE RESPONSE:", response);
 
-      const pg =
-        response?.pagination ||
-        DEFAULT_PAGINATION;
-
-      console.log("FINAL LICENSE LIST:", data);
+      const data: License[] = Array.isArray(response) ? response : [];
 
       setLicenses(data);
-      setPagination(pg);
 
-      // If current page becomes empty, move to previous valid page
-      if (data.length === 0 && page > 1 && pg.total > 0) {
-        setPage(Math.max(1, Math.min(page - 1, pg.totalPages || 1)));
-        return;
-      }
+      // Temporary pagination fallback
+      const total = data.length;
+      const totalPages = Math.ceil(total / limit) || 1;
 
-      setLicenses(data);
-      setPagination(pg);
+      setPagination({
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      });
+
     } catch (error: any) {
       if (requestId !== requestIdRef.current) return;
 
+      console.error("LICENSE FETCH ERROR:", error);
       toast.error(error?.message || "Unable to fetch licenses");
+
     } finally {
       if (requestId === requestIdRef.current) {
         setLoading(false);
       }
     }
   }, [search, statusFilter, page, limit]);
+
+
 
   // FETCH ON SEARCH / FILTER / PAGE CHANGE
   useEffect(() => {
@@ -346,11 +349,34 @@ const LicenseManagement: React.FC = () => {
             </p>
           </div>
         </div>
+        <div style={{ display: "flex", gap: "3px" }}>
+          <button
+            type="button"
+            onClick={() => navigate("/admin-config")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 7,
+              border: "1px solid #E3EAF2",
+              borderRadius: 10,
+              padding: "10px 14px",
+              background: "#FFFFFF",
+              color: "#14344A",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+          <button className="license-add-btn" onClick={handleAdd}>
+            <Plus size={19} />
+            Add New License
+          </button>
+        </div>
 
-        <button className="license-add-btn" onClick={handleAdd}>
-          <Plus size={19} />
-          Add New License
-        </button>
       </div>
 
       {/* STATS */}
@@ -419,6 +445,8 @@ const LicenseManagement: React.FC = () => {
             <RefreshCw size={16} className={loading ? "license-spin" : ""} />
             Refresh
           </button>
+
+
         </div>
 
         {/* FILTERS */}

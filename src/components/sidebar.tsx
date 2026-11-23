@@ -131,6 +131,7 @@ const Sidebar = () => {
             marginBottom: 35,
             color: "#14344A",
             fontWeight: 700,
+            fontSize:20
           }}
         >
           Admin Panel
@@ -167,6 +168,7 @@ const Sidebar = () => {
                   : "#14344A",
 
                 fontWeight: 600,
+                fontSize:14
               }}
             >
               {/* ICON */}
