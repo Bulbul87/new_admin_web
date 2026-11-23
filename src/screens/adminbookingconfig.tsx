@@ -101,9 +101,8 @@ const BookingHistoryScreen: React.FC = () => {
   ) => {
     if (!person) return "—";
 
-    const name = `${person.firstName || ""} ${
-      person.lastName || ""
-    }`.trim();
+    const name = `${person.firstName || ""} ${person.lastName || ""
+      }`.trim();
 
     return name || person.email || "—";
   };
@@ -535,7 +534,7 @@ const BookingHistoryScreen: React.FC = () => {
         <table className="booking-table booking-table--responses">
           <thead>
             <tr>
-             <th>Booking ID</th>
+              <th>Booking ID</th>
               <th>Requestor</th>
               <th>Care giver</th>
               <th>Service</th>
@@ -549,7 +548,7 @@ const BookingHistoryScreen: React.FC = () => {
           <tbody>
             {responses.map((item, index) => (
               <tr key={`${item.id}-${index}`}>
-                 <td>
+                <td>
                   <span
                     className="booking-table-text"
                     title={getPublicServiceId(item)}
@@ -933,7 +932,7 @@ const BookingHistoryScreen: React.FC = () => {
               <th>Broadcast Status</th>
               <th>Care giver Declines</th>
               <th>Created At</th>
-             
+
             </tr>
           </thead>
 
@@ -995,7 +994,7 @@ const BookingHistoryScreen: React.FC = () => {
                   {formatDateTime(item.createdAt)}
                 </td>
 
-              
+
               </tr>
             ))}
 
@@ -1067,11 +1066,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("bookings")}
-              className={`booking-tab ${
-                activeTab === "bookings"
+              className={`booking-tab ${activeTab === "bookings"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <ClipboardList size={17} />
               All Bookings
@@ -1079,11 +1077,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("responses")}
-              className={`booking-tab ${
-                activeTab === "responses"
+              className={`booking-tab ${activeTab === "responses"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <CheckCircle2 size={17} />
               Service Responses
@@ -1091,11 +1088,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("scheduled")}
-              className={`booking-tab ${
-                activeTab === "scheduled"
+              className={`booking-tab ${activeTab === "scheduled"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <CalendarDays size={17} />
               Scheduled Services
@@ -1103,11 +1099,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("past")}
-              className={`booking-tab ${
-                activeTab === "past"
+              className={`booking-tab ${activeTab === "past"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <Clock3 size={17} />
               Past Services
@@ -1115,11 +1110,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("broadcasts")}
-              className={`booking-tab ${
-                activeTab === "broadcasts"
+              className={`booking-tab ${activeTab === "broadcasts"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <Radio size={17} />
               Broadcast History
@@ -1178,10 +1172,10 @@ const BookingHistoryScreen: React.FC = () => {
               onChange={(e) => {
                 setScheduledPeriod(
                   e.target.value as
-                    | "today"
-                    | "tomorrow"
-                    | "week"
-                    | ""
+                  | "today"
+                  | "tomorrow"
+                  | "week"
+                  | ""
                 );
 
                 setPage(1);

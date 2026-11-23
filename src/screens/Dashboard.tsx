@@ -199,7 +199,7 @@ const Dashboard: React.FC = () => {
         // Total Categories
         setTotalCategories(
           catalogData?.totalCategories ||
-            categories.length
+          categories.length
         );
 
         // Total Services
@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
 
         setTotalServices(
           catalogData?.totalServices ||
-            calculatedTotalServices
+          calculatedTotalServices
         );
 
         // ==========================
@@ -280,7 +280,7 @@ const Dashboard: React.FC = () => {
   const unverifiedProviders =
     Math.max(
       totalProviders -
-        verifiedProviders,
+      verifiedProviders,
       0
     );
 
@@ -562,7 +562,7 @@ const Dashboard: React.FC = () => {
               marginBottom: 8,
             }}
           >
-          All Care givers
+            All Care givers
           </h4>
 
           <h1
@@ -934,8 +934,8 @@ const Dashboard: React.FC = () => {
                       key={`cell-${index}`}
                       fill={
                         COLORS[
-                          index %
-                            COLORS.length
+                        index %
+                        COLORS.length
                         ]
                       }
                     />

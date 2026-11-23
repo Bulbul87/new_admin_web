@@ -78,65 +78,65 @@ const LicenseManagement: React.FC = () => {
   const totalPages = pagination.totalPages;
 
   // FETCH LICENSES
-const fetchLicenses = useCallback(async () => {
-  const requestId = ++requestIdRef.current;
+  const fetchLicenses = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-   const response = await getLicenses({
-  search: search.trim(),
-  status: statusFilter, // "" | "true" | "false"
-  page,
-  limit,
-});
+      const response = await getLicenses({
+        search: search.trim(),
+        status: statusFilter, // "" | "true" | "false"
+        page,
+        limit,
+      });
 
-    if (requestId !== requestIdRef.current) return;
+      if (requestId !== requestIdRef.current) return;
 
-  const data = Array.isArray(response?.data)
-  ? response.data
-  : Array.isArray(response?.data)
-  ? response.data
-  : [];
+      const data = Array.isArray(response?.data)
+        ? response.data
+        : Array.isArray(response?.data)
+          ? response.data
+          : [];
 
-const pg =
-  response?.pagination ||
-  DEFAULT_PAGINATION;
+      const pg =
+        response?.pagination ||
+        DEFAULT_PAGINATION;
 
-console.log("FINAL LICENSE LIST:", data);
+      console.log("FINAL LICENSE LIST:", data);
 
-setLicenses(data);
-setPagination(pg);
+      setLicenses(data);
+      setPagination(pg);
 
-    // If current page becomes empty, move to previous valid page
-    if (data.length === 0 && page > 1 && pg.total > 0) {
-      setPage(Math.max(1, Math.min(page - 1, pg.totalPages || 1)));
-      return;
+      // If current page becomes empty, move to previous valid page
+      if (data.length === 0 && page > 1 && pg.total > 0) {
+        setPage(Math.max(1, Math.min(page - 1, pg.totalPages || 1)));
+        return;
+      }
+
+      setLicenses(data);
+      setPagination(pg);
+    } catch (error: any) {
+      if (requestId !== requestIdRef.current) return;
+
+      toast.error(error?.message || "Unable to fetch licenses");
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
+  }, [search, statusFilter, page, limit]);
 
-    setLicenses(data);
-    setPagination(pg);
-  } catch (error: any) {
-    if (requestId !== requestIdRef.current) return;
+  // FETCH ON SEARCH / FILTER / PAGE CHANGE
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchLicenses();
+    }, 300);
 
-    toast.error(error?.message || "Unable to fetch licenses");
-  } finally {
-    if (requestId === requestIdRef.current) {
-      setLoading(false);
-    }
-  }
-}, [search, statusFilter, page, limit]);
+    return () => clearTimeout(timer);
+  }, [fetchLicenses]);
 
-// FETCH ON SEARCH / FILTER / PAGE CHANGE
-useEffect(() => {
-  const timer = setTimeout(() => {
-    fetchLicenses();
-  }, 300);
 
-  return () => clearTimeout(timer);
-}, [fetchLicenses]);
-
-  
 
   // RESET FORM
   const resetForm = () => {
@@ -526,9 +526,8 @@ useEffect(() => {
 
                     <td>
                       <span
-                        className={`license-status ${
-                          license.status ? "active" : "inactive"
-                        }`}
+                        className={`license-status ${license.status ? "active" : "inactive"
+                          }`}
                       >
                         <span />
                         {license.status ? "Active" : "Inactive"}
@@ -540,13 +539,13 @@ useEffect(() => {
                         <Clock size={14} />
                         {license.createdAt
                           ? new Date(license.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "2-digit",
-                                year: "numeric",
-                              }
-                            )
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "2-digit",
+                              year: "numeric",
+                            }
+                          )
                           : "—"}
                       </div>
                     </td>
@@ -562,9 +561,8 @@ useEffect(() => {
                         </button>
 
                         <button
-                          className={`license-action ${
-                            license.status ? "deactivate" : "activate"
-                          }`}
+                          className={`license-action ${license.status ? "deactivate" : "activate"
+                            }`}
                           title={license.status ? "Deactivate" : "Activate"}
                           disabled={actionId === license._id}
                           onClick={() => handleStatusChange(license)}

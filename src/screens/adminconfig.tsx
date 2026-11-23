@@ -2,7 +2,7 @@ import { toast } from "react-toastify";
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaLock } from 'react-icons/fa';
-import { api } from '../service/api'; 
+import { api } from '../service/api';
 
 
 
@@ -43,7 +43,7 @@ const Adminconfigscreen: React.FC = () => {
       });
     } catch (err) {
       console.error('Failed to fetch age settings:', err);
-    toast.error(
+      toast.error(
         err instanceof Error ? err.message : 'Unable to load age settings.'
       );
     } finally {
@@ -90,10 +90,10 @@ const Adminconfigscreen: React.FC = () => {
         selfCareMinAge: Number(response.selfCareMinAge),
       });
 
-  toast.success("Age settings saved successfully.");
+      toast.success("Age settings saved successfully.");
     } catch (err) {
       console.error('Failed to save age settings:', err);
-     toast.error(
+      toast.error(
         err instanceof Error ? err.message : 'Unable to save age settings.'
       );
     } finally {
@@ -116,10 +116,10 @@ const Adminconfigscreen: React.FC = () => {
         selfCareMinAge: Number(response.selfCareMinAge),
       });
 
-       toast.success('Age settings reset successfully.');
+      toast.success('Age settings reset successfully.');
     } catch (err) {
       console.error('Failed to reset age settings:', err);
-     toast.error(
+      toast.error(
         err instanceof Error ? err.message : 'Unable to reset age settings.'
       );
     } finally {
@@ -158,7 +158,7 @@ const Adminconfigscreen: React.FC = () => {
         boxSizing: 'border-box',
       }}
     >
-     
+
       <div
         style={{
           maxWidth: '1000px',
@@ -167,95 +167,95 @@ const Adminconfigscreen: React.FC = () => {
       >
 
 
-        < div style={{  display: 'flex', alignItems: 'center', textAlign: 'center', gap: '8px' , justifyContent: 'center', marginBottom: '20px' }}>  
- <button
-          onClick={() => navigate("/licenses")}
-          style={{
-            background: "linear-gradient(135deg, #14344A, #163A5F)",
-            color: "#fff",
-            border: "none",
-            padding: "14px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
-          }}
-        >
-    License Management
-        </button>
-      
-            <button
-          onClick={() => navigate("/milesmanage")}
-          style={{
-            background: "linear-gradient(135deg, #14344A, #163A5F)",
-            color: "#fff",
-            border: "none",
-            padding: "14px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
-          }}
-        >
-     State Miles Management
-        </button>
+        < div style={{ display: 'flex', alignItems: 'center', textAlign: 'center', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
+          <button
+            onClick={() => navigate("/licenses")}
+            style={{
+              background: "linear-gradient(135deg, #14344A, #163A5F)",
+              color: "#fff",
+              border: "none",
+              padding: "14px 20px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+            }}
+          >
+            License Management
+          </button>
 
-         <button
-          onClick={() => navigate("/setregulated-categories")}
-          style={{
-            background: "linear-gradient(135deg, #14344A, #163A5F)",
-            color: "#fff",
-            border: "none",
-            padding: "14px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
-          }}
-        >
-     Set Regulated Categories
-        </button>
+          <button
+            onClick={() => navigate("/milesmanage")}
+            style={{
+              background: "linear-gradient(135deg, #14344A, #163A5F)",
+              color: "#fff",
+              border: "none",
+              padding: "14px 20px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+            }}
+          >
+            State Miles Management
+          </button>
 
-        <button
-          onClick={() => navigate("/settransportation-distance")}
-          style={{
-            background: "linear-gradient(135deg, #14344A, #163A5F)",
-            color: "#fff",
-            border: "none",
-            padding: "14px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
-          }}
-        >
-     Set Transportation Distance
-        </button>
+          <button
+            onClick={() => navigate("/setregulated-categories")}
+            style={{
+              background: "linear-gradient(135deg, #14344A, #163A5F)",
+              color: "#fff",
+              border: "none",
+              padding: "14px 20px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+            }}
+          >
+            Set Regulated Categories
+          </button>
 
-         <button
-          onClick={() => navigate("/statustemplates")}
-          style={{
-            background: "linear-gradient(135deg, #14344A, #163A5F)",
-            color: "#fff",
-            border: "none",
-            padding: "14px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
-          }}
-        >
-      Manage Status Templates
-        </button>
+          <button
+            onClick={() => navigate("/settransportation-distance")}
+            style={{
+              background: "linear-gradient(135deg, #14344A, #163A5F)",
+              color: "#fff",
+              border: "none",
+              padding: "14px 20px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+            }}
+          >
+            Set Transportation Distance
+          </button>
+
+          <button
+            onClick={() => navigate("/statustemplates")}
+            style={{
+              background: "linear-gradient(135deg, #14344A, #163A5F)",
+              color: "#fff",
+              border: "none",
+              padding: "14px 20px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+            }}
+          >
+            Manage Status Templates
+          </button>
 
 
-         
-                </div>
+
+        </div>
 
         <div
           style={{

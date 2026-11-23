@@ -134,8 +134,8 @@ const Cities: React.FC = () => {
       console.error("Failed to load city management data:", err);
       toast.error(
         err?.response?.data?.message ||
-          err?.message ||
-          "Unable to load states and cities. Please try again."
+        err?.message ||
+        "Unable to load states and cities. Please try again."
       );
     } finally {
       setLoading(false);
@@ -253,15 +253,15 @@ const Cities: React.FC = () => {
 
       await loadData();
     } catch (err: any) {
-  console.error("Failed to save city:", err);
+      console.error("Failed to save city:", err);
 
-  toast.error(
-    err?.message || "Unable to save city. Please try again."
-  );
-} finally {
-  setSaving(false);
-}
-    
+      toast.error(
+        err?.message || "Unable to save city. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+
   };
 
   const handleRefresh = async () => {
@@ -349,7 +349,7 @@ const Cities: React.FC = () => {
             style={secondaryButton}
           >
             <ArrowLeft size={16} />
-            Back 
+            Back
           </button>
         </div>
 

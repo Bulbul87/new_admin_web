@@ -190,15 +190,15 @@ const Setregulatedcategories: React.FC = () => {
       // NORMALIZE CATEGORIES
       // ==========================================
 
-   const normalizedCategories: RegulationCategory[] =
-  rawCategories.map((category: any) => ({
-    categoryId: category.categoryId,
-    categoryName: category.categoryName,
-    category: category.category || null,
-    sortOrder: category.sortOrder ?? 0,
-    regulationType: category.regulationType || null,
-    configured: Boolean(category.configured),
-  }));
+      const normalizedCategories: RegulationCategory[] =
+        rawCategories.map((category: any) => ({
+          categoryId: category.categoryId,
+          categoryName: category.categoryName,
+          category: category.category || null,
+          sortOrder: category.sortOrder ?? 0,
+          regulationType: category.regulationType || null,
+          configured: Boolean(category.configured),
+        }));
 
       const initialCategorySettings: Record<
         string,
@@ -242,7 +242,7 @@ const Setregulatedcategories: React.FC = () => {
       //   { licenseId: { _id, name, code }, isRequired: true }
       // ]
 
-   
+
       const savedLicenseList = Array.isArray(regulationData?.licenses)
         ? regulationData.licenses
         : [];
@@ -279,7 +279,7 @@ const Setregulatedcategories: React.FC = () => {
       setSavedLicenseSettings(
         JSON.parse(JSON.stringify(initialLicenseSettings))
       );
-    
+
     } catch (error: any) {
       if (requestId === requestIdRef.current) {
         toast.error(error.message || "Failed to load state settings");
@@ -299,7 +299,7 @@ const Setregulatedcategories: React.FC = () => {
   }, [selectedState, loadStateRegulations]);
 
 
-      
+
 
 
 
@@ -499,11 +499,11 @@ const Setregulatedcategories: React.FC = () => {
           ),
         }));
 
-   await saveStateRegulations(
-  selectedState,
-  regulations,
-  selectedLicenses
-);
+      await saveStateRegulations(
+        selectedState,
+        regulations,
+        selectedLicenses
+      );
 
       // Update saved snapshots only after successful API response.
       setSavedSettings({ ...settings });
@@ -777,9 +777,8 @@ const Setregulatedcategories: React.FC = () => {
                     <div className="regulation-status-toggle">
                       <button
                         type="button"
-                        className={`regulation-status-option regulated ${
-                          currentStatus === "regulated" ? "active" : ""
-                        }`}
+                        className={`regulation-status-option regulated ${currentStatus === "regulated" ? "active" : ""
+                          }`}
                         onClick={() =>
                           handleStatusChange(
                             category.categoryId,
@@ -794,11 +793,10 @@ const Setregulatedcategories: React.FC = () => {
 
                       <button
                         type="button"
-                        className={`regulation-status-option non-regulated ${
-                          currentStatus === "non-regulated"
+                        className={`regulation-status-option non-regulated ${currentStatus === "non-regulated"
                             ? "active"
                             : ""
-                        }`}
+                          }`}
                         onClick={() =>
                           handleStatusChange(
                             category.categoryId,

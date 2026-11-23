@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   BriefcaseBusiness,
   Layers3,
+  Layers,
   Users,
   KeyRound,
   LogOut,
@@ -80,9 +81,9 @@ const Sidebar = () => {
 
     },
     {
-      name: "Payment Reports",
-      path: "/payment-reports",
-      icon: <DollarSign size={20} />,
+      name: "Catgory activation",
+      path: "/caregiver-services",
+      icon:<Layers size={20} />,
     },
      {
       name: "Payment Receipts",

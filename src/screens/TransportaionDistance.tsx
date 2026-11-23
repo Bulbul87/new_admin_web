@@ -449,9 +449,9 @@ const TransportationDistance: React.FC = () => {
                                 <th>STATE</th>
                                 <th>DISTANCE 1</th>
                                 <th>DISTANCE 2</th>
-                                 <th>HOURS 1</th>
-                                <th>HOURS 2</th>
-                                  <th>PRICE PER MILES</th>
+                                <th> D1 HOURS</th>
+                                <th> D2 HOURS</th>
+                                 <th>PRICE PER MILES</th>
                                 <th>STATUS</th>
                                 <th>LAST UPDATED</th>
                                 <th>ACTION</th>

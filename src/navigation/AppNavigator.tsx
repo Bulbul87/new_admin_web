@@ -16,7 +16,6 @@ import ForgotPassword from "../screens/forgetpassword";
 import ServiceCrudScreen from "../screens/service_crud";
 import Pricing from "../screens/pricing";
 import PricingRules from "../screens/viewpricing";
-
 import Adminconfigscreen from "../screens/adminconfig";
 import SupportTicket from "../screens/SupportTicket";
 import ViewAccessCode from "../screens/viewAccesscode";
@@ -25,17 +24,17 @@ import ProviderOnlineOfflineStatus from "../screens/provideronlineoflinestatus";
 import ViewMessages from "../screens/viewmessages";
 import MessageDetail from "../screens/MessageDetail";
 import BookingHistoryScreen from "../screens/adminbookingconfig";
-import  Questionaries from "../screens/managequestionaries";
-import  ProviderAcceptingSessionDetail from "../screens/sessiondetails"
+import Questionaries from "../screens/managequestionaries";
+import ProviderAcceptingSessionDetail from "../screens/sessiondetails"
 import BookingsDetailScreen from "../screens/bookingsdetailscreen";
-import  MilesManageScreen from "../screens/milesmangescreen";
-import PaymentReports from "../screens/paymentreports";
+import MilesManageScreen from "../screens/milesmangescreen";
 import PaymentReceipts from "../screens/PaymentReceipts";
 import PaymentReceiptDetails from "../screens/PaymentReceiptDetails";
-import  Setregulatedcategories from "../screens/adminset_regulatedcatogries";
+import Setregulatedcategories from "../screens/adminset_regulatedcatogries";
 import TransportationDistance from "../screens/TransportaionDistance";
 import StatusTemplates from "../screens/statustamplates";
 import LicenseManagement from "../screens/license";
+import CaregiverService from "../screens/CaregiverService";
 const AppNavigator = () => {
   const { isLoading, isAuthenticated } = useAdminAuth();
 
@@ -79,7 +78,7 @@ const AppNavigator = () => {
           <Route path="/access-codes" element={<AccessCodeList />} />
           <Route path="/access-codes/:id" element={< ViewAccessCode />} />
           <Route path="/provider-status" element={<ProviderOnlineOfflineStatus />} />
-            <Route path="/provider-status/:id" element={<ProviderAcceptingSessionDetail />} />
+          <Route path="/provider-status/:id" element={<ProviderAcceptingSessionDetail />} />
           <Route path="/messages" element={<ViewMessages />} />
           <Route
             path="/messages/:conversationId"
@@ -88,21 +87,24 @@ const AppNavigator = () => {
           <Route path="/booking-history" element={<BookingHistoryScreen />} />
           <Route path="/booking-history/:id" element={<BookingsDetailScreen />} />
           <Route path="/manage-cities" element={<Cities />} />
-           <Route path="/questionaries" element={<Questionaries/>} />
-            <Route path="/payment-reports" element={<PaymentReports />} />
-            <Route
-  path="/payment-receipts"
-  element={<PaymentReceipts />}
-/>
-<Route
+          <Route path="/questionaries" element={<Questionaries />} />
+
+          <Route
+            path="/payment-receipts"
+            element={<PaymentReceipts />}
+          />
+          <Route
             path="/payment-receipts/:id"
             element={<PaymentReceiptDetails />}
           />
-         <Route path="/setregulated-categories" element={<Setregulatedcategories />} />
-         <Route path="/settransportation-distance" element={<TransportationDistance />} />
-         <Route path="/statustemplates" element={<StatusTemplates />} />
+          <Route path="/setregulated-categories" element={<Setregulatedcategories />} />
+          <Route path="/settransportation-distance" element={<TransportationDistance />} />
+          <Route path="/statustemplates" element={<StatusTemplates />} />
           <Route path="/licenses" element={<LicenseManagement />} />
-        
+          <Route
+            path="/caregiver-services"
+            element={<CaregiverService />}
+          />
           <Route
             path="/change-password"
             element={<ChangePassword />}

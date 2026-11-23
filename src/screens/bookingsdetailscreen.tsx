@@ -781,7 +781,7 @@ const BookingsDetailScreen: React.FC = () => {
                     <div className="bd-visit-grid">
                       <DetailItem label="Service ID" value={line.serviceId} />
                       <DetailItem label="Hours" value={line.hours} />
-                   
+
                     </div>
                   </div>
                 </div>
