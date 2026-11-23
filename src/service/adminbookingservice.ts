@@ -654,3 +654,58 @@ export const getAdminBroadcasts = async (
 
   return adminFetch<BroadcastsResponse>(endpoint);
 };
+
+
+/**
+ * ============================================================
+ * 7. PUT ADMIN BOOKING ON HOLD
+ * ============================================================
+ *
+ * PATCH /api/admin/bookings/:id/hold
+ */
+
+export interface HoldBookingResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    publicServiceId?: string | null;
+    status: "hold";
+  };
+}
+
+export const holdAdminBooking = async (
+  id: string
+): Promise<HoldBookingResponse> => {
+  if (!id) {
+    throw new Error("Booking ID is required");
+  }
+
+  const token = getAdminToken();
+
+  const response = await fetch(
+    `${ADMIN_API_BASE_URL}/admin/bookings/${encodeURIComponent(id)}/hold`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {}),
+      },
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result?.message || "Failed to put booking on hold"
+    );
+  }
+
+  return result as HoldBookingResponse;
+};

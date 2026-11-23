@@ -17,6 +17,7 @@ import {
   Ban,
   Radio,
   ClipboardList,
+   PauseCircle,
 } from "lucide-react";
 
 import {
@@ -25,7 +26,7 @@ import {
   getAdminScheduledServices,
   getAdminPastServices,
   getAdminBroadcasts,
-
+  holdAdminBooking,
   type Booking,
   type BroadcastRecord,
   type ServiceResponse,
@@ -357,6 +358,56 @@ const BookingHistoryScreen: React.FC = () => {
     setRefreshKey((current) => current + 1);
   };
 
+  // =====================================================
+// HOLD BOOKING
+// =====================================================
+
+const [holdingBookingId, setHoldingBookingId] = useState<string | null>(null);
+
+const handleHoldBooking = async (booking: Booking) => {
+  const bookingId = booking._id;
+
+  if (!bookingId) return;
+
+  const confirmed = window.confirm(
+    `Are you sure you want to put booking ${getPublicServiceId(booking)} on hold?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    setHoldingBookingId(bookingId);
+
+    const result = await holdAdminBooking(bookingId);
+
+    if (!result.success) {
+      throw new Error(result.message || "Failed to hold booking");
+    }
+
+    // Update current listing immediately
+    setBookings((previous) =>
+      previous.map((item) =>
+        item._id === bookingId
+          ? { ...item, status: "hold" }
+          : item
+      )
+    );
+
+    window.alert(result.message || "Booking successfully put on hold.");
+
+  } catch (error) {
+    console.error("Hold booking error:", error);
+
+    window.alert(
+      error instanceof Error
+        ? error.message
+        : "Unable to hold booking"
+    );
+  } finally {
+    setHoldingBookingId(null);
+  }
+};
+
   const handleSearch = (value: string) => {
     setSearch(value);
     setPage(1);
@@ -482,15 +533,40 @@ const BookingHistoryScreen: React.FC = () => {
                   {getTimeLabel(item.scheduledTime)}
                 </td>
 
+               
                 <td>
-                  <span
-                    className={`booking-status ${getStatusClass(
-                      item.status
-                    )}`}
-                  >
-                    {formatStatus(item.status)}
-                  </span>
-                </td>
+  <div className="booking-status-wrapper">
+    <span
+      className={`booking-status ${
+        item.status === "hold"
+          ? "booking-status--hold"
+          : getStatusClass(item.status)
+      }`}
+    >
+      {formatStatus(item.status)}
+    </span>
+
+    {item.status !== "hold" && (
+      <button
+        type="button"
+        className="booking-hold-btn"
+        onClick={() => handleHoldBooking(item)}
+        disabled={holdingBookingId === item._id}
+        title="Put Booking On Hold"
+      >
+        {holdingBookingId === item._id ? (
+          <RefreshCw size={14} className="booking-spin" />
+        ) : (
+          <PauseCircle size={14} />
+        )}
+
+        {holdingBookingId === item._id
+          ? "Holding..."
+          : "Hold"}
+      </button>
+    )}
+  </div>
+</td>
 
                 <td>
                   {formatDate(item.createdAt)}

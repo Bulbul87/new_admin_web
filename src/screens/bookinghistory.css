@@ -731,6 +731,45 @@ button.booking-view-btn {
   }
 }
 
+.booking-status-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.booking-status--hold {
+  background: #fff1d6;
+  color: #a16207;
+  border: 1px solid #f5d48a;
+}
+
+.booking-hold-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #f0c36d;
+  border-radius: 6px;
+  background: #fff8e9;
+  color: #9a6700;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.booking-hold-btn:hover:not(:disabled) {
+  background: #fef0cc;
+  border-color: #d9a441;
+}
+
+.booking-hold-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
