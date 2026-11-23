@@ -17,7 +17,8 @@ import {
   Ban,
   Radio,
   ClipboardList,
-   PauseCircle,
+  PauseCircle,
+  PlayCircle,
 } from "lucide-react";
 
 import {
@@ -27,6 +28,7 @@ import {
   getAdminPastServices,
   getAdminBroadcasts,
   holdAdminBooking,
+  resumeAdminBooking,
   type Booking,
   type BroadcastRecord,
   type ServiceResponse,
@@ -80,6 +82,9 @@ const BookingHistoryScreen: React.FC = () => {
 
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [processingBookingId, setProcessingBookingId] =
+    useState<string | null>(null);
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -102,8 +107,9 @@ const BookingHistoryScreen: React.FC = () => {
   ) => {
     if (!person) return "—";
 
-    const name = `${person.firstName || ""} ${person.lastName || ""
-      }`.trim();
+    const name = `${person.firstName || ""} ${
+      person.lastName || ""
+    }`.trim();
 
     return name || person.email || "—";
   };
@@ -163,6 +169,7 @@ const BookingHistoryScreen: React.FC = () => {
   const getBookingId = (booking: Booking) => {
     return booking.bookingId || booking._id;
   };
+
   // =====================================================
   // PUBLIC ID HELPERS
   // =====================================================
@@ -176,17 +183,14 @@ const BookingHistoryScreen: React.FC = () => {
     );
   };
 
-
   const openBooking = (id?: string) => {
     if (!id) return;
 
-    navigate(
-      `/booking-history/${encodeURIComponent(id)}`
-    );
+    navigate(`/booking-history/${encodeURIComponent(id)}`);
   };
 
   const getStatusClass = (status?: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return "booking-status--completed";
 
@@ -320,7 +324,6 @@ const BookingHistoryScreen: React.FC = () => {
       }
     };
 
-    // Debounce search requests.
     const timer = setTimeout(() => {
       loadData();
     }, 350);
@@ -359,54 +362,76 @@ const BookingHistoryScreen: React.FC = () => {
   };
 
   // =====================================================
-// HOLD BOOKING
-// =====================================================
+  // HOLD / RESUME BOOKING
+  // =====================================================
 
-const [holdingBookingId, setHoldingBookingId] = useState<string | null>(null);
+  const handleBookingStatusAction = async (booking: Booking) => {
+    const bookingId = booking._id;
 
-const handleHoldBooking = async (booking: Booking) => {
-  const bookingId = booking._id;
+    if (!bookingId || processingBookingId) return;
 
-  if (!bookingId) return;
+    const isOnHold = booking.status?.toLowerCase() === "hold";
 
-  const confirmed = window.confirm(
-    `Are you sure you want to put booking ${getPublicServiceId(booking)} on hold?`
-  );
+    const publicId = getPublicServiceId(booking);
 
-  if (!confirmed) return;
+    const confirmed = window.confirm(
+      isOnHold
+        ? `Are you sure you want to resume booking ${publicId}?`
+        : `Are you sure you want to put booking ${publicId} on hold?`
+    );
 
-  try {
-    setHoldingBookingId(bookingId);
+    if (!confirmed) return;
 
-    const result = await holdAdminBooking(bookingId);
+    try {
+      setProcessingBookingId(bookingId);
 
-    if (!result.success) {
-      throw new Error(result.message || "Failed to hold booking");
+      const result = isOnHold
+        ? await resumeAdminBooking(bookingId)
+        : await holdAdminBooking(bookingId);
+
+      if (!result.success) {
+        throw new Error(
+          result.message ||
+            (isOnHold
+              ? "Failed to resume booking"
+              : "Failed to hold booking")
+        );
+      }
+
+      const updatedStatus =
+        result.data?.status ||
+        (isOnHold ? booking.previousStatus : "hold");
+
+      setBookings((previous) =>
+        previous.map((item) =>
+          item._id === bookingId
+            ? {
+                ...item,
+                status: updatedStatus || item.status,
+                previousStatus: isOnHold ? null : item.status,
+              }
+            : item
+        )
+      );
+
+      window.alert(
+        result.message ||
+          (isOnHold
+            ? "Booking resumed successfully."
+            : "Booking put on hold successfully.")
+      );
+    } catch (error) {
+      console.error("Booking status action error:", error);
+
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Unable to update booking status"
+      );
+    } finally {
+      setProcessingBookingId(null);
     }
-
-    // Update current listing immediately
-    setBookings((previous) =>
-      previous.map((item) =>
-        item._id === bookingId
-          ? { ...item, status: "hold" }
-          : item
-      )
-    );
-
-    window.alert(result.message || "Booking successfully put on hold.");
-
-  } catch (error) {
-    console.error("Hold booking error:", error);
-
-    window.alert(
-      error instanceof Error
-        ? error.message
-        : "Unable to hold booking"
-    );
-  } finally {
-    setHoldingBookingId(null);
-  }
-};
+  };
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -483,107 +508,147 @@ const handleHoldBooking = async (booking: Booking) => {
           </thead>
 
           <tbody>
-            {bookings.map((item) => (
-              <tr key={getBookingId(item)}>
-                <td>
-                  <span
-                    className="booking-table-text"
-                    title={getPublicServiceId(item)}
-                  >
-                    {getPublicServiceId(item)}
-                  </span>
-                </td>
+            {bookings.map((item) => {
+              const normalizedStatus = item.status?.toLowerCase();
 
-                <td>
-                  <div className="booking-person">
-                    <div className="booking-avatar">
-                      <UserRound size={17} />
+              const isOnHold = normalizedStatus === "hold";
+
+              const isTerminalStatus = [
+                "completed",
+                "cancelled",
+                "no-show",
+              ].includes(normalizedStatus);
+
+              const isProcessing =
+                processingBookingId === item._id;
+
+              return (
+                <tr key={getBookingId(item)}>
+                  <td>
+                    <span
+                      className="booking-table-text"
+                      title={getPublicServiceId(item)}
+                    >
+                      {getPublicServiceId(item)}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div className="booking-person">
+                      <div className="booking-avatar">
+                        <UserRound size={17} />
+                      </div>
+
+                      <div className="booking-person-info">
+                        <p className="booking-person-name">
+                          {getName(item.requestor || item.user)}
+                        </p>
+
+                        <p className="booking-person-email">
+                          {(item.requestor || item.user)?.email || "—"}
+                        </p>
+                      </div>
                     </div>
+                  </td>
 
-                    <div className="booking-person-info">
-                      <p className="booking-person-name">
-                        {getName(item.requestor || item.user)}
-                      </p>
+                  <td>
+                    <span className="booking-table-text">
+                      {getName(item.provider)}
+                    </span>
+                  </td>
 
-                      <p className="booking-person-email">
-                        {(item.requestor || item.user)?.email || "—"}
-                      </p>
+                  <td>
+                    <div className="booking-service">
+                      <BriefcaseBusiness size={16} />
+                      <span>{item.service?.name || "—"}</span>
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                <td>
-                  <span className="booking-table-text">
-                    {getName(item.provider)}
-                  </span>
-                </td>
+                  <td>
+                    {formatDate(item.scheduledDate)}
+                  </td>
 
-                <td>
-                  <div className="booking-service">
-                    <BriefcaseBusiness size={16} />
-                    <span>{item.service?.name || "—"}</span>
-                  </div>
-                </td>
+                  <td>
+                    {getTimeLabel(item.scheduledTime)}
+                  </td>
 
-                <td>
-                  {formatDate(item.scheduledDate)}
-                </td>
+                  <td>
+                    <div className="booking-status-wrapper">
+                      <span
+                        className={`booking-status ${
+                          isOnHold
+                            ? "booking-status--hold"
+                            : getStatusClass(item.status)
+                        }`}
+                      >
+                        {formatStatus(item.status)}
+                      </span>
 
-                <td>
-                  {getTimeLabel(item.scheduledTime)}
-                </td>
+                      {isOnHold ? (
+                        <button
+                          type="button"
+                          className="booking-hold-btn"
+                          onClick={() =>
+                            handleBookingStatusAction(item)
+                          }
+                          disabled={!!processingBookingId}
+                          title="Resume Booking"
+                        >
+                          {isProcessing ? (
+                            <RefreshCw
+                              size={14}
+                              className="booking-spin"
+                            />
+                          ) : (
+                            <PlayCircle size={14} />
+                          )}
 
-               
-                <td>
-  <div className="booking-status-wrapper">
-    <span
-      className={`booking-status ${
-        item.status === "hold"
-          ? "booking-status--hold"
-          : getStatusClass(item.status)
-      }`}
-    >
-      {formatStatus(item.status)}
-    </span>
+                          {isProcessing ? "Resuming..." : "Resume"}
+                        </button>
+                      ) : (
+                        !isTerminalStatus && (
+                          <button
+                            type="button"
+                            className="booking-hold-btn"
+                            onClick={() =>
+                              handleBookingStatusAction(item)
+                            }
+                            disabled={!!processingBookingId}
+                            title="Put Booking On Hold"
+                          >
+                            {isProcessing ? (
+                              <RefreshCw
+                                size={14}
+                                className="booking-spin"
+                              />
+                            ) : (
+                              <PauseCircle size={14} />
+                            )}
 
-    {item.status !== "hold" && (
-      <button
-        type="button"
-        className="booking-hold-btn"
-        onClick={() => handleHoldBooking(item)}
-        disabled={holdingBookingId === item._id}
-        title="Put Booking On Hold"
-      >
-        {holdingBookingId === item._id ? (
-          <RefreshCw size={14} className="booking-spin" />
-        ) : (
-          <PauseCircle size={14} />
-        )}
+                            {isProcessing ? "Holding..." : "Hold"}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </td>
 
-        {holdingBookingId === item._id
-          ? "Holding..."
-          : "Hold"}
-      </button>
-    )}
-  </div>
-</td>
+                  <td>
+                    {formatDate(item.createdAt)}
+                  </td>
 
-                <td>
-                  {formatDate(item.createdAt)}
-                </td>
-
-                <td>
-                  <button
-                    type="button"
-                    className="booking-view-btn"
-                    title="View Booking Details"
-                    onClick={() => openBooking(getBookingId(item))}
-                  >
-                    <Eye size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  <td>
+                    <button
+                      type="button"
+                      className="booking-view-btn"
+                      title="View Booking Details"
+                      onClick={() => openBooking(getBookingId(item))}
+                    >
+                      <Eye size={18} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
 
             {!loading && bookings.length === 0 && (
               <tr>
@@ -716,7 +781,7 @@ const handleHoldBooking = async (booking: Booking) => {
 
             {!loading && responses.length === 0 && (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={8}>
                   <div className="booking-empty">
                     No service responses found.
                   </div>
@@ -803,9 +868,11 @@ const handleHoldBooking = async (booking: Booking) => {
 
                 <td>
                   <span
-                    className={`booking-status ${getStatusClass(
-                      item.status
-                    )}`}
+                    className={`booking-status ${
+                      item.status?.toLowerCase() === "hold"
+                        ? "booking-status--hold"
+                        : getStatusClass(item.status)
+                    }`}
                   >
                     {formatStatus(item.status)}
                   </span>
@@ -844,7 +911,7 @@ const handleHoldBooking = async (booking: Booking) => {
 
             {!loading && scheduled.length === 0 && (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={10}>
                   <div className="booking-empty">
                     No scheduled services found.
                   </div>
@@ -883,7 +950,6 @@ const handleHoldBooking = async (booking: Booking) => {
           <tbody>
             {pastServices.map((item) => (
               <tr key={item.bookingId}>
-
                 <td>
                   <span
                     className="booking-table-text"
@@ -979,7 +1045,7 @@ const handleHoldBooking = async (booking: Booking) => {
 
             {!loading && pastServices.length === 0 && (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={10}>
                   <div className="booking-empty">
                     No past services found.
                   </div>
@@ -1008,7 +1074,6 @@ const handleHoldBooking = async (booking: Booking) => {
               <th>Broadcast Status</th>
               <th>Care giver Declines</th>
               <th>Created At</th>
-
             </tr>
           </thead>
 
@@ -1069,14 +1134,12 @@ const handleHoldBooking = async (booking: Booking) => {
                 <td>
                   {formatDateTime(item.createdAt)}
                 </td>
-
-
               </tr>
             ))}
 
             {!loading && broadcasts.length === 0 && (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={6}>
                   <div className="booking-empty">
                     No broadcast records found.
                   </div>
@@ -1142,10 +1205,11 @@ const handleHoldBooking = async (booking: Booking) => {
 
             <button
               onClick={() => changeTab("bookings")}
-              className={`booking-tab ${activeTab === "bookings"
+              className={`booking-tab ${
+                activeTab === "bookings"
                   ? "booking-tab--active"
                   : ""
-                }`}
+              }`}
             >
               <ClipboardList size={17} />
               All Bookings
@@ -1153,10 +1217,11 @@ const handleHoldBooking = async (booking: Booking) => {
 
             <button
               onClick={() => changeTab("responses")}
-              className={`booking-tab ${activeTab === "responses"
+              className={`booking-tab ${
+                activeTab === "responses"
                   ? "booking-tab--active"
                   : ""
-                }`}
+              }`}
             >
               <CheckCircle2 size={17} />
               Service Responses
@@ -1164,10 +1229,11 @@ const handleHoldBooking = async (booking: Booking) => {
 
             <button
               onClick={() => changeTab("scheduled")}
-              className={`booking-tab ${activeTab === "scheduled"
+              className={`booking-tab ${
+                activeTab === "scheduled"
                   ? "booking-tab--active"
                   : ""
-                }`}
+              }`}
             >
               <CalendarDays size={17} />
               Scheduled Services
@@ -1175,10 +1241,11 @@ const handleHoldBooking = async (booking: Booking) => {
 
             <button
               onClick={() => changeTab("past")}
-              className={`booking-tab ${activeTab === "past"
+              className={`booking-tab ${
+                activeTab === "past"
                   ? "booking-tab--active"
                   : ""
-                }`}
+              }`}
             >
               <Clock3 size={17} />
               Past Services
@@ -1186,10 +1253,11 @@ const handleHoldBooking = async (booking: Booking) => {
 
             <button
               onClick={() => changeTab("broadcasts")}
-              className={`booking-tab ${activeTab === "broadcasts"
+              className={`booking-tab ${
+                activeTab === "broadcasts"
                   ? "booking-tab--active"
                   : ""
-                }`}
+              }`}
             >
               <Radio size={17} />
               Broadcast History
@@ -1248,10 +1316,10 @@ const handleHoldBooking = async (booking: Booking) => {
               onChange={(e) => {
                 setScheduledPeriod(
                   e.target.value as
-                  | "today"
-                  | "tomorrow"
-                  | "week"
-                  | ""
+                    | "today"
+                    | "tomorrow"
+                    | "week"
+                    | ""
                 );
 
                 setPage(1);
@@ -1360,4 +1428,5 @@ const handleHoldBooking = async (booking: Booking) => {
 };
 
 export default BookingHistoryScreen;
+
 

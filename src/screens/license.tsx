@@ -312,6 +312,12 @@ const LicenseManagement: React.FC = () => {
     setPage(1);
   };
 
+  // SORT LICENSES ALPHABETICALLY (A-Z)
+const sortedLicenses = [...licenses].sort((a, b) =>
+  (a.name || "").localeCompare(b.name || "", undefined, {
+    sensitivity: "base",
+  })
+);
   // STATS (current page only)
   const activeCount = licenses.filter((item) => item.status).length;
   const inactiveCount = licenses.filter((item) => !item.status).length;
@@ -525,7 +531,7 @@ const LicenseManagement: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                licenses.map((license, index) => (
+              sortedLicenses.map((license, index) => (
                   <tr key={license._id}>
                     <td>
                       <div className="license-name-cell">

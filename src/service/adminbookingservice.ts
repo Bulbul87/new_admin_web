@@ -656,27 +656,33 @@ export const getAdminBroadcasts = async (
 };
 
 
+
 /**
  * ============================================================
- * 7. PUT ADMIN BOOKING ON HOLD
+ * 7. ADMIN BOOKING HOLD / RESUME
  * ============================================================
- *
- * PATCH /api/admin/bookings/:id/hold
  */
 
-export interface HoldBookingResponse {
+export interface BookingActionResponse {
   success: boolean;
   message: string;
   data: {
     _id: string;
     publicServiceId?: string | null;
-    status: "hold";
+    status: string;
+    previousStatus?: string | null;
+    [key: string]: any;
   };
 }
 
-export const holdAdminBooking = async (
-  id: string
-): Promise<HoldBookingResponse> => {
+/**
+ * COMMON ADMIN BOOKING ACTION HELPER
+ */
+
+const adminBookingAction = async (
+  id: string,
+  action: "hold" | "unhold"
+): Promise<BookingActionResponse> => {
   if (!id) {
     throw new Error("Booking ID is required");
   }
@@ -684,7 +690,7 @@ export const holdAdminBooking = async (
   const token = getAdminToken();
 
   const response = await fetch(
-    `${ADMIN_API_BASE_URL}/admin/bookings/${encodeURIComponent(id)}/hold`,
+    `${ADMIN_API_BASE_URL}/admin/bookings/${encodeURIComponent(id)}/${action}`,
     {
       method: "PATCH",
       headers: {
@@ -703,9 +709,40 @@ export const holdAdminBooking = async (
 
   if (!response.ok) {
     throw new Error(
-      result?.message || "Failed to put booking on hold"
+      result?.message ||
+        (action === "hold"
+          ? "Failed to put booking on hold"
+          : "Failed to resume booking")
     );
   }
 
-  return result as HoldBookingResponse;
+  return result as BookingActionResponse;
 };
+
+/**
+ * HOLD ADMIN BOOKING
+ *
+ * PATCH /api/admin/bookings/:id/hold
+ */
+
+export const holdAdminBooking = async (
+  id: string
+): Promise<BookingActionResponse> => {
+  return adminBookingAction(id, "hold");
+};
+
+/**
+ * RESUME ADMIN BOOKING
+ *
+ * PATCH /api/admin/bookings/:id/unhold
+ *
+ * Backend restores the booking's previous status.
+ */
+
+export const resumeAdminBooking = async (
+  id: string
+): Promise<BookingActionResponse> => {
+  return adminBookingAction(id, "unhold");
+};
+
+
