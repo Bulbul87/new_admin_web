@@ -331,14 +331,14 @@ const TransportationDistance: React.FC = () => {
                     </div>
 
                       <div className="transport-field">
-                        <label>Hours 1 <span>*</span></label>
+                        <label>D1 Hours <span>*</span></label>
                         <div className="transport-input-wrap">
                             <ArrowLeftRight size={18} />
                             <input
                                 type="number"
                                 min="0"
                                 step="any"
-                                placeholder="Enter hours 1"
+                                placeholder="Enter distance 1 hours"
                                 value={d1_hours}
                                 onChange={(e) => setd1hours(e.target.value)}
                             />
@@ -347,14 +347,14 @@ const TransportationDistance: React.FC = () => {
 
 
                       <div className="transport-field">
-                        <label>Hours 2 <span>*</span></label>
+                        <label>D2 Hours<span>*</span></label>
                         <div className="transport-input-wrap">
                             <ArrowLeftRight size={18} />
                             <input
                                 type="number"
                                 min="0"
                                 step="any"
-                                placeholder="Enter hours 2"
+                                placeholder="Enter distance 2 hours"
                                 value={d2_hours}
                                 onChange={(e) => setd2hours(e.target.value)}
                             />
