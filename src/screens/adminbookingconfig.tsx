@@ -363,6 +363,7 @@ const BookingHistoryScreen: React.FC = () => {
 
   // =====================================================
   // HOLD / RESUME BOOKING
+  // Uses adminHold field, NOT booking.status
   // =====================================================
 
   const handleBookingStatusAction = async (booking: Booking) => {
@@ -370,7 +371,22 @@ const BookingHistoryScreen: React.FC = () => {
 
     if (!bookingId || processingBookingId) return;
 
-    const isOnHold = booking.status?.toLowerCase() === "hold";
+    const isOnHold = booking.adminHold === "hold";
+
+    const normalizedStatus = booking.status?.toLowerCase();
+
+    const isTerminalStatus = [
+      "completed",
+      "cancelled",
+      "no-show",
+    ].includes(normalizedStatus);
+
+    if (isTerminalStatus) {
+      window.alert(
+        `Cannot ${isOnHold ? "resume" : "hold"} a ${normalizedStatus} booking.`
+      );
+      return;
+    }
 
     const publicId = getPublicServiceId(booking);
 
@@ -398,17 +414,17 @@ const BookingHistoryScreen: React.FC = () => {
         );
       }
 
-      const updatedStatus =
-        result.data?.status ||
-        (isOnHold ? booking.previousStatus : "hold");
+      // Update ONLY adminHold.
+      // Original booking status remains unchanged.
+      const updatedAdminHold =
+        result.data?.adminHold || (isOnHold ? "resume" : "hold");
 
       setBookings((previous) =>
         previous.map((item) =>
           item._id === bookingId
             ? {
                 ...item,
-                status: updatedStatus || item.status,
-                previousStatus: isOnHold ? null : item.status,
+                adminHold: updatedAdminHold,
               }
             : item
         )
@@ -421,12 +437,12 @@ const BookingHistoryScreen: React.FC = () => {
             : "Booking put on hold successfully.")
       );
     } catch (error) {
-      console.error("Booking status action error:", error);
+      console.error("Booking hold/resume action error:", error);
 
       window.alert(
         error instanceof Error
           ? error.message
-          : "Unable to update booking status"
+          : "Unable to update booking"
       );
     } finally {
       setProcessingBookingId(null);
@@ -511,7 +527,9 @@ const BookingHistoryScreen: React.FC = () => {
             {bookings.map((item) => {
               const normalizedStatus = item.status?.toLowerCase();
 
-              const isOnHold = normalizedStatus === "hold";
+              // IMPORTANT: Hold state comes from adminHold,
+              // not from booking.status.
+              const isOnHold = item.adminHold === "hold";
 
               const isTerminalStatus = [
                 "completed",
@@ -574,17 +592,24 @@ const BookingHistoryScreen: React.FC = () => {
 
                   <td>
                     <div className="booking-status-wrapper">
+                      {/* Original booking status remains unchanged */}
                       <span
-                        className={`booking-status ${
-                          isOnHold
-                            ? "booking-status--hold"
-                            : getStatusClass(item.status)
-                        }`}
+                        className={`booking-status ${getStatusClass(
+                          item.status
+                        )}`}
                       >
                         {formatStatus(item.status)}
                       </span>
 
-                      {isOnHold ? (
+                      {/* Separate admin hold indicator */}
+                      {isOnHold && (
+                        <span className="booking-status booking-status--hold">
+                          On Hold
+                        </span>
+                      )}
+
+                      {/* Hide both buttons for terminal bookings */}
+                      {!isTerminalStatus && (
                         <button
                           type="button"
                           className="booking-hold-btn"
@@ -592,42 +617,31 @@ const BookingHistoryScreen: React.FC = () => {
                             handleBookingStatusAction(item)
                           }
                           disabled={!!processingBookingId}
-                          title="Resume Booking"
+                          title={
+                            isOnHold
+                              ? "Resume Booking"
+                              : "Put Booking On Hold"
+                          }
                         >
                           {isProcessing ? (
                             <RefreshCw
                               size={14}
                               className="booking-spin"
                             />
-                          ) : (
+                          ) : isOnHold ? (
                             <PlayCircle size={14} />
+                          ) : (
+                            <PauseCircle size={14} />
                           )}
 
-                          {isProcessing ? "Resuming..." : "Resume"}
+                          {isProcessing
+                            ? isOnHold
+                              ? "Resuming..."
+                              : "Holding..."
+                            : isOnHold
+                            ? "Resume"
+                            : "Hold"}
                         </button>
-                      ) : (
-                        !isTerminalStatus && (
-                          <button
-                            type="button"
-                            className="booking-hold-btn"
-                            onClick={() =>
-                              handleBookingStatusAction(item)
-                            }
-                            disabled={!!processingBookingId}
-                            title="Put Booking On Hold"
-                          >
-                            {isProcessing ? (
-                              <RefreshCw
-                                size={14}
-                                className="booking-spin"
-                              />
-                            ) : (
-                              <PauseCircle size={14} />
-                            )}
-
-                            {isProcessing ? "Holding..." : "Hold"}
-                          </button>
-                        )
                       )}
                     </div>
                   </td>
@@ -697,6 +711,7 @@ const BookingHistoryScreen: React.FC = () => {
                     {getPublicServiceId(item)}
                   </span>
                 </td>
+
                 <td>
                   <div className="booking-person">
                     <div className="booking-avatar">
@@ -828,6 +843,7 @@ const BookingHistoryScreen: React.FC = () => {
                     {getPublicServiceId(item)}
                   </span>
                 </td>
+
                 <td>
                   <div className="booking-person">
                     <div className="booking-avatar">
@@ -868,11 +884,9 @@ const BookingHistoryScreen: React.FC = () => {
 
                 <td>
                   <span
-                    className={`booking-status ${
-                      item.status?.toLowerCase() === "hold"
-                        ? "booking-status--hold"
-                        : getStatusClass(item.status)
-                    }`}
+                    className={`booking-status ${getStatusClass(
+                      item.status
+                    )}`}
                   >
                     {formatStatus(item.status)}
                   </span>
@@ -958,6 +972,7 @@ const BookingHistoryScreen: React.FC = () => {
                     {getPublicServiceId(item)}
                   </span>
                 </td>
+
                 <td>
                   <div className="booking-person">
                     <div className="booking-avatar">
@@ -1428,5 +1443,3 @@ const BookingHistoryScreen: React.FC = () => {
 };
 
 export default BookingHistoryScreen;
-
-

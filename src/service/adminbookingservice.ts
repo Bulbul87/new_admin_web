@@ -195,7 +195,7 @@ export interface Booking {
   scheduledTime?: ScheduledTime | null;
 
   status: string;
-
+  adminHold?: "hold" | "resume";
   duration?: number | null;
 
   payment?: any;
@@ -670,7 +670,7 @@ export interface BookingActionResponse {
     _id: string;
     publicServiceId?: string | null;
     status: string;
-    previousStatus?: string | null;
+    adminHold: "hold" | "resume";
     [key: string]: any;
   };
 }
@@ -681,7 +681,7 @@ export interface BookingActionResponse {
 
 const adminBookingAction = async (
   id: string,
-  action: "hold" | "unhold"
+  action: "hold" | "resume"
 ): Promise<BookingActionResponse> => {
   if (!id) {
     throw new Error("Booking ID is required");
@@ -734,15 +734,11 @@ export const holdAdminBooking = async (
 /**
  * RESUME ADMIN BOOKING
  *
- * PATCH /api/admin/bookings/:id/unhold
- *
- * Backend restores the booking's previous status.
+ * PATCH /api/admin/bookings/:id/resume
  */
 
 export const resumeAdminBooking = async (
   id: string
 ): Promise<BookingActionResponse> => {
-  return adminBookingAction(id, "unhold");
+  return adminBookingAction(id, "resume");
 };
-
-
