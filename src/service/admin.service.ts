@@ -17,6 +17,14 @@ export interface License {
   [key: string]: any;
 }
 
+export interface LicenseProofUploadResponse {
+  success: boolean;
+  message: string;
+  data: {
+    url: string;
+  };
+}
+
 export interface User {
   _id: string;
   firstName?: string;
@@ -328,4 +336,48 @@ export const getAdminUserReviews = async (
     `&limit=${limit}`;
 
   return api.get<AdminReviewsResponse>(endpoint);
+};
+
+// Upload license document
+export const uploadLicenseProof = async (
+  file: File
+): Promise<{ url: string }> => {
+  const formData = new FormData();
+
+  // "document" ko backend ke multer upload.single('...') field name ke according rakhna hai
+  formData.append("document", file);
+
+  const token = localStorage.getItem("adminToken");
+
+  const response = await fetch(
+    "https://api.senioramerica.us/api/auth/profile/license-proof",
+    {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "License document upload failed");
+  }
+
+  return result.data;
+};
+
+
+// Save uploaded document URL in caregiver's existing license
+export const updateCaregiverLicenseDocument = async (
+  userId: string,
+  licenseId: string,
+  photoUrl: string
+) => {
+  return api.patch(
+    `/admin/users/${encodeURIComponent(userId)}/licenses/${encodeURIComponent(licenseId)}/document`,
+    { photoUrl }
+  );
 };
