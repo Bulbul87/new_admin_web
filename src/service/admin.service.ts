@@ -12,9 +12,36 @@ export interface License {
   type?: string;
   number?: string;
   state?: string;
+  issueDate?: string; 
+  expiryDate?: string;
   status?: string;
   photoUrl?: string;
+  verifiedAt?: string | null;
   [key: string]: any;
+}
+
+export interface LicenseType {
+  _id: string;
+  name: string;
+  code: string;
+  description?: string;
+  status?: boolean;
+}
+
+export interface CaregiverLicensesResponse {
+  success: boolean;
+  data: {
+    caregiver: {
+      _id: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      publicProviderId?: string;
+    };
+    licenses: License[];
+    declaredNoProfessionalLicenses?: boolean;
+    licensedStates?: string[];
+  };
 }
 
 export interface LicenseProofUploadResponse {
@@ -381,3 +408,79 @@ export const updateCaregiverLicenseDocument = async (
     { photoUrl }
   );
 };
+
+
+// ======================================
+// ADMIN CAREGIVER LICENSE APIs
+// ======================================
+
+// Get license types for dropdown
+export const getAdminLicenseTypes = async (): Promise<LicenseType[]> => {
+  const response: any = await api.get("/admin/license-types");
+
+  return (
+    response?.data?.licenses ||
+    response?.licenses ||
+    response?.data ||
+    []
+  );
+};
+
+// Get selected caregiver licenses
+export const getCaregiverLicenses = async (
+  userId: string
+): Promise<CaregiverLicensesResponse> => {
+  return api.get<CaregiverLicensesResponse>(
+    `/admin/users/${encodeURIComponent(userId)}/licenses`
+  );
+};
+
+// Add license
+export const addCaregiverLicense = async (
+  userId: string,
+  licenseData: {
+    type: string;
+    number: string;
+    state: string;
+    issueDate?: string;
+    expiryDate?: string;
+    photoUrl?: string;
+  }
+) => {
+  return api.post(
+    `/admin/users/${encodeURIComponent(userId)}/licenses`,
+    licenseData
+  );
+};
+
+// Update license details
+export const updateCaregiverLicense = async (
+  userId: string,
+  licenseId: string,
+  licenseData: {
+    type?: string;
+    number?: string;
+    state?: string;
+    issueDate?: string;
+    expiryDate?: string;
+    photoUrl?: string;
+  }
+) => {
+  return api.put(
+    `/admin/users/${encodeURIComponent(userId)}/licenses/${encodeURIComponent(licenseId)}`,
+    licenseData
+  );
+};
+
+// Delete license
+export const deleteCaregiverLicense = async (
+  userId: string,
+  licenseId: string
+) => {
+  return api.delete(
+    `/admin/users/${encodeURIComponent(userId)}/licenses/${encodeURIComponent(licenseId)}`
+  );
+};
+
+
+

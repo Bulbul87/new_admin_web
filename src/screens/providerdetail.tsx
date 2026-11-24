@@ -27,6 +27,11 @@ import {
   getAdminUserReviews,
   uploadLicenseProof,
   updateCaregiverLicenseDocument,
+  getCaregiverLicenses,
+  getAdminLicenseTypes,
+  addCaregiverLicense,
+  updateCaregiverLicense,
+  deleteCaregiverLicense,
 } from "../service/admin.service";
 
 import { decryptData } from "../utils/crypto";
@@ -645,6 +650,22 @@ const ProviderDetails: React.FC = () => {
   const [reviewTotalPages, setReviewTotalPages] = useState(1);
   const [reviewSummary, setReviewSummary] = useState<any>(null);
   const [uploadingLicenseId, setUploadingLicenseId] = useState<string | null>(null);
+  const [licenseRecords, setLicenseRecords] = useState<any[]>([]);
+const [licenseTypes, setLicenseTypes] = useState<any[]>([]);
+const [licenseLoading, setLicenseLoading] = useState(false);
+const [licenseSaving, setLicenseSaving] = useState(false);
+const [showLicenseModal, setShowLicenseModal] = useState(false);
+const [editingLicenseId, setEditingLicenseId] = useState<string | null>(null);
+
+const [licenseForm, setLicenseForm] = useState({
+  type: "",
+  number: "",
+  state: "",
+  issueDate:"",
+  expiryDate: "",
+});
+
+const [licenseFile, setLicenseFile] = useState<File | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -693,7 +714,48 @@ const ProviderDetails: React.FC = () => {
   }, [id]);
 
 
+useEffect(() => {
+  if (!id) return;
 
+  let active = true;
+
+  const loadLicenses = async () => {
+    try {
+      setLicenseLoading(true);
+
+      const [licenseResponse, typeResponse] = await Promise.all([
+        getCaregiverLicenses(id),
+        getAdminLicenseTypes(),
+      ]);
+
+      if (!active) return;
+
+      const licenses =
+        licenseResponse?.data?.licenses ||
+        (licenseResponse as any)?.licenses ||
+        [];
+
+      setLicenseRecords(licenses);
+
+      setLicenseTypes(Array.isArray(typeResponse) ? typeResponse : []);
+    } catch (error) {
+      console.error("Failed to load caregiver licenses:", error);
+
+      if (active) {
+        setLicenseRecords([]);
+        setLicenseTypes([]);
+      }
+    } finally {
+      if (active) setLicenseLoading(false);
+    }
+  };
+
+  loadLicenses();
+
+  return () => {
+    active = false;
+  };
+}, [id]);
 
 
   const [decryptedDirectDeposit, setDecryptedDirectDeposit] = useState({
@@ -884,19 +946,13 @@ const ProviderDetails: React.FC = () => {
         uploadResponse.url
       );
 
-      // Step 3: Update local UI without reloading the page
-      setProvider((prev: any) => ({
-        ...prev,
-        providerInfo: {
-          ...prev.providerInfo,
-          licenses: (prev.providerInfo?.licenses || []).map(
-            (license: any) =>
-              license._id === licenseId
-                ? { ...license, photoUrl: uploadResponse.url }
-                : license
-          ),
-        },
-      }));
+      setLicenseRecords((previous) =>
+  previous.map((license) =>
+    license._id === licenseId
+      ? { ...license, photoUrl: uploadResponse.url }
+      : license
+  )
+);
 
       alert("License document uploaded successfully.");
     } catch (error: any) {
@@ -907,6 +963,153 @@ const ProviderDetails: React.FC = () => {
     }
   };
 
+
+  const openAddLicenseModal = () => {
+  setEditingLicenseId(null);
+  setLicenseForm({
+    type: "",
+    number: "",
+    state: "",
+    issueDate: "",
+    expiryDate: "",
+  });
+  setLicenseFile(null);
+  setShowLicenseModal(true);
+};
+
+const openEditLicenseModal = (license: any) => {
+  setEditingLicenseId(license._id);
+
+  setLicenseForm({
+    type: license.type || "",
+    number: license.number || "",
+    state: license.state || "",
+    issueDate:license.issueDate||"",
+    expiryDate: license.expiryDate
+      ? String(license.expiryDate).slice(0, 10)
+      : "",
+  });
+
+  setLicenseFile(null);
+  setShowLicenseModal(true);
+};
+
+const handleSaveLicense = async () => {
+  if (!id) return;
+
+  if (
+    !licenseForm.type ||
+    !licenseForm.number.trim() ||
+    !licenseForm.state.trim()
+  ) {
+    alert("Please fill License Type, License Number and State.");
+    return;
+  }
+
+  try {
+    setLicenseSaving(true);
+
+    const payload = {
+      type: licenseForm.type,
+      number: licenseForm.number.trim(),
+      state: licenseForm.state.trim(),
+      issueDate:licenseForm.issueDate || undefined,
+      expiryDate: licenseForm.expiryDate || undefined,
+    };
+
+    let savedLicense: any;
+
+    if (editingLicenseId) {
+      const response: any = await updateCaregiverLicense(
+        id,
+        editingLicenseId,
+        payload
+      );
+
+      savedLicense =
+        response?.data?.license ||
+        response?.license ||
+        response?.data;
+    } else {
+      const response: any = await addCaregiverLicense(id, payload);
+
+      savedLicense =
+        response?.data?.license ||
+        response?.license ||
+        response?.data;
+    }
+
+    // Agar add/edit ke saath document bhi select kiya hai
+    if (licenseFile) {
+      const licenseId = editingLicenseId || savedLicense?._id;
+
+      if (!licenseId) {
+        throw new Error(
+          "License was saved, but its ID was not returned. Upload the document separately."
+        );
+      }
+
+      const uploadResponse = await uploadLicenseProof(licenseFile);
+
+      if (!uploadResponse?.url) {
+        throw new Error("Uploaded document URL was not returned.");
+      }
+
+      await updateCaregiverLicenseDocument(
+        id,
+        licenseId,
+        uploadResponse.url
+      );
+    }
+
+    // Fresh data fetch after save
+    const refreshed: any = await getCaregiverLicenses(id);
+
+    setLicenseRecords(
+      refreshed?.data?.licenses ||
+      refreshed?.licenses ||
+      []
+    );
+
+    setShowLicenseModal(false);
+    setEditingLicenseId(null);
+    setLicenseFile(null);
+
+    alert(
+      editingLicenseId
+        ? "License updated successfully."
+        : "License added successfully."
+    );
+  } catch (error: any) {
+    console.error("Save license error:", error);
+    alert(error?.message || "Failed to save license.");
+  } finally {
+    setLicenseSaving(false);
+  }
+};
+
+const handleDeleteLicense = async (licenseId: string) => {
+  if (!id || !licenseId) return;
+
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this license?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await deleteCaregiverLicense(id, licenseId);
+
+    setLicenseRecords((previous) =>
+      previous.filter((license) => license._id !== licenseId)
+    );
+
+    alert("License deleted successfully.");
+  } catch (error: any) {
+    console.error("Delete license error:", error);
+    alert(error?.message || "Failed to delete license.");
+  }
+};
 
   const handleSsnReveal = () => {
     setShowSsn(true);
@@ -1012,6 +1215,18 @@ const ProviderDetails: React.FC = () => {
     fontSize: 14,
     fontWeight: 800,
   };
+
+  const licenseInputStyle: React.CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "12px 13px",
+  border: "1px solid #D8E1EA",
+  borderRadius: 10,
+  background: "#FFFFFF",
+  color: "#14344A",
+  fontSize: 13,
+  outline: "none",
+};
 
   return (
     <div
@@ -1753,97 +1968,202 @@ const ProviderDetails: React.FC = () => {
           </div>
         </Section>
 
+
         <Section
-          title="Licenses"
-          description="Each license record has its own explicitly named fields."
-          icon={<FaCertificate />}
-        >
-          {Array.isArray(info.licenses) && info.licenses.length ? (
-            <div style={{ display: "grid", gap: 14 }}>
-              {info.licenses.map((license: any, index: number) => (
-                <div key={license?._id || index} style={listBox}>
-                  <h3 style={smallTitle}>License {index + 1}</h3>
+  title="Licenses"
+  description="Manage caregiver professional licenses and their supporting documents."
+  icon={<FaCertificate />}
+>
+  {/* Header actions */}
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 12,
+      marginBottom: 20,
+    }}
+  >
+    <div style={{ color: colors.muted, fontSize: 13 }}>
+      Total Licenses: <strong>{licenseRecords.length}</strong>
+    </div>
 
-                  <FieldGrid>
-                    <Field label="License Type" value={license?.type} />
-                    <Field label="License Number" value={license?.number} />
-                    <Field label="Issuing State" value={license?.state} />
-                    <Field label="License Status" value={license?.status} />
+    <button
+      type="button"
+      onClick={openAddLicenseModal}
+      style={{
+        border: "none",
+        borderRadius: 10,
+        padding: "11px 18px",
+        background: "linear-gradient(135deg, #14344A, #1E5276)",
+        color: "#FFFFFF",
+        fontSize: 13,
+        fontWeight: 700,
+        cursor: "pointer",
+      }}
+    >
+      + Add License
+    </button>
+  </div>
 
-                    <div style={{ gridColumn: "1 / -1", minWidth: 0 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                          gap: 12,
-                          marginBottom: 10,
-                        }}
-                      >
-                        <div style={labelStyle}>License Document</div>
+  {licenseLoading ? (
+    <div style={{ padding: 25, textAlign: "center", color: colors.muted }}>
+      Loading caregiver licenses...
+    </div>
+  ) : licenseRecords.length ? (
+    <div style={{ display: "grid", gap: 16 }}>
+      {licenseRecords.map((license: any, index: number) => (
+        <div key={license?._id || index} style={listBox}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 16,
+            }}
+          >
+            <h3 style={{ ...smallTitle, margin: 0 }}>
+              License {index + 1}
+            </h3>
 
-                        <label
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 7,
-                            padding: "10px 16px",
-                            borderRadius: 10,
-                            background: uploadingLicenseId === license?._id
-                              ? "#98A2B3"
-                              : "linear-gradient(135deg, #14344A, #1E5276)",
-                            color: "#FFFFFF",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            cursor:
-                              !license?._id || uploadingLicenseId
-                                ? "not-allowed"
-                                : "pointer",
-                            opacity: !license?._id || uploadingLicenseId ? 0.65 : 1,
-                          }}
-                        >
-                          {uploadingLicenseId === license?._id
-                            ? "Uploading..."
-                            : license?.photoUrl
-                              ? "Replace Document"
-                              : "Upload Document"}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => openEditLicenseModal(license)}
+                style={{
+                  border: "1px solid #D5E2ED",
+                  borderRadius: 8,
+                  padding: "8px 13px",
+                  background: "#FFFFFF",
+                  color: colors.navy,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Edit
+              </button>
 
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png,.webp"
-                            disabled={!license?._id || !!uploadingLicenseId}
-                            style={{ display: "none" }}
-                            onChange={(event) => {
-                              const file = event.target.files?.[0];
-
-                              if (file && license?._id) {
-                                void handleLicenseDocumentUpload(
-                                  license._id,
-                                  file
-                                );
-                              }
-
-                              event.target.value = "";
-                            }}
-                          />
-                        </label>
-                      </div>
-
-                      <DocumentPreview
-                        path={license?.photoUrl}
-                        label={`License ${index + 1} document`}
-                      />
-                    </div>
-                  </FieldGrid>
-                </div>
-              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  if (license?._id) {
+                    void handleDeleteLicense(license._id);
+                  }
+                }}
+                disabled={!license?._id}
+                style={{
+                  border: "1px solid #F3CCCC",
+                  borderRadius: 8,
+                  padding: "8px 13px",
+                  background: "#FFF5F5",
+                  color: "#B42318",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
             </div>
-          ) : (
-            <div style={valueStyle}>No licenses available.</div>
-          )}
-        </Section>
+          </div>
+
+          <FieldGrid>
+            <Field label="License Type" value={license?.type} />
+            <Field label="License Number" value={license?.number} />
+            <Field label="State" value={license?.state} />
+            <Field label="Issue Date" value={formatDate(license?.issueDate)} />
+            <Field label="Expiry Date" value={formatDate(license?.expiryDate)} />
+            <Field label="License Status" value={license?.status} />
+
+            <div style={{ gridColumn: "1 / -1", minWidth: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  marginBottom: 10,
+                }}
+              >
+                <div style={labelStyle}>License Document</div>
+
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 7,
+                    padding: "10px 15px",
+                    borderRadius: 10,
+                    background: uploadingLicenseId === license?._id
+                      ? "#98A2B3"
+                      : "linear-gradient(135deg, #14344A, #1E5276)",
+                    color: "#FFFFFF",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor:
+                      !license?._id || !!uploadingLicenseId
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity:
+                      !license?._id || !!uploadingLicenseId ? 0.65 : 1,
+                  }}
+                >
+                  {uploadingLicenseId === license?._id
+                    ? "Uploading..."
+                    : license?.photoUrl
+                      ? "Replace Document"
+                      : "Upload Document"}
+
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    disabled={!license?._id || !!uploadingLicenseId}
+                    style={{ display: "none" }}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+
+                      if (file && license?._id) {
+                        void handleLicenseDocumentUpload(
+                          license._id,
+                          file
+                        );
+                      }
+
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+
+              <DocumentPreview
+                path={license?.photoUrl}
+                label={`License ${index + 1} document`}
+              />
+            </div>
+          </FieldGrid>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div
+      style={{
+        padding: 25,
+        borderRadius: 12,
+        border: `1px dashed ${colors.border}`,
+        textAlign: "center",
+        color: colors.muted,
+        fontSize: 13,
+      }}
+    >
+      No licenses available. Click Add License to create one.
+    </div>
+  )}
+</Section>
 
         <Section
           title="Certifications, Photos & Documents"
@@ -2101,6 +2421,252 @@ const ProviderDetails: React.FC = () => {
       </div>
 
       {/* model */}
+
+
+      {showLicenseModal && (
+  <div
+    onClick={() => !licenseSaving && setShowLicenseModal(false)}
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 10000,
+      background: "rgba(15, 23, 42, 0.58)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+    }}
+  >
+    <div
+      onClick={(event) => event.stopPropagation()}
+      style={{
+        width: "100%",
+        maxWidth: 550,
+        maxHeight: "90vh",
+        overflowY: "auto",
+        background: "#FFFFFF",
+        borderRadius: 20,
+        padding: 25,
+        boxShadow: "0 24px 70px rgba(0,0,0,0.25)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 22,
+        }}
+      >
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 20,
+            fontWeight: 800,
+            color: colors.navy,
+          }}
+        >
+          {editingLicenseId ? "Edit License" : "Add New License"}
+        </h2>
+
+        <button
+          type="button"
+          disabled={licenseSaving}
+          onClick={() => setShowLicenseModal(false)}
+          style={{
+            border: "none",
+            background: "#F1F5F9",
+            borderRadius: 9,
+            width: 36,
+            height: 36,
+            cursor: "pointer",
+          }}
+        >
+          <FaTimes />
+        </button>
+      </div>
+
+      <div style={{ display: "grid", gap: 16 }}>
+        {/* License Type */}
+        <div>
+          <label style={labelStyle}>License Type *</label>
+
+          <select
+            value={licenseForm.type}
+            onChange={(event) =>
+              setLicenseForm((prev) => ({
+                ...prev,
+                type: event.target.value,
+              }))
+            }
+            style={licenseInputStyle}
+          >
+            <option value="">Select License Type</option>
+
+            {licenseTypes.map((item: any) => (
+              <option
+                key={item._id}
+                value={item.name}
+              >
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* License Number */}
+        <div>
+          <label style={labelStyle}>License Number *</label>
+
+          <input
+            type="text"
+            value={licenseForm.number}
+            onChange={(event) =>
+              setLicenseForm((prev) => ({
+                ...prev,
+                number: event.target.value,
+              }))
+            }
+            placeholder="Enter license number"
+            style={licenseInputStyle}
+          />
+        </div>
+
+        {/* State */}
+        <div>
+          <label style={labelStyle}>State *</label>
+
+          <input
+            type="text"
+            value={licenseForm.state}
+            onChange={(event) =>
+              setLicenseForm((prev) => ({
+                ...prev,
+                state: event.target.value,
+              }))
+            }
+            placeholder="Enter state"
+            style={licenseInputStyle}
+          />
+        </div>
+
+         {/* issudate Date */}
+        <div>
+          <label style={labelStyle}>Issue Date</label>
+
+          <input
+            type="date"
+            value={licenseForm.issueDate}
+            onChange={(event) =>
+              setLicenseForm((prev) => ({
+                ...prev,
+                issueDate: event.target.value,
+              }))
+            }
+            style={licenseInputStyle}
+          />
+        </div>
+
+        {/* Expiry Date */}
+        <div>
+          <label style={labelStyle}>Expiry Date</label>
+
+          <input
+            type="date"
+            value={licenseForm.expiryDate}
+            onChange={(event) =>
+              setLicenseForm((prev) => ({
+                ...prev,
+                expiryDate: event.target.value,
+              }))
+            }
+            style={licenseInputStyle}
+          />
+        </div>
+
+        {/* Document */}
+        <div>
+          <label style={labelStyle}>
+            License Document {editingLicenseId ? "(Optional)" : "(Optional)"}
+          </label>
+
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
+            onChange={(event) =>
+              setLicenseFile(event.target.files?.[0] || null)
+            }
+            style={{
+              ...licenseInputStyle,
+              padding: 10,
+            }}
+          />
+
+          {licenseFile && (
+            <p
+              style={{
+                fontSize: 12,
+                color: "#16804A",
+                margin: "7px 0 0",
+              }}
+            >
+              Selected: {licenseFile.name}
+            </p>
+          )}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            marginTop: 10,
+          }}
+        >
+          <button
+            type="button"
+            disabled={licenseSaving}
+            onClick={() => setShowLicenseModal(false)}
+            style={{
+              border: `1px solid ${colors.border}`,
+              borderRadius: 9,
+              padding: "11px 17px",
+              background: "#FFFFFF",
+              color: colors.navy,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            disabled={licenseSaving}
+            onClick={() => void handleSaveLicense()}
+            style={{
+              border: "none",
+              borderRadius: 9,
+              padding: "11px 20px",
+              background: "linear-gradient(135deg, #14344A, #1E5276)",
+              color: "#FFFFFF",
+              fontWeight: 700,
+              cursor: licenseSaving ? "not-allowed" : "pointer",
+              opacity: licenseSaving ? 0.7 : 1,
+            }}
+          >
+            {licenseSaving
+              ? "Saving..."
+              : editingLicenseId
+                ? "Update License"
+                : "Save License"}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {showReviews && (
         <div
