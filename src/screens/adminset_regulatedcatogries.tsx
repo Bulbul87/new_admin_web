@@ -317,24 +317,7 @@ const Setregulatedcategories: React.FC = () => {
     }));
   };
 
-  // ============================================
-  // LICENSE SELECT / UNSELECT
-  // ============================================
-
-  const handleLicenseSelect = (
-    licenseId: string,
-    checked: boolean
-  ) => {
-    setLicenseSettings((previous) => ({
-      ...previous,
-      [licenseId]: {
-        selected: checked,
-        isRequired: checked
-          ? previous[licenseId]?.isRequired ?? false
-          : false,
-      },
-    }));
-  };
+ 
 
   // ============================================
   // LICENSE REQUIRED / OPTIONAL
@@ -941,300 +924,285 @@ const Setregulatedcategories: React.FC = () => {
 
         {/* LICENSE LOADING */}
 
-        {loadingLicenses ? (
-          <div className="regulation-loading">
-            <RefreshCw size={24} className="regulation-spin" />
-            <span>Loading license master...</span>
-          </div>
-        ) : !selectedState ? (
-          <div className="regulation-empty">
-            <MapPin size={30} />
-            <h3>Select a state</h3>
-            <p>Select a state to configure its licenses.</p>
-          </div>
-        ) : filteredLicenses.length === 0 ? (
-          <div className="regulation-empty">
-            <FileCheck size={30} />
-            <h3>No licenses found</h3>
-            <p>
-              {licenses.length === 0
-                ? "No active licenses are available in License Master."
-                : "No licenses match your search."}
-            </p>
-          </div>
-        ) : (
+{/* LICENSE LOADING */}
+
+{loadingLicenses ? (
+  <div className="regulation-loading">
+    <RefreshCw size={24} className="regulation-spin" />
+    <span>Loading license master...</span>
+  </div>
+) : !selectedState ? (
+  <div className="regulation-empty">
+    <MapPin size={30} />
+    <h3>Select a state</h3>
+    <p>Select a state to configure its licenses.</p>
+  </div>
+) : filteredLicenses.length === 0 ? (
+  <div className="regulation-empty">
+    <FileCheck size={30} />
+    <h3>No licenses found</h3>
+    <p>
+      {licenses.length === 0
+        ? "No active licenses are available in License Master."
+        : "No licenses match your search."}
+    </p>
+  </div>
+) : (
+  <div style={{ width: "100%", overflowX: "auto" }}>
+
+    {/* TABLE HEADER */}
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "2fr 0.7fr 1.5fr 1.8fr 1fr",
+        minWidth: 900,
+        alignItems: "center",
+        gap: 14,
+        padding: "14px 16px",
+        background: "#F5F8FC",
+        borderBottom: "1px solid #E5EAF0",
+        borderRadius: "10px 10px 0 0",
+        color: "#718096",
+        fontSize: 11,
+        fontWeight: 750,
+        textTransform: "uppercase",
+        letterSpacing: "0.5px",
+      }}
+    >
+      <div>License Information</div>
+      <div>License Code</div>
+      <div>Description</div>
+      <div>License Requirement</div>
+      <div>Status</div>
+    </div>
+
+    {/* LICENSE ROWS */}
+
+    {filteredLicenses.map((license, index) => {
+      const current =
+        licenseSettings[license._id] || DEFAULT_LICENSE_SETTING;
+
+      return (
+        <div
+          key={license._id}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "2fr 0.7fr 1.5fr 1.8fr 1fr",
+            minWidth: 900,
+            alignItems: "center",
+            gap: 14,
+            padding: "13px 16px",
+            background: current.selected ? "#F5FAFF" : "#FFFFFF",
+            borderBottom: "1px solid #E8EDF3",
+            transition: "background 0.2s ease",
+          }}
+        >
+          {/* LICENSE INFORMATION */}
+
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: 14,
+              display: "flex",
+              alignItems: "center",
+              gap: 11,
+              minWidth: 0,
             }}
           >
-            {filteredLicenses.map((license) => {
-              const current =
-                licenseSettings[license._id] || DEFAULT_LICENSE_SETTING;
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                minWidth: 40,
+                borderRadius: 10,
+                background: current.selected ? "#DCEEFF" : "#EDF4FB",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#2876B8",
+              }}
+            >
+              <FileCheck size={20} />
+            </div>
 
-              return (
-                <div
-                  key={license._id}
-                  style={{
-                    background: current.selected ? "#F5FAFF" : "#FFFFFF",
-                    border: current.selected
-                      ? "1px solid #8DBDE8"
-                      : "1px solid #E5EAF0",
-                    borderRadius: 13,
-                    padding: 17,
-                    transition: "all 0.2s ease",
-                    boxShadow: current.selected
-                      ? "0 3px 12px rgba(20,52,74,0.06)"
-                      : "none",
-                  }}
-                >
-                  {/* LICENSE HEADER */}
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  color: "#14344A",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={license.name}
+              >
+                {license.name}
+              </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      gap: 12,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 11,
-                        flex: 1,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 37,
-                          height: 37,
-                          minWidth: 37,
-                          borderRadius: 10,
-                          background: current.selected
-                            ? "#DCEEFF"
-                            : "#F0F3F7",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#14344A",
-                        }}
-                      >
-                        <FileCheck size={19} />
-                      </div>
-
-                      <div style={{ minWidth: 0 }}>
-                        <h3
-                          style={{
-                            margin: "2px 0 5px",
-                            color: "#14344A",
-                            fontSize: 14,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {license.name}
-                        </h3>
-
-                        <span
-                          style={{
-                            fontSize: 11,
-                            color: "#718096",
-                            background: "#EDF2F7",
-                            padding: "3px 7px",
-                            borderRadius: 5,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {license.code}
-                        </span>
-                      </div>
-                    </div>
-
-                    <label
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        cursor: saving ? "not-allowed" : "pointer",
-                        fontSize: 12,
-                        fontWeight: 650,
-                        color: current.selected ? "#16845B" : "#718096",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={current.selected}
-                        onChange={(e) =>
-                          handleLicenseSelect(
-                            license._id,
-                            e.target.checked
-                          )
-                        }
-                        disabled={saving}
-                        style={{
-                          width: 16,
-                          height: 16,
-                          accentColor: "#16845B",
-                          cursor: "pointer",
-                        }}
-                      />
-
-                      Select
-                    </label>
-                  </div>
-
-                  {/* DESCRIPTION */}
-
-                  <p
-                    style={{
-                      color: "#718096",
-                      fontSize: 12,
-                      lineHeight: 1.6,
-                      minHeight: 38,
-                      margin: "13px 0",
-                    }}
-                  >
-                    {license.description || "No description available."}
-                  </p>
-
-                  {/* REQUIRED / OPTIONAL */}
-
-                  <div
-                    style={{
-                      borderTop: "1px solid #E8EDF3",
-                      paddingTop: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 10,
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "#14344A",
-                          fontWeight: 650,
-                        }}
-                      >
-                        License Requirement
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: "#8A94A3",
-                          marginTop: 3,
-                        }}
-                      >
-                        {current.selected
-                          ? "Choose required or optional"
-                          : "Select license to configure"}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 6,
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleLicenseRequired(license._id, true)
-                        }
-                        disabled={!current.selected || saving}
-                        style={{
-                          border: current.isRequired
-                            ? "1px solid #16845B"
-                            : "1px solid #DDE5ED",
-                          background: current.isRequired
-                            ? "#E5F7EF"
-                            : "#FFFFFF",
-                          color: current.isRequired
-                            ? "#16845B"
-                            : "#8491A2",
-                          borderRadius: 7,
-                          padding: "7px 10px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: current.selected
-                            ? "pointer"
-                            : "not-allowed",
-                          opacity: current.selected ? 1 : 0.5,
-                        }}
-                      >
-                        <Check size={12} style={{ marginRight: 3 }} />
-                        Required
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleLicenseRequired(license._id, false)
-                        }
-                        disabled={!current.selected || saving}
-                        style={{
-                          border: current.selected && !current.isRequired
-                            ? "1px solid #D69A32"
-                            : "1px solid #DDE5ED",
-                          background:
-                            current.selected && !current.isRequired
-                              ? "#FFF7E6"
-                              : "#FFFFFF",
-                          color:
-                            current.selected && !current.isRequired
-                              ? "#B7791F"
-                              : "#8491A2",
-                          borderRadius: 7,
-                          padding: "7px 10px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: current.selected
-                            ? "pointer"
-                            : "not-allowed",
-                          opacity: current.selected ? 1 : 0.5,
-                        }}
-                      >
-                        <X size={12} style={{ marginRight: 3 }} />
-                        Optional
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* STATUS */}
-
-                  {current.selected && (
-                    <div
-                      style={{
-                        marginTop: 11,
-                        padding: "7px 9px",
-                        borderRadius: 7,
-                        background: current.isRequired
-                          ? "#E8F7EF"
-                          : "#FFF6E5",
-                        color: current.isRequired
-                          ? "#16845B"
-                          : "#B7791F",
-                        fontSize: 11,
-                        fontWeight: 650,
-                      }}
-                    >
-                      {current.isRequired
-                        ? "✓ Selected · Required"
-                        : "✓ Selected · Optional"}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#94A3B8",
+                  marginTop: 4,
+                }}
+              >
+                License #{index + 1}
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* LICENSE CODE */}
+
+          <div>
+            <span
+              style={{
+                background: "#EDF4FB",
+                color: "#2876B8",
+                border: "1px solid #D9E7F5",
+                borderRadius: 6,
+                padding: "5px 10px",
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              {license.code}
+            </span>
+          </div>
+
+          {/* DESCRIPTION */}
+
+          <div
+            style={{
+              color: "#718096",
+              fontSize: 12,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+            title={license.description}
+          >
+            {license.description || "No description available."}
+          </div>
+
+          {/* REQUIRED / OPTIONAL */}
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() =>
+                handleLicenseRequired(license._id, true)
+              }
+              disabled={saving}
+              style={{
+                border:
+                  current.selected && current.isRequired
+                    ? "1px solid #16845B"
+                    : "1px solid #DDE5ED",
+                background:
+                  current.selected && current.isRequired
+                    ? "#E5F7EF"
+                    : "#FFFFFF",
+                color:
+                  current.selected && current.isRequired
+                    ? "#16845B"
+                    : "#64748B",
+                borderRadius: 7,
+                padding: "8px 11px",
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: saving ? "not-allowed" : "pointer",
+                opacity: saving ? 0.6 : 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <Check size={12} style={{ marginRight: 3 }} />
+              Required
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                handleLicenseRequired(license._id, false)
+              }
+              disabled={saving}
+              style={{
+                border:
+                  current.selected && !current.isRequired
+                    ? "1px solid #D69A32"
+                    : "1px solid #DDE5ED",
+                background:
+                  current.selected && !current.isRequired
+                    ? "#FFF7E6"
+                    : "#FFFFFF",
+                color:
+                  current.selected && !current.isRequired
+                    ? "#B7791F"
+                    : "#64748B",
+                borderRadius: 7,
+                padding: "8px 11px",
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: saving ? "not-allowed" : "pointer",
+                opacity: saving ? 0.6 : 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <X size={12} style={{ marginRight: 3 }} />
+              Optional
+            </button>
+          </div>
+
+          {/* STATUS */}
+
+          <div>
+            {current.selected ? (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "6px 10px",
+                  borderRadius: 20,
+                  background: current.isRequired
+                    ? "#E5F7EF"
+                    : "#FFF6E5",
+                  color: current.isRequired
+                    ? "#16845B"
+                    : "#B7791F",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <CheckCircle2 size={13} />
+                {current.isRequired ? "Required" : "Optional"}
+              </span>
+            ) : (
+              <span
+                style={{
+                  fontSize: 11,
+                  color: "#94A3B8",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Not Configured
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
       </div>
 
       {/* ========================================
