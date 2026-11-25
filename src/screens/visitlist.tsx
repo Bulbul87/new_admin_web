@@ -48,11 +48,25 @@ const AccessCodeList: React.FC = () => {
   // =====================================================
 
   // Public Service ID is already returned at the top level by the API.
-  // Keep this local cast so the UI can read it without changing the service file.
+
   const getPublicServiceId = (item: AccessCodeVisit): string => {
-    const record = item as AccessCodeVisit & { publicServiceId?: string };
-    return record.publicServiceId || "-";
-  };
+    const record = item as AccessCodeVisit & { publicServiceId?: string 
+      booking?: {
+          publicServiceId?: string;
+        } | string;};
+    
+        const bookingData =
+              record.booking && typeof record.booking !== "string"
+                ? record.booking
+                : undefined;
+        
+            
+                return(
+         record.publicServiceId ||
+      bookingData?.publicServiceId || "-"
+    );
+   };
+  
 
   const getVisitDate = (item: AccessCodeVisit): string => {
     return item.visitDate || item.scheduledDate || "-";

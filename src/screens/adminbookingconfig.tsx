@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Search,
   ChevronLeft,
+  ChevronDown,
   ChevronRight,
   Eye,
   Ban,
@@ -29,6 +30,7 @@ import {
   getAdminBroadcasts,
   holdAdminBooking,
   resumeAdminBooking,
+  closeAdminBooking,
   type Booking,
   type BroadcastRecord,
   type ServiceResponse,
@@ -66,6 +68,7 @@ const BookingHistoryScreen: React.FC = () => {
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
+  const [bookingStatus, setBookingStatus] = useState("");
 
   const [responseStatus, setResponseStatus] =
     useState<ServiceResponseParams["status"]>(undefined);
@@ -84,6 +87,11 @@ const BookingHistoryScreen: React.FC = () => {
 
   const [processingBookingId, setProcessingBookingId] =
     useState<string | null>(null);
+
+  const [closingBookingId, setClosingBookingId] =
+    useState<string | null>(null);
+
+  const [actionDropdownId, setActionDropdownId] = useState<string | null>(null);
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -107,9 +115,8 @@ const BookingHistoryScreen: React.FC = () => {
   ) => {
     if (!person) return "—";
 
-    const name = `${person.firstName || ""} ${
-      person.lastName || ""
-    }`.trim();
+    const name = `${person.firstName || ""} ${person.lastName || ""
+      }`.trim();
 
     return name || person.email || "—";
   };
@@ -243,6 +250,7 @@ const BookingHistoryScreen: React.FC = () => {
             page,
             limit,
             search: commonSearch,
+            status: bookingStatus || undefined,
           });
 
           if (!isMounted) return;
@@ -337,6 +345,7 @@ const BookingHistoryScreen: React.FC = () => {
     page,
     limit,
     search,
+    bookingStatus,
     responseStatus,
     pastStatus,
     scheduledPeriod,
@@ -351,6 +360,7 @@ const BookingHistoryScreen: React.FC = () => {
     setActiveTab(tab);
     setPage(1);
     setSearch("");
+    setBookingStatus("");
 
     setResponseStatus(undefined);
     setPastStatus(undefined);
@@ -408,9 +418,9 @@ const BookingHistoryScreen: React.FC = () => {
       if (!result.success) {
         throw new Error(
           result.message ||
-            (isOnHold
-              ? "Failed to resume booking"
-              : "Failed to hold booking")
+          (isOnHold
+            ? "Failed to resume booking"
+            : "Failed to hold booking")
         );
       }
 
@@ -423,18 +433,18 @@ const BookingHistoryScreen: React.FC = () => {
         previous.map((item) =>
           item._id === bookingId
             ? {
-                ...item,
-                adminHold: updatedAdminHold,
-              }
+              ...item,
+              adminHold: updatedAdminHold,
+            }
             : item
         )
       );
 
       window.alert(
         result.message ||
-          (isOnHold
-            ? "Booking resumed successfully."
-            : "Booking put on hold successfully.")
+        (isOnHold
+          ? "Booking resumed successfully."
+          : "Booking put on hold successfully.")
       );
     } catch (error) {
       console.error("Booking hold/resume action error:", error);
@@ -448,6 +458,117 @@ const BookingHistoryScreen: React.FC = () => {
       setProcessingBookingId(null);
     }
   };
+
+
+  // =====================================================
+  // CLOSE BOOKING
+  // Uses adminClose field, NOT booking.status
+  // =====================================================
+
+  // =====================================================
+// CLOSE BOOKING
+// Uses adminClose field, NOT booking.status
+// =====================================================
+
+const handleCloseBooking = async (booking: Booking) => {
+  const bookingId = booking._id;
+
+  if (!bookingId || processingBookingId || closingBookingId) return;
+
+  const normalizedStatus = booking.status?.toLowerCase();
+
+  const isTerminalStatus = [
+    "completed",
+    "cancelled",
+    "no-show",
+  ].includes(normalizedStatus || "");
+
+  if (isTerminalStatus) {
+    window.alert(
+      `Cannot close a ${normalizedStatus} booking.`
+    );
+    return;
+  }
+
+  const isAlreadyClosed =
+    (booking as any).adminClose?.isClosed === true;
+
+  if (isAlreadyClosed) {
+    window.alert("This booking is already closed.");
+    return;
+  }
+
+  const publicId = getPublicServiceId(booking);
+
+  const reason = window.prompt(
+    `Enter reason for closing booking ${publicId}:`
+  );
+
+  if (reason === null) return;
+
+  if (!reason.trim()) {
+    window.alert("Close booking reason is required.");
+    return;
+  }
+
+  if (reason.trim().length > 1000) {
+    window.alert("Reason cannot exceed 1000 characters.");
+    return;
+  }
+
+  try {
+    setClosingBookingId(bookingId);
+
+    console.log("Calling Close Booking API...");
+    console.log("Booking ID:", bookingId);
+
+    const result = await closeAdminBooking(
+      bookingId,
+      reason.trim()
+    );
+
+    console.log("Close Booking API Response:", result);
+
+   if (result.success === false) {
+  throw new Error(
+    result.message || "Failed to close booking"
+  );
+}
+
+   setBookings((previous) =>
+  previous.map((item) =>
+    item._id === bookingId
+      ? {
+          ...item,
+          adminClose: result.adminClose || {
+            isClosed: true,
+            reason: reason.trim(),
+            closedAt: new Date().toISOString(),
+          },
+        } as Booking
+      : item
+  )
+);
+
+    window.alert(
+      result.message || "Booking closed successfully."
+    );
+
+  } catch (error: any) {
+    console.error("Close Booking Error:", error);
+    console.error("Error Message:", error?.message);
+    console.error("Error Response:", error?.response);
+
+    window.alert(
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to close booking"
+    );
+
+  } finally {
+    setClosingBookingId(null);
+  }
+};
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -530,7 +651,10 @@ const BookingHistoryScreen: React.FC = () => {
               // IMPORTANT: Hold state comes from adminHold,
               // not from booking.status.
               const isOnHold = item.adminHold === "hold";
+              const isAdminClosed =
+                (item as any).adminClose?.isClosed === true;
 
+              const isClosing = closingBookingId === item._id;
               const isTerminalStatus = [
                 "completed",
                 "cancelled",
@@ -607,42 +731,12 @@ const BookingHistoryScreen: React.FC = () => {
                           On Hold
                         </span>
                       )}
-
-                      {/* Hide both buttons for terminal bookings */}
-                      {!isTerminalStatus && (
-                        <button
-                          type="button"
-                          className="booking-hold-btn"
-                          onClick={() =>
-                            handleBookingStatusAction(item)
-                          }
-                          disabled={!!processingBookingId}
-                          title={
-                            isOnHold
-                              ? "Resume Booking"
-                              : "Put Booking On Hold"
-                          }
-                        >
-                          {isProcessing ? (
-                            <RefreshCw
-                              size={14}
-                              className="booking-spin"
-                            />
-                          ) : isOnHold ? (
-                            <PlayCircle size={14} />
-                          ) : (
-                            <PauseCircle size={14} />
-                          )}
-
-                          {isProcessing
-                            ? isOnHold
-                              ? "Resuming..."
-                              : "Holding..."
-                            : isOnHold
-                            ? "Resume"
-                            : "Hold"}
-                        </button>
+                      {isAdminClosed && (
+                        <span className="booking-status booking-status--cancelled">
+                          Closed by Admin
+                        </span>
                       )}
+                    
                     </div>
                   </td>
 
@@ -651,15 +745,98 @@ const BookingHistoryScreen: React.FC = () => {
                   </td>
 
                   <td>
-                    <button
-                      type="button"
-                      className="booking-view-btn"
-                      title="View Booking Details"
-                      onClick={() => openBooking(getBookingId(item))}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  </td>
+  <div className="booking-action-dropdown">
+
+    <button
+      type="button"
+      className="booking-action-dropdown-btn"
+      onClick={() =>
+        setActionDropdownId(
+          actionDropdownId === item._id ? null : item._id!
+        )
+      }
+    >
+      Actions
+      <ChevronDown size={16} />
+    </button>
+
+    {actionDropdownId === item._id && (
+      <>
+        <div
+          className="booking-dropdown-overlay"
+          onClick={() => setActionDropdownId(null)}
+        />
+
+        <div className="booking-action-menu">
+
+          {/* HOLD / RESUME */}
+          {!isTerminalStatus && !isAdminClosed && (
+            <button
+              type="button"
+              onClick={() => {
+                setActionDropdownId(null);
+                handleBookingStatusAction(item);
+              }}
+              disabled={!!processingBookingId}
+            >
+              {isProcessing ? (
+                <RefreshCw size={15} className="booking-spin" />
+              ) : isOnHold ? (
+                <PlayCircle size={15} />
+              ) : (
+                <PauseCircle size={15} />
+              )}
+
+              {isProcessing
+                ? isOnHold
+                  ? "Resuming..."
+                  : "Holding..."
+                : isOnHold
+                  ? "Resume Booking"
+                  : "Hold Booking"}
+            </button>
+          )}
+
+          {/* CLOSE BOOKING */}
+          {!isTerminalStatus && !isAdminClosed && (
+            <button
+              type="button"
+              onClick={() => {
+                setActionDropdownId(null);
+                handleCloseBooking(item);
+              }}
+              disabled={
+                !!processingBookingId ||
+                !!closingBookingId
+              }
+            >
+              {isClosing ? (
+                <RefreshCw size={15} className="booking-spin" />
+              ) : (
+                <Ban size={15} />
+              )}
+              Close Booking
+            </button>
+          )}
+
+          {/* VIEW BOOKING */}
+          <button
+            type="button"
+            onClick={() => {
+              setActionDropdownId(null);
+              openBooking(getBookingId(item));
+            }}
+          >
+            <Eye size={15} />
+            View Details
+          </button>
+
+        </div>
+      </>
+    )}
+
+  </div>
+</td>
                 </tr>
               );
             })}
@@ -1220,11 +1397,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("bookings")}
-              className={`booking-tab ${
-                activeTab === "bookings"
+              className={`booking-tab ${activeTab === "bookings"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <ClipboardList size={17} />
               All Bookings
@@ -1232,11 +1408,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("responses")}
-              className={`booking-tab ${
-                activeTab === "responses"
+              className={`booking-tab ${activeTab === "responses"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <CheckCircle2 size={17} />
               Service Responses
@@ -1244,11 +1419,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("scheduled")}
-              className={`booking-tab ${
-                activeTab === "scheduled"
+              className={`booking-tab ${activeTab === "scheduled"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <CalendarDays size={17} />
               Scheduled Services
@@ -1256,11 +1430,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("past")}
-              className={`booking-tab ${
-                activeTab === "past"
+              className={`booking-tab ${activeTab === "past"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <Clock3 size={17} />
               Past Services
@@ -1268,11 +1441,10 @@ const BookingHistoryScreen: React.FC = () => {
 
             <button
               onClick={() => changeTab("broadcasts")}
-              className={`booking-tab ${
-                activeTab === "broadcasts"
+              className={`booking-tab ${activeTab === "broadcasts"
                   ? "booking-tab--active"
                   : ""
-              }`}
+                }`}
             >
               <Radio size={17} />
               Broadcast History
@@ -1298,7 +1470,28 @@ const BookingHistoryScreen: React.FC = () => {
               }
             />
           </div>
+          {activeTab === "bookings" && (
+            <select
+              value={bookingStatus}
+              onChange={(e) => {
+                setBookingStatus(e.target.value);
+                setPage(1);
+              }}
+              className="booking-select"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="en-route">En Route</option>
+              <option value="arrived">Arrived</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completion-pending">Completion Pending</option>
+              <option value="completed">Completed</option>
+              <option value="disputed">Disputed</option>
 
+            </select>
+          )}
           {activeTab === "responses" && (
             <select
               value={responseStatus || ""}
@@ -1331,10 +1524,10 @@ const BookingHistoryScreen: React.FC = () => {
               onChange={(e) => {
                 setScheduledPeriod(
                   e.target.value as
-                    | "today"
-                    | "tomorrow"
-                    | "week"
-                    | ""
+                  | "today"
+                  | "tomorrow"
+                  | "week"
+                  | ""
                 );
 
                 setPage(1);

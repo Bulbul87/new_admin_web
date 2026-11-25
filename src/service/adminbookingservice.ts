@@ -1,4 +1,4 @@
-
+import { api } from "./api";
 /**
  * ============================================================
  * COMMON TYPES
@@ -741,4 +741,43 @@ export const resumeAdminBooking = async (
   id: string
 ): Promise<BookingActionResponse> => {
   return adminBookingAction(id, "resume");
+};
+
+
+export interface CloseBookingResponse {
+  success?: boolean;
+  message?: string;
+  _id?: string;
+  publicServiceId?: string;
+  status?: string;
+  adminClose?: {
+    isClosed?: boolean;
+    closedBy?: any;
+    closedAt?: string;
+    reason?: string;
+  };
+}
+
+
+export const closeAdminBooking = async (
+  bookingId: string,
+  reason: string
+): Promise<CloseBookingResponse> => {
+  try {
+    console.log("Close Booking Request Started");
+    console.log("Booking ID:", bookingId);
+    console.log("Reason:", reason);
+
+    const response = await api.patch(
+      `/admin/bookings/${bookingId}/close`,
+      { reason }
+    );
+
+    console.log("Close Booking Raw Response:", response);
+
+    return response as CloseBookingResponse;
+  } catch (error) {
+    console.error("Close Booking Service Error:", error);
+    throw error;
+  }
 };
