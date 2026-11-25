@@ -41,9 +41,6 @@ export interface LicenseListParams {
   limit?: number;
 }
 
-// ======================================
-// GET ALL LICENSES
-// ======================================
 export const getLicenses = async (
   params: LicenseListParams = {}
 ): Promise<LicenseListResponse> => {
@@ -60,7 +57,7 @@ export const getLicenses = async (
   query.set("page", String(params.page || 1));
   query.set("limit", String(params.limit || 10));
 
-  return api.get<LicenseListResponse>(
+  return api.getFullResponse<LicenseListResponse>(
     `/admin/licenses?${query.toString()}`
   );
 };

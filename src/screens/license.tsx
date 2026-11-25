@@ -80,53 +80,41 @@ const LicenseManagement: React.FC = () => {
   const total = pagination.total;
   const totalPages = pagination.totalPages;
 
-  // FETCH LICENSES
-  const fetchLicenses = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
+const fetchLicenses = useCallback(async () => {
+  const requestId = ++requestIdRef.current;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const response = await getLicenses({
-        search: search.trim(),
-        status: statusFilter,
-        page,
-        limit,
-      });
+    const response = await getLicenses({
+      search: search.trim(),
+      status: statusFilter,
+      page: page,
+      limit: limit,
+    });
 
-      if (requestId !== requestIdRef.current) return;
+    if (requestId !== requestIdRef.current) return;
 
-      console.log("LICENSE RESPONSE:", response);
+    console.log("LICENSE RESPONSE:", response);
 
-      const data: License[] = Array.isArray(response) ? response : [];
+    setLicenses(
+      Array.isArray(response.data) ? response.data : []
+    );
 
-      setLicenses(data);
+    setPagination(response.pagination);
 
-      // Temporary pagination fallback
-      const total = data.length;
-      const totalPages = Math.ceil(total / limit) || 1;
+  } catch (error: any) {
+    if (requestId !== requestIdRef.current) return;
 
-      setPagination({
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      });
+    console.error("LICENSE FETCH ERROR:", error);
+    toast.error(error?.message || "Unable to fetch licenses");
 
-    } catch (error: any) {
-      if (requestId !== requestIdRef.current) return;
-
-      console.error("LICENSE FETCH ERROR:", error);
-      toast.error(error?.message || "Unable to fetch licenses");
-
-    } finally {
-      if (requestId === requestIdRef.current) {
-        setLoading(false);
-      }
+  } finally {
+    if (requestId === requestIdRef.current) {
+      setLoading(false);
     }
-  }, [search, statusFilter, page, limit]);
+  }
+}, [search, statusFilter, page, limit]);
 
 
 
@@ -328,10 +316,13 @@ const sortedLicenses = [...licenses].sort((a, b) =>
     resetForm();
   };
 
-  const currentPage = pagination.page || page;
-  const pageSize = pagination.limit || limit;
-  const rangeStart = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const rangeEnd = Math.min(currentPage * pageSize, total);
+
+const pageSize = pagination.limit || limit;
+
+const rangeStart =
+  total === 0 ? 0 : (page - 1) * pageSize + 1;
+
+const rangeEnd = Math.min(page * pageSize, total);
 
   return (
     <div className="license-page">
@@ -542,7 +533,7 @@ const sortedLicenses = [...licenses].sort((a, b) =>
                         <div>
                           <strong>{license.name}</strong>
                           <span>
-                            License #{(currentPage - 1) * pageSize + index + 1}
+                             License #{(page - 1) * pageSize + index + 1}
                           </span>
                         </div>
                       </div>
@@ -647,7 +638,7 @@ const sortedLicenses = [...licenses].sort((a, b) =>
             </button>
 
             <span className="license-page-number">
-              {currentPage} / {Math.max(totalPages, 1)}
+             {page} / {Math.max(totalPages, 1)}
             </span>
 
             <button

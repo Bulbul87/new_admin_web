@@ -65,7 +65,6 @@ const RequesterDetails: React.FC = () => {
   const { id } = useParams();
   const [requester, setRequester] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
   const [showReviews, setShowReviews] = useState(false);
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -73,7 +72,7 @@ const RequesterDetails: React.FC = () => {
   const [reviewPage, setReviewPage] = useState(1);
   const [hasNextReviewPage, setHasNextReviewPage] = useState(false);
   const [reviewSummary, setReviewSummary] = useState<any>(null);
-
+const [totalReviewCount, setTotalReviewCount] = useState(0);
   const fetchRequesterReviews = async (page = 1) => {
     if (!id) return;
     try {
@@ -89,6 +88,18 @@ const RequesterDetails: React.FC = () => {
             : [];
       setReviews(reviewList);
       setReviewSummary(response?.summary || response?.profile?.summary || null);
+      const totalCount =
+  Number(
+    response?.summary?.totalReviews ??
+    response?.profile?.summary?.totalReviews ??
+    response?.pagination?.total ??
+    response?.pagination?.totalReviews ??
+    response?.totalReviews ??
+    response?.total ??
+    0
+  );
+
+setTotalReviewCount(totalCount);
       setReviewPage(page);
       const totalPages = Number(response?.pagination?.totalPages);
       setHasNextReviewPage(
@@ -310,21 +321,50 @@ const RequesterDetails: React.FC = () => {
 />
           <h2 style={{ color: "#14344A", fontWeight: 700, fontSize: 24, marginBottom: 10 }}>{fullName || "Requester"}</h2>
           <p style={{ margin: 0, color: "#14344A", overflowWrap: "anywhere" }}>{requester.requestorInfo?.publicRequesterId || ""}</p>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, marginTop: 14, flexWrap: "wrap" }}>
-            <FaStar color="#9A6700" />
-            <span style={{ color: "#14344A", fontWeight: 700 }}>
-              {reviewSummary?.averageRating ?? requester.rating ?? 0}
-            </span>
-            <span style={{ color: "#14344A" }}>Rating</span>
-            <button
-              type="button"
-              onClick={openRequesterReviews}
-              aria-label="View requester reviews"
-              style={{ border: "none", background: "transparent", color: "#14344A", fontWeight: 700, textDecoration: "underline", cursor: "pointer", padding: 0 }}
-            >
-              {reviewSummary?.totalReviews ?? requester.totalReviews ?? requester.reviewCount ?? 0} reviews
-            </button>
-          </div>
+          <div style={{
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 7,
+  marginTop: 14,
+  flexWrap: "wrap"
+}}>
+  <FaStar color="#9A6700" />
+
+  {/* Average Rating */}
+  <span style={{ color: "#14344A", fontWeight: 700 }}>
+    {Number(
+      reviewSummary?.averageRating ??
+      requester.requestorInfo?.rating ??
+      requester.rating ??
+      0
+    ).toFixed(1)}
+  </span>
+
+  <span style={{ color: "#14344A" }}>Rating</span>
+
+  {/* Total Reviews */}
+  <button
+    type="button"
+    onClick={openRequesterReviews}
+    style={{
+      border: "none",
+      background: "transparent",
+      color: "#14344A",
+      fontWeight: 700,
+      textDecoration: "underline",
+      cursor: "pointer",
+      padding: 0
+    }}
+  >
+    {totalReviewCount ||
+      reviewSummary?.totalReviews ||
+      requester.requestorInfo?.totalReviews ||
+      requester.totalReviews ||
+      requester.reviewCount ||
+      0} Reviews
+  </button>
+</div>
         </div>
 
 <div

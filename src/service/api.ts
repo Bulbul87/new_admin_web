@@ -56,7 +56,28 @@ class ApiService {
   get<T>(endpoint: string) {
     return this.request<T>(endpoint, { method: 'GET' });
   }
+ getFullResponse<T>(endpoint: string): Promise<T> {
+  return this.requestFullResponse<T>(endpoint);
+}
 
+private async requestFullResponse<T>(
+  endpoint: string
+): Promise<T> {
+  const headers = this.getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    method: "GET",
+    headers,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "API Error");
+  }
+
+  return data as T;
+}
   post<T>(endpoint: string, body: any) {
     return this.request<T>(endpoint, { method: 'POST', body });
   }

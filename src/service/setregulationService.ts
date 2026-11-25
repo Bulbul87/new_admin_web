@@ -65,11 +65,11 @@ export const getRegulationStates = () => {
 };
 
 // ==============================================
-// FETCH LICENSE MASTER
+// FETCH ALL LICENSE MASTER
 // ==============================================
 
 export const getRegulationLicenses = () => {
-  return api.get<any>(LICENSE_ENDPOINT);
+  return api.get<any>(`${LICENSE_ENDPOINT}?page=1&limit=100`);
 };
 
 // ==============================================
