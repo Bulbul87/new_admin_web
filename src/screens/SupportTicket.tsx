@@ -630,7 +630,15 @@ const SupportTicket: React.FC = () => {
                     </h2>
 
                    <p>
-  CaseId:-{selectedTicket.caseId || selectedTicket._id}
+  CareId:-{selectedTicket.careId || selectedTicket._id}
+</p>
+
+                   <p>
+  
+PublicTicketId
+:-{selectedTicket.
+publicTicketId
+ }
 </p>
                   </div>
                 </div>
