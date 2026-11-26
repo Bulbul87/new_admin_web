@@ -19,8 +19,10 @@ import {
   Radio,
   ClipboardList,
   PauseCircle,
-  PlayCircle,
+  Download,
 } from "lucide-react";
+
+import * as XLSX from "xlsx";
 
 import {
   getAdminBookings,
@@ -85,13 +87,32 @@ const BookingHistoryScreen: React.FC = () => {
 
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const [processingBookingId, setProcessingBookingId] =
-    useState<string | null>(null);
 
-  const [closingBookingId, setClosingBookingId] =
-    useState<string | null>(null);
 
-  const [actionDropdownId, setActionDropdownId] = useState<string | null>(null);
+
+  // =====================================================
+// BULK BOOKING SELECTION
+// =====================================================
+
+const [selectedBookingIds, setSelectedBookingIds] =
+  useState<string[]>([]);
+
+const [bulkActionOpen, setBulkActionOpen] = useState(false);
+
+const [bulkProcessing, setBulkProcessing] = useState(false);
+
+const selectedBookings = bookings.filter((booking) =>
+  selectedBookingIds.includes(booking._id)
+);
+
+const isAllBookingsSelected =
+  bookings.length > 0 &&
+  bookings.every((booking) =>
+    selectedBookingIds.includes(booking._id)
+  );
+
+const isSomeBookingSelected =
+  selectedBookingIds.length > 0;
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -177,6 +198,33 @@ const BookingHistoryScreen: React.FC = () => {
     return booking.bookingId || booking._id;
   };
 
+
+  // =====================================================
+// BOOKING SELECTION HANDLERS
+// =====================================================
+
+const handleSelectBooking = (bookingId: string) => {
+  setSelectedBookingIds((previous) =>
+    previous.includes(bookingId)
+      ? previous.filter((id) => id !== bookingId)
+      : [...previous, bookingId]
+  );
+};
+
+const handleSelectAllBookings = () => {
+  if (isAllBookingsSelected) {
+    setSelectedBookingIds([]);
+  } else {
+    setSelectedBookingIds(
+      bookings.map((booking) => booking._id)
+    );
+  }
+};
+
+const clearBookingSelection = () => {
+  setSelectedBookingIds([]);
+  setBulkActionOpen(false);
+};
   // =====================================================
   // PUBLIC ID HELPERS
   // =====================================================
@@ -371,137 +419,143 @@ const BookingHistoryScreen: React.FC = () => {
     setRefreshKey((current) => current + 1);
   };
 
-  // =====================================================
-  // HOLD / RESUME BOOKING
-  // Uses adminHold field, NOT booking.status
-  // =====================================================
 
-  const handleBookingStatusAction = async (booking: Booking) => {
-    const bookingId = booking._id;
+// =====================================================
+// BULK HOLD / RESUME BOOKINGS
+// =====================================================
 
-    if (!bookingId || processingBookingId) return;
+const handleBulkHoldResume = async () => {
+  if (!selectedBookings.length || bulkProcessing) return;
 
-    const isOnHold = booking.adminHold === "hold";
+  const eligibleBookings = selectedBookings.filter((booking) => {
+    const status = booking.status?.toLowerCase();
 
-    const normalizedStatus = booking.status?.toLowerCase();
-
-    const isTerminalStatus = [
+    const isTerminal = [
       "completed",
       "cancelled",
       "no-show",
-    ].includes(normalizedStatus);
+    ].includes(status || "");
 
-    if (isTerminalStatus) {
-      window.alert(
-        `Cannot ${isOnHold ? "resume" : "hold"} a ${normalizedStatus} booking.`
-      );
-      return;
-    }
+    const isClosed =
+      (booking as any).adminClose?.isClosed === true;
 
-    const publicId = getPublicServiceId(booking);
+    return !isTerminal && !isClosed;
+  });
 
-    const confirmed = window.confirm(
-      isOnHold
-        ? `Are you sure you want to resume booking ${publicId}?`
-        : `Are you sure you want to put booking ${publicId} on hold?`
-    );
+  if (!eligibleBookings.length) {
+    window.alert("No eligible bookings available for Hold / Resume.");
+    return;
+  }
 
-    if (!confirmed) return;
+  const confirmed = window.confirm(
+    `Are you sure you want to Hold / Resume ${eligibleBookings.length} selected booking(s)?`
+  );
 
-    try {
-      setProcessingBookingId(bookingId);
+  if (!confirmed) return;
 
-      const result = isOnHold
-        ? await resumeAdminBooking(bookingId)
-        : await holdAdminBooking(bookingId);
+  try {
+    setBulkProcessing(true);
 
-      if (!result.success) {
-        throw new Error(
-          result.message ||
-          (isOnHold
-            ? "Failed to resume booking"
-            : "Failed to hold booking")
+  const updatedBookings: Record<string, "hold" | "resume"> = {};
+    const failedBookings: string[] = [];
+
+    for (const booking of eligibleBookings) {
+      try {
+        const isOnHold = booking.adminHold === "hold";
+
+        const result = isOnHold
+          ? await resumeAdminBooking(booking._id)
+          : await holdAdminBooking(booking._id);
+
+        if (!result.success) {
+          throw new Error(result.message || "Action failed");
+        }
+
+        updatedBookings[booking._id] =
+          result.data?.adminHold ||
+          (isOnHold ? "resume" : "hold");
+      } catch (error) {
+        console.error(
+          `Hold/Resume failed for ${booking._id}:`,
+          error
         );
+
+        failedBookings.push(getPublicServiceId(booking));
       }
-
-      // Update ONLY adminHold.
-      // Original booking status remains unchanged.
-      const updatedAdminHold =
-        result.data?.adminHold || (isOnHold ? "resume" : "hold");
-
-      setBookings((previous) =>
-        previous.map((item) =>
-          item._id === bookingId
-            ? {
-              ...item,
-              adminHold: updatedAdminHold,
-            }
-            : item
-        )
-      );
-
-      window.alert(
-        result.message ||
-        (isOnHold
-          ? "Booking resumed successfully."
-          : "Booking put on hold successfully.")
-      );
-    } catch (error) {
-      console.error("Booking hold/resume action error:", error);
-
-      window.alert(
-        error instanceof Error
-          ? error.message
-          : "Unable to update booking"
-      );
-    } finally {
-      setProcessingBookingId(null);
     }
-  };
+
+  setBookings((previous) =>
+  previous.map((booking) => {
+    const updatedHold = updatedBookings[booking._id];
+
+    if (updatedHold === undefined) {
+      return booking;
+    }
+
+    return {
+      ...booking,
+      adminHold: updatedHold,
+    };
+  })
+);
+
+    clearBookingSelection();
+
+    if (failedBookings.length) {
+      window.alert(
+        `Action completed with some errors.\nFailed bookings: ${failedBookings.join(", ")}`
+      );
+    } else {
+      window.alert(
+        `${eligibleBookings.length} booking(s) updated successfully.`
+      );
+    }
+  } catch (error) {
+    console.error("Bulk Hold/Resume Error:", error);
+    window.alert("Unable to process selected bookings.");
+  } finally {
+    setBulkProcessing(false);
+  }
+};
+
+ 
 
 
-  // =====================================================
-  // CLOSE BOOKING
-  // Uses adminClose field, NOT booking.status
-  // =====================================================
-
-  // =====================================================
-// CLOSE BOOKING
-// Uses adminClose field, NOT booking.status
+// =====================================================
+// BULK CLOSE BOOKINGS
 // =====================================================
 
-const handleCloseBooking = async (booking: Booking) => {
-  const bookingId = booking._id;
+const handleBulkCloseBookings = async () => {
+  if (!selectedBookings.length || bulkProcessing) return;
 
-  if (!bookingId || processingBookingId || closingBookingId) return;
+  const eligibleBookings = selectedBookings.filter((booking) => {
+    const status = booking.status?.toLowerCase();
 
-  const normalizedStatus = booking.status?.toLowerCase();
+    const isTerminal = [
+      "completed",
+      "cancelled",
+      "no-show",
+    ].includes(status || "");
 
-  const isTerminalStatus = [
-    "completed",
-    "cancelled",
-    "no-show",
-  ].includes(normalizedStatus || "");
+    const isClosed =
+      (booking as any).adminClose?.isClosed === true;
 
-  if (isTerminalStatus) {
-    window.alert(
-      `Cannot close a ${normalizedStatus} booking.`
-    );
+    return !isTerminal && !isClosed;
+  });
+
+  if (!eligibleBookings.length) {
+    window.alert("No eligible bookings available to close.");
     return;
   }
 
-  const isAlreadyClosed =
-    (booking as any).adminClose?.isClosed === true;
+  const confirmed = window.confirm(
+    `Are you sure you want to close ${eligibleBookings.length} selected booking(s)?`
+  );
 
-  if (isAlreadyClosed) {
-    window.alert("This booking is already closed.");
-    return;
-  }
-
-  const publicId = getPublicServiceId(booking);
+  if (!confirmed) return;
 
   const reason = window.prompt(
-    `Enter reason for closing booking ${publicId}:`
+    `Enter reason for closing ${eligibleBookings.length} booking(s):`
   );
 
   if (reason === null) return;
@@ -517,59 +571,182 @@ const handleCloseBooking = async (booking: Booking) => {
   }
 
   try {
-    setClosingBookingId(bookingId);
+    setBulkProcessing(true);
 
-    console.log("Calling Close Booking API...");
-    console.log("Booking ID:", bookingId);
+    const successfulIds: string[] = [];
+    const failedIds: string[] = [];
 
-    const result = await closeAdminBooking(
-      bookingId,
-      reason.trim()
+    for (const booking of eligibleBookings) {
+      try {
+        const result = await closeAdminBooking(
+          booking._id,
+          reason.trim()
+        );
+
+        if (result.success === false) {
+          throw new Error(
+            result.message || "Failed to close booking"
+          );
+        }
+
+        successfulIds.push(booking._id);
+      } catch (error) {
+        console.error(
+          `Close failed for booking ${booking._id}:`,
+          error
+        );
+
+        failedIds.push(getPublicServiceId(booking));
+      }
+    }
+
+    setBookings((previous) =>
+      previous.map((booking) =>
+        successfulIds.includes(booking._id)
+          ? {
+              ...booking,
+              adminClose: {
+                isClosed: true,
+                reason: reason.trim(),
+                closedAt: new Date().toISOString(),
+              },
+            } as Booking
+          : booking
+      )
     );
 
-    console.log("Close Booking API Response:", result);
+    clearBookingSelection();
 
-   if (result.success === false) {
-  throw new Error(
-    result.message || "Failed to close booking"
-  );
-}
-
-   setBookings((previous) =>
-  previous.map((item) =>
-    item._id === bookingId
-      ? {
-          ...item,
-          adminClose: result.adminClose || {
-            isClosed: true,
-            reason: reason.trim(),
-            closedAt: new Date().toISOString(),
-          },
-        } as Booking
-      : item
-  )
-);
-
-    window.alert(
-      result.message || "Booking closed successfully."
-    );
-
-  } catch (error: any) {
-    console.error("Close Booking Error:", error);
-    console.error("Error Message:", error?.message);
-    console.error("Error Response:", error?.response);
-
-    window.alert(
-      error?.response?.data?.message ||
-      error?.message ||
-      "Failed to close booking"
-    );
-
+    if (failedIds.length) {
+      window.alert(
+        `Closed: ${successfulIds.length}\nFailed: ${failedIds.length}\n\nFailed IDs: ${failedIds.join(", ")}`
+      );
+    } else {
+      window.alert(
+        `${successfulIds.length} booking(s) closed successfully.`
+      );
+    }
+  } catch (error) {
+    console.error("Bulk Close Error:", error);
+    window.alert("Unable to close selected bookings.");
   } finally {
-    setClosingBookingId(null);
+    setBulkProcessing(false);
   }
 };
 
+
+// =====================================================
+// EXPORT SELECTED BOOKINGS TO EXCEL
+// =====================================================
+
+const handleExportBookingsExcel = () => {
+  if (!selectedBookings.length) {
+    window.alert("Please select at least one booking.");
+    return;
+  }
+
+  try {
+    const excelData = selectedBookings.map((booking) => ({
+      "Booking ID": getPublicServiceId(booking),
+
+      "Internal Booking ID": booking._id,
+
+      "Requestor Name": getName(
+        booking.requestor || booking.user
+      ),
+
+      "Requestor Email":
+        (booking.requestor || booking.user)?.email || "",
+
+      "Caregiver Name": getName(booking.provider),
+
+      "Caregiver Email": booking.provider?.email || "",
+
+      "Service Name": booking.service?.name || "",
+
+      "Scheduled Date": booking.scheduledDate
+        ? formatDate(booking.scheduledDate)
+        : "",
+
+      "Scheduled Time": getTimeLabel(
+        booking.scheduledTime
+      ),
+
+      "Booking Status": formatStatus(booking.status),
+
+      "Admin Hold Status":
+        booking.adminHold === "hold" ? "On Hold" : "Resume",
+
+      "Admin Closed":
+        (booking as any).adminClose?.isClosed
+          ? "Yes"
+          : "No",
+
+      "Close Reason":
+        (booking as any).adminClose?.reason || "",
+
+      "Closed At":
+        (booking as any).adminClose?.closedAt
+          ? formatDateTime(
+              (booking as any).adminClose.closedAt
+            )
+          : "",
+
+      "Created At": booking.createdAt
+        ? formatDateTime(booking.createdAt)
+        : "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    worksheet["!cols"] = [
+      { wch: 18 },
+      { wch: 28 },
+      { wch: 24 },
+      { wch: 30 },
+      { wch: 24 },
+      { wch: 30 },
+      { wch: 25 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 18 },
+      { wch: 16 },
+      { wch: 35 },
+      { wch: 22 },
+      { wch: 22 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Bookings"
+    );
+
+    const currentDate = new Date()
+      .toISOString()
+      .slice(0, 10);
+
+    const fileName =
+      selectedBookings.length === 1
+        ? `Booking_${getPublicServiceId(selectedBookings[0])}_${currentDate}.xlsx`
+        : `Selected_Bookings_${currentDate}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+
+    setBulkActionOpen(false);
+    clearBookingSelection();
+
+    window.alert(
+      `${excelData.length} booking(s) exported successfully.`
+    );
+  } catch (error) {
+    console.error("Excel Export Error:", error);
+    window.alert("Failed to export bookings to Excel.");
+  }
+};
   const handleSearch = (value: string) => {
     setSearch(value);
     setPage(1);
@@ -621,240 +798,189 @@ const handleCloseBooking = async (booking: Booking) => {
         );
     }
   };
+  // Clear selection when page, filters or tab changes
+useEffect(() => {
+  setSelectedBookingIds([]);
+  setBulkActionOpen(false);
+}, [
+  activeTab,
+  page,
+  search,
+  bookingStatus,
+  refreshKey,
+]);
 
-  // =====================================================
-  // ALL BOOKINGS TABLE
-  // =====================================================
 
-  const renderBookings = () => (
-    <div className="booking-table-card">
-      <div className="booking-table-wrapper">
-        <table className="booking-table">
-          <thead>
-            <tr>
-              <th>Booking ID</th>
-              <th>Requestor</th>
-              <th>Care giver</th>
-              <th>Service</th>
-              <th>Scheduled Date</th>
-              <th>Time</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+// =====================================================
+// ALL BOOKINGS TABLE
+// =====================================================
 
-          <tbody>
-            {bookings.map((item) => {
-              const normalizedStatus = item.status?.toLowerCase();
+const renderBookings = () => (
+  <div className="booking-table-card">
+    <div className="booking-table-wrapper">
+      <table className="booking-table">
+        <thead>
+          <tr>
+            <th className="booking-checkbox-column">
+              <input
+                type="checkbox"
+                checked={isAllBookingsSelected}
+                onChange={handleSelectAllBookings}
+                aria-label="Select all bookings"
+              />
+            </th>
 
-              // IMPORTANT: Hold state comes from adminHold,
-              // not from booking.status.
-              const isOnHold = item.adminHold === "hold";
-              const isAdminClosed =
-                (item as any).adminClose?.isClosed === true;
+            <th>Booking ID</th>
+            <th>Requestor</th>
+            <th>Care giver</th>
+            <th>Service</th>
+            <th>Scheduled Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </thead>
 
-              const isClosing = closingBookingId === item._id;
-              const isTerminalStatus = [
-                "completed",
-                "cancelled",
-                "no-show",
-              ].includes(normalizedStatus);
+        <tbody>
+          {bookings.map((item) => {
+           
 
-              const isProcessing =
-                processingBookingId === item._id;
+            const isOnHold = item.adminHold === "hold";
 
-              return (
-                <tr key={getBookingId(item)}>
-                  <td>
-                    <span
-                      className="booking-table-text"
-                      title={getPublicServiceId(item)}
-                    >
-                      {getPublicServiceId(item)}
-                    </span>
-                  </td>
+            const isAdminClosed =
+              (item as any).adminClose?.isClosed === true;
 
-                  <td>
-                    <div className="booking-person">
-                      <div className="booking-avatar">
-                        <UserRound size={17} />
-                      </div>
+            const isSelected = selectedBookingIds.includes(
+              item._id
+            );
 
-                      <div className="booking-person-info">
-                        <p className="booking-person-name">
-                          {getName(item.requestor || item.user)}
-                        </p>
+            return (
+              <tr
+                key={getBookingId(item)}
+                className={
+                  isSelected ? "booking-row-selected" : ""
+                }
+              >
+                <td className="booking-checkbox-column">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() =>
+                      handleSelectBooking(item._id)
+                    }
+                    aria-label={`Select booking ${getPublicServiceId(item)}`}
+                  />
+                </td>
 
-                        <p className="booking-person-email">
-                          {(item.requestor || item.user)?.email || "—"}
-                        </p>
-                      </div>
+                <td>
+                  <span
+                    className="booking-table-text"
+                    title={getPublicServiceId(item)}
+                  >
+                    {getPublicServiceId(item)}
+                  </span>
+                </td>
+
+                <td>
+                  <div className="booking-person">
+                    <div className="booking-avatar">
+                      <UserRound size={17} />
                     </div>
-                  </td>
 
-                  <td>
-                    <span className="booking-table-text">
-                      {getName(item.provider)}
-                    </span>
-                  </td>
+                    <div className="booking-person-info">
+                      <p className="booking-person-name">
+                        {getName(item.requestor || item.user)}
+                      </p>
 
-                  <td>
-                    <div className="booking-service">
-                      <BriefcaseBusiness size={16} />
-                      <span>{item.service?.name || "—"}</span>
+                      <p className="booking-person-email">
+                        {(item.requestor || item.user)?.email || "—"}
+                      </p>
                     </div>
-                  </td>
-
-                  <td>
-                    {formatDate(item.scheduledDate)}
-                  </td>
-
-                  <td>
-                    {getTimeLabel(item.scheduledTime)}
-                  </td>
-
-                  <td>
-                    <div className="booking-status-wrapper">
-                      {/* Original booking status remains unchanged */}
-                      <span
-                        className={`booking-status ${getStatusClass(
-                          item.status
-                        )}`}
-                      >
-                        {formatStatus(item.status)}
-                      </span>
-
-                      {/* Separate admin hold indicator */}
-                      {isOnHold && (
-                        <span className="booking-status booking-status--hold">
-                          On Hold
-                        </span>
-                      )}
-                      {isAdminClosed && (
-                        <span className="booking-status booking-status--cancelled">
-                          Closed by Admin
-                        </span>
-                      )}
-                    
-                    </div>
-                  </td>
-
-                  <td>
-                    {formatDate(item.createdAt)}
-                  </td>
-
-                  <td>
-  <div className="booking-action-dropdown">
-
-    <button
-      type="button"
-      className="booking-action-dropdown-btn"
-      onClick={() =>
-        setActionDropdownId(
-          actionDropdownId === item._id ? null : item._id!
-        )
-      }
-    >
-      Actions
-      <ChevronDown size={16} />
-    </button>
-
-    {actionDropdownId === item._id && (
-      <>
-        <div
-          className="booking-dropdown-overlay"
-          onClick={() => setActionDropdownId(null)}
-        />
-
-        <div className="booking-action-menu">
-
-          {/* HOLD / RESUME */}
-          {!isTerminalStatus && !isAdminClosed && (
-            <button
-              type="button"
-              onClick={() => {
-                setActionDropdownId(null);
-                handleBookingStatusAction(item);
-              }}
-              disabled={!!processingBookingId}
-            >
-              {isProcessing ? (
-                <RefreshCw size={15} className="booking-spin" />
-              ) : isOnHold ? (
-                <PlayCircle size={15} />
-              ) : (
-                <PauseCircle size={15} />
-              )}
-
-              {isProcessing
-                ? isOnHold
-                  ? "Resuming..."
-                  : "Holding..."
-                : isOnHold
-                  ? "Resume Booking"
-                  : "Hold Booking"}
-            </button>
-          )}
-
-          {/* CLOSE BOOKING */}
-          {!isTerminalStatus && !isAdminClosed && (
-            <button
-              type="button"
-              onClick={() => {
-                setActionDropdownId(null);
-                handleCloseBooking(item);
-              }}
-              disabled={
-                !!processingBookingId ||
-                !!closingBookingId
-              }
-            >
-              {isClosing ? (
-                <RefreshCw size={15} className="booking-spin" />
-              ) : (
-                <Ban size={15} />
-              )}
-              Close Booking
-            </button>
-          )}
-
-          {/* VIEW BOOKING */}
-          <button
-            type="button"
-            onClick={() => {
-              setActionDropdownId(null);
-              openBooking(getBookingId(item));
-            }}
-          >
-            <Eye size={15} />
-            View Details
-          </button>
-
-        </div>
-      </>
-    )}
-
-  </div>
-</td>
-                </tr>
-              );
-            })}
-
-            {!loading && bookings.length === 0 && (
-              <tr>
-                <td colSpan={9}>
-                  <div className="booking-empty">
-                    No bookings found.
                   </div>
                 </td>
+
+                <td>
+                  <span className="booking-table-text">
+                    {getName(item.provider)}
+                  </span>
+                </td>
+
+                <td>
+                  <div className="booking-service">
+                    <BriefcaseBusiness size={16} />
+                    <span>
+                      {item.service?.name || "—"}
+                    </span>
+                  </div>
+                </td>
+
+                <td>
+                  {formatDate(item.scheduledDate)}
+                </td>
+
+                <td>
+                  {getTimeLabel(item.scheduledTime)}
+                </td>
+
+                <td>
+                  <div className="booking-status-wrapper">
+                    <span
+                      className={`booking-status ${getStatusClass(
+                        item.status
+                      )}`}
+                    >
+                      {formatStatus(item.status)}
+                    </span>
+
+                    {isOnHold && (
+                      <span className="booking-status booking-status--hold">
+                        On Hold
+                      </span>
+                    )}
+
+                    {isAdminClosed && (
+                      <span className="booking-status booking-status--cancelled">
+                        Closed by Admin
+                      </span>
+                    )}
+                  </div>
+                </td>
+
+                <td>
+                  {formatDate(item.createdAt)}
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    className="booking-view-btn"
+                    title="View Details"
+                    onClick={() =>
+                      openBooking(getBookingId(item))
+                    }
+                  >
+                    <Eye size={18} />
+                  </button>
+                </td>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            );
+          })}
+
+          {!loading && bookings.length === 0 && (
+            <tr>
+              <td colSpan={10}>
+                <div className="booking-empty">
+                  No bookings found.
+                </div>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
-  );
+  </div>
+);
 
   // =====================================================
   // SERVICE RESPONSES TABLE
@@ -1563,7 +1689,105 @@ const handleCloseBooking = async (booking: Booking) => {
           )}
 
         </div>
+{/* =====================================================
+    BULK BOOKING ACTIONS
+===================================================== */}
 
+{activeTab === "bookings" && (
+  <div className="booking-bulk-toolbar">
+
+    <div className="booking-selection-info">
+      <span className="booking-selected-count">
+        {selectedBookingIds.length}
+      </span>
+
+      <span>
+        {selectedBookingIds.length === 1
+          ? "Booking Selected"
+          : "Bookings Selected"}
+      </span>
+
+      {isSomeBookingSelected && (
+        <button
+          type="button"
+          className="booking-clear-selection"
+          onClick={clearBookingSelection}
+        >
+          Clear Selection
+        </button>
+      )}
+    </div>
+
+    <div className="booking-bulk-dropdown">
+
+      <button
+        type="button"
+        className="booking-bulk-action-btn"
+        disabled={!isSomeBookingSelected || bulkProcessing}
+        onClick={() =>
+          setBulkActionOpen((previous) => !previous)
+        }
+      >
+        {bulkProcessing ? (
+          <RefreshCw
+            size={17}
+            className="booking-spin"
+          />
+        ) : (
+          <ClipboardList size={17} />
+        )}
+
+        Actions
+
+        <ChevronDown size={16} />
+      </button>
+
+      {bulkActionOpen && (
+        <>
+          <div
+            className="booking-bulk-overlay"
+            onClick={() => setBulkActionOpen(false)}
+          />
+
+          <div className="booking-bulk-menu">
+
+            <button
+              type="button"
+              onClick={handleBulkHoldResume}
+              disabled={bulkProcessing}
+            >
+              <PauseCircle size={16} />
+              Hold / Resume Selected
+            </button>
+
+            <button
+              type="button"
+              onClick={handleBulkCloseBookings}
+              disabled={bulkProcessing}
+            >
+              <Ban size={16} />
+              Close Selected
+            </button>
+
+            <div className="booking-bulk-divider" />
+
+            <button
+              type="button"
+              onClick={handleExportBookingsExcel}
+              disabled={bulkProcessing}
+            >
+              <Download size={16} />
+              Export Excel
+            </button>
+
+          </div>
+        </>
+      )}
+
+    </div>
+
+  </div>
+)}
         {/* ERROR */}
 
         {error && (

@@ -168,6 +168,23 @@ const Adminconfigscreen: React.FC = () => {
 
 
         < div style={{ display: 'flex', alignItems: 'center', textAlign: 'center', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
+         <button
+            onClick={() => navigate("/caregiver-services")}
+            style={{
+              background: "linear-gradient(135deg, #14344A, #163A5F)",
+              color: "#fff",
+              border: "none",
+              padding: "14px 20px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(20, 52, 74, 0.2)",
+            }}
+          >
+          Categories activation
+          </button>
+
           <button
             onClick={() => navigate("/licenses")}
             style={{

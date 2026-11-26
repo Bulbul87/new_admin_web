@@ -1,0 +1,234 @@
+
+.csm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  background: rgba(15, 23, 42, 0.68);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.csm-dialog {
+  width: 100%;
+  max-width: 1150px;
+  max-height: 92vh;
+  background: #F5F7FB;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.28);
+  animation: csmAppear 0.2s ease-out;
+}
+
+@keyframes csmAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.csm-header {
+  padding: 20px 25px;
+  background: linear-gradient(115deg, #FFFF6D 0%, #BDEBFA 55%, #8FDAFA 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid #E6EBF1;
+  flex-shrink: 0;
+}
+
+.csm-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.csm-heading-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 13px;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #14344A;
+  flex-shrink: 0;
+}
+
+.csm-heading h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: #14344A;
+}
+
+.csm-heading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #526779;
+}
+
+.csm-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(20,52,74,0.15);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.8);
+  color: #14344A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.csm-close:hover {
+  background: #FFFFFF;
+}
+
+.csm-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.csm-body {
+  padding: 22px 25px;
+  overflow-y: auto;
+  display: grid;
+  gap: 18px;
+  min-height: 0;
+}
+
+.csm-profile-card {
+  margin: 0;
+}
+
+.csm-footer {
+  padding: 15px 25px;
+  border-top: 1px solid #E6EBF1;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.csm-footer > span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.csm-footer > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.csm-cancel-btn {
+  border: 1px solid #E3EAF2;
+  border-radius: 9px;
+  padding: 10px 17px;
+  background: #FFFFFF;
+  color: #14344A;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.csm-cancel-btn:hover {
+  background: #F5F7FB;
+}
+
+.csm-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modal responsive */
+@media (max-width: 768px) {
+  .csm-overlay {
+    padding: 8px;
+    align-items: center;
+  }
+
+  .csm-dialog {
+    max-height: 96vh;
+    border-radius: 15px;
+  }
+
+  .csm-header {
+    padding: 15px;
+  }
+
+  .csm-heading h2 {
+    font-size: 16px;
+  }
+
+  .csm-heading p {
+    font-size: 11px;
+  }
+
+  .csm-body {
+    padding: 14px;
+    gap: 13px;
+  }
+
+  .csm-footer {
+    padding: 13px 15px;
+  }
+
+  .csm-footer > span {
+    width: 100%;
+  }
+
+  .csm-footer > div {
+    width: 100%;
+  }
+
+  .csm-footer button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .cs-list-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .cs-list-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .csm-overlay {
+    padding: 5px;
+  }
+
+  .csm-heading-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .csm-heading h2 {
+    font-size: 14px;
+  }
+
+  .csm-close {
+    width: 33px;
+    height: 33px;
+  }
+}

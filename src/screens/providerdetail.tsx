@@ -33,6 +33,8 @@ import {
   updateCaregiverLicense,
   deleteCaregiverLicense,
 } from "../service/admin.service";
+import { BriefcaseBusiness } from "lucide-react";
+import CaregiverServiceModal from "../components/caregiverservicemodel";
 
 import { decryptData } from "../utils/crypto";
 import { api } from "../service/api";
@@ -656,7 +658,7 @@ const [licenseLoading, setLicenseLoading] = useState(false);
 const [licenseSaving, setLicenseSaving] = useState(false);
 const [showLicenseModal, setShowLicenseModal] = useState(false);
 const [editingLicenseId, setEditingLicenseId] = useState<string | null>(null);
-
+const [showCategoryActivation, setShowCategoryActivation] = useState(false);
 const [licenseForm, setLicenseForm] = useState({
   type: "",
   number: "",
@@ -1410,24 +1412,54 @@ const handleDeleteLicense = async (licenseId: string) => {
         </div>
 
 
-        <div
-          style={{
-            padding: "10px 15px",
-            borderRadius: 14,
-            background: "rgba(255,255,255,0.78)",
-            fontSize: 13,
-            fontWeight: 800,
-            color: info.isVerified ? "#137547" : "#9A5700",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <FaCheckCircle />
-          {info.isVerified
-            ? "Verified Care giver"
-            : "Verification Pending"}
-        </div>
+      <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    flexWrap: "wrap",
+  }}
+>
+  <div
+    style={{
+      padding: "10px 15px",
+      borderRadius: 14,
+      background: "rgba(255,255,255,0.78)",
+      fontSize: 13,
+      fontWeight: 800,
+      color: info.isVerified ? "#137547" : "#9A5700",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+    }}
+  >
+    <FaCheckCircle />
+    {info.isVerified
+      ? "Verified Care giver"
+      : "Verification Pending"}
+  </div>
+
+  <button
+    type="button"
+    onClick={() => setShowCategoryActivation(true)}
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "11px 16px",
+      border: "none",
+      borderRadius: 12,
+      background: "#14344A",
+      color: "#FFFFFF",
+      fontWeight: 700,
+      fontSize: 13,
+      cursor: "pointer",
+    }}
+  >
+    <BriefcaseBusiness size={17} />
+    Activate Categories
+  </button>
+</div>
       </section>
 
       {/* SUMMARY STATS */}
@@ -3060,6 +3092,15 @@ const handleDeleteLicense = async (licenseId: string) => {
           </div>
         </div>
       )}
+
+     <CaregiverServiceModal
+  isOpen={showCategoryActivation}
+  onClose={() => setShowCategoryActivation(false)}
+  caregiverId={provider._id}
+  caregiverName={fullName}
+  caregiverEmail={provider.email}
+  publicCaregiverId={provider.providerInfo?.publicProviderId}
+/>
     </div>
   );
 };

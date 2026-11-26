@@ -1,5 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Search,
     RefreshCw,
@@ -26,8 +27,10 @@ import {
 } from "../service/caregiverservice";
 
 import "./CaregiverService.css";
+import { FaArrowLeft } from "react-icons/fa";
 
 const CaregiverService: React.FC = () => {
+    const navigate = useNavigate();
     const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
     const [selectedCaregiverId, setSelectedCaregiverId] = useState("");
 
@@ -348,23 +351,46 @@ const CaregiverService: React.FC = () => {
                         </p>
                     </div>
                 </div>
+                <div className="d-flex gap-2">
+                    <button
+                        type="button"
+                        className="cs-refresh-btn"
+                        onClick={handleRefresh}
+                        disabled={loadingCategories || loadingCaregivers}
+                    >
+                        <RefreshCw
+                            size={16}
+                            className={
+                                loadingCategories || loadingCaregivers
+                                    ? "cs-spinning"
+                                    : ""
+                            }
+                        />
+                        Refresh
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => navigate("/admin-config")}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 7,
+                            border: "1px solid #E3EAF2",
+                            borderRadius: 10,
+                            padding: "10px 14px",
+                            background: "#FFFFFF",
+                            color: "#14344A",
+                            fontWeight: 600,
+                            fontSize: 13,
+                            cursor: "pointer",
+                        }}
+                    >
+                        <FaArrowLeft size={16} />
+                        Back
+                    </button>
+                </div>
 
-                <button
-                    type="button"
-                    className="cs-refresh-btn"
-                    onClick={handleRefresh}
-                    disabled={loadingCategories || loadingCaregivers}
-                >
-                    <RefreshCw
-                        size={16}
-                        className={
-                            loadingCategories || loadingCaregivers
-                                ? "cs-spinning"
-                                : ""
-                        }
-                    />
-                    Refresh
-                </button>
             </div>
 
             {/* CAREGIVER SELECTION */}
@@ -571,32 +597,6 @@ const CaregiverService: React.FC = () => {
                                 </span>
                             )}
 
-                            <button
-                                type="button"
-                                className="cs-save-btn"
-                                onClick={handleSave}
-                                disabled={
-                                    saving ||
-                                    loadingCategories ||
-                                    !hasChanges ||
-                                    categories.length === 0
-                                }
-                            >
-                                {saving ? (
-                                    <>
-                                        <LoaderCircle
-                                            size={17}
-                                            className="cs-spinning"
-                                        />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save size={17} />
-                                        Save Changes
-                                    </>
-                                )}
-                            </button>
                         </div>
                     </div>
 
@@ -640,8 +640,8 @@ const CaregiverService: React.FC = () => {
                             return (
                                 <div
                                     className={`cs-category-card ${!categoryAvailable
-                                            ? "cs-category-disabled"
-                                            : ""
+                                        ? "cs-category-disabled"
+                                        : ""
                                         }`}
                                     key={category.categoryId}
                                 >
@@ -687,8 +687,8 @@ const CaregiverService: React.FC = () => {
                                         <div className="cs-category-control">
                                             <span
                                                 className={`cs-status ${categoryAvailable
-                                                        ? "active"
-                                                        : "inactive"
+                                                    ? "active"
+                                                    : "inactive"
                                                     }`}
                                             >
                                                 {categoryAvailable
@@ -698,8 +698,8 @@ const CaregiverService: React.FC = () => {
 
                                             <label
                                                 className={`cs-toggle ${!category.globalIsActive
-                                                        ? "toggle-disabled"
-                                                        : ""
+                                                    ? "toggle-disabled"
+                                                    : ""
                                                     }`}
                                             >
                                                 <input
@@ -784,8 +784,8 @@ const CaregiverService: React.FC = () => {
                                                             <div>
                                                                 <span
                                                                     className={`cs-mini-status ${service.globalIsActive
-                                                                            ? "active"
-                                                                            : "inactive"
+                                                                        ? "active"
+                                                                        : "inactive"
                                                                         }`}
                                                                 >
                                                                     {service.globalIsActive
@@ -797,8 +797,8 @@ const CaregiverService: React.FC = () => {
                                                             <div>
                                                                 <span
                                                                     className={`cs-mini-status ${isAvailable
-                                                                            ? "active"
-                                                                            : "inactive"
+                                                                        ? "active"
+                                                                        : "inactive"
                                                                         }`}
                                                                 >
                                                                     {isAvailable
