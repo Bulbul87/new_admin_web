@@ -483,7 +483,8 @@ const PaymentReceipts: React.FC = () => {
             <table className="w-full min-w-[1050px] text-left">
               <thead className="bg-[#F7F9FC]">
                 <tr className="text-xs uppercase tracking-wide text-gray-500">
-                  <th className="px-5 py-4 font-semibold">Receipt / Payment ID</th>
+                <th className="px-5 py-4 font-semibold">Receipt Number</th>
+                <th className="px-5 py-4 font-semibold">Booking ID</th>
                   <th className="px-5 py-4 font-semibold">Requester</th>
                   <th className="px-5 py-4 font-semibold">Transaction ID</th>
                   <th className="px-5 py-4 font-semibold">Amount</th>
@@ -496,7 +497,7 @@ const PaymentReceipts: React.FC = () => {
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center">
+                    <td colSpan={8} className="px-5 py-16 text-center">
                       <RefreshCw
                         size={25}
                         className="mx-auto animate-spin text-[#3975A5]"
@@ -508,7 +509,7 @@ const PaymentReceipts: React.FC = () => {
                   </tr>
                 ) : payments.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center">
+                    <td colSpan={8} className="px-5 py-16 text-center">
                       <ReceiptText
                         size={35}
                         className="mx-auto text-gray-300"
@@ -527,14 +528,21 @@ const PaymentReceipts: React.FC = () => {
                       key={payment._id}
                       className="transition hover:bg-blue-50/40"
                     >
-                      <td className="px-5 py-4">
-                        <p className="font-semibold text-[#14344A]">
-                          {payment.receiptNumber || payment._id}
-                        </p>
-                        <p className="mt-1 text-xs text-gray-400">
-                          {payment._id}
-                        </p>
-                      </td>
+                    <td className="px-5 py-4">
+  <p className="font-semibold text-[#14344A]">
+    {payment.receiptNumber ||
+      (typeof payment.receipt?.receiptNumber === "string"
+        ? payment.receipt.receiptNumber
+        : "—")}
+  </p>
+</td>
+<td className="px-5 py-4">
+  <p className="font-semibold text-[#14344A]">
+    {typeof payment.booking === "object" && payment.booking
+      ? payment.booking.publicServiceId || "—"
+      : "—"}
+  </p>
+</td>
 
                       <td className="px-5 py-4">
                         <p className="font-medium text-gray-800">
